@@ -52,10 +52,10 @@ import { BrandMark } from './ui/BrandMark';
 import { tokens } from '@/theme/tokens';
 
 /** Hauteur fixe de la navbar — utilisée pour le padding du layout */
-export const NAVBAR_HEIGHT = { xs: 72, sm: 80, md: 90 };
+export const NAVBAR_HEIGHT = { xs: 64, sm: 68, md: 74 };
 
-const ACTION_SIZE = { xs: 42, sm: 46, md: 50 };
-const ICON_SIZE = { xs: 22, sm: 24, md: 27.5 };
+const ACTION_SIZE = { xs: 38, sm: 40, md: 42 };
+const ICON_SIZE = { xs: 21, sm: 22.5, md: 24 };
 
 type NavItem = { label: string; path: string; icon: React.ReactNode };
 
@@ -862,34 +862,51 @@ export function Navigation() {
         disableScrollLock
       >
         {user && (
-          <Box
-            component="li"
-            sx={{
-              listStyle: 'none',
-              px: { xs: 1.5, sm: 2 },
-              py: { xs: 1.25, sm: 1.5 },
-              mx: { xs: 0.75, sm: 1 },
-              mb: { xs: 0.25, sm: 0.5 },
-              borderRadius: 1,
-              bgcolor: 'action.hover',
-            }}
-          >
-            <Stack direction="row" spacing={{ xs: 0.75, sm: 1, md: 1.25 }} sx={{ alignItems: 'center' }}>
-              <Avatar sx={{ width: { xs: 36, sm: 42, md: 50 }, height: { xs: 36, sm: 42, md: 50 }, bgcolor: 'primary.main', fontSize: { xs: 14, sm: 16, md: 18 }, fontWeight: 700 }}>
-                {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-              </Avatar>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography fontWeight={600} fontSize={{ xs: 14, sm: 15, md: 17.5 }} noWrap>
-                  {user.full_name || user.email}
-                </Typography>
-                <Typography fontSize={{ xs: 12, sm: 13, md: 15 }} color="text.secondary" noWrap>
-                  {user.email}
-                </Typography>
-              </Box>
-            </Stack>
+          <Box component="li" sx={{ listStyle: 'none', p: 0 }}>
+            <Box
+              sx={{
+                px: { xs: 1.25, sm: 1.5, md: 1.5 },
+                py: { xs: 1, sm: 1.1, md: 1.25 },
+                bgcolor: tokens.colors.surfaces.alt,
+              }}
+            >
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.1 }} sx={{ alignItems: 'center' }}>
+                <Avatar
+                  sx={{
+                    width: { xs: 32, sm: 36, md: 40 },
+                    height: { xs: 32, sm: 36, md: 40 },
+                    bgcolor: 'primary.main',
+                    fontSize: { xs: 14, sm: 15, md: 16 },
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                >
+                  {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    fontSize={{ xs: 13, sm: 14, md: 15 }}
+                    fontWeight={700}
+                    color="text.primary"
+                    noWrap
+                    sx={{ lineHeight: 1.25 }}
+                  >
+                    {user.full_name || user.email}
+                  </Typography>
+                  <Typography
+                    fontSize={{ xs: 12, sm: 12.5, md: 13 }}
+                    color="text.secondary"
+                    noWrap
+                    sx={{ lineHeight: 1.35 }}
+                  >
+                    {user.email}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
           </Box>
         )}
-        {user && <Divider sx={{ my: 0.5 }} />}
+        {user && <Divider sx={{ my: 0.25 }} />}
         {user &&
           userMenuItems.map((item) => (
             <MenuItem
@@ -902,7 +919,7 @@ export function Navigation() {
                   router.push(item.path);
                 }
               }}
-              sx={{ mx: { xs: 0.75, sm: 1 }, borderRadius: { xs: '8px', sm: '10px' }, py: { xs: 0.75, sm: 0.85, md: 1 }, fontSize: { xs: 14, sm: 15, md: 17.5 } }}
+              sx={{ mx: { xs: 0.75, sm: 1 }, borderRadius: { xs: '8px', sm: '10px' }, py: { xs: 0.6, sm: 0.65, md: 0.75 }, fontSize: { xs: 13.5, sm: 14.5, md: 16 } }}
             >
               <ListItemIcon sx={{ minWidth: { xs: 28, sm: 32 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />

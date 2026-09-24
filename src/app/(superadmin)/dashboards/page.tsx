@@ -59,17 +59,19 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { safeApiCall } from '@/lib/error-handler';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 import { SuperAdminService, type SuperAdminStats } from '@/services/superadmin.service';
 
+const C = tokens.colors;
+
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: C.brand.main,
+  dark: C.surfaces.inverse,
+  white: C.surfaces.paper,
+  light: C.brand.soft,
+  surface: C.surfaces.default,
+  border: C.border.light,
+  muted: C.text.secondary,
 } as const;
 
 type User = {
@@ -537,7 +539,7 @@ export default function SuperAdminDashboardPage() {
       {/* Hero */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.primary} 100%)`,
+          bgcolor: BRAND.dark,
           color: BRAND.white,
           px: { xs: 2, sm: 3, md: 4 },
           py: { xs: 4, md: 5 },
@@ -685,7 +687,7 @@ export default function SuperAdminDashboardPage() {
                   loading={statsLoading}
                   subtitle="Comptes actuellement actifs"
                   icon={<CheckCircleOutlined />}
-                  accent="#0D7A4A"
+                  accent={C.status.success}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -1043,8 +1045,8 @@ export default function SuperAdminDashboardPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: 11,
-                                bgcolor: row.is_active ? alpha('#0D7A4A', 0.1) : alpha(BRAND.muted, 0.15),
-                                color: row.is_active ? '#0D7A4A' : BRAND.muted,
+                                bgcolor: row.is_active ? alpha(C.status.success, 0.1) : alpha(BRAND.muted, 0.15),
+                                color: row.is_active ? C.status.success : BRAND.muted,
                               }}
                             />
                           </TableCell>

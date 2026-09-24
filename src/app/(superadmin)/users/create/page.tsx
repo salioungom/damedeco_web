@@ -27,16 +27,18 @@ import {
 import { RequireRole } from '@/components/RequireRole';
 import { useAuth } from '@/contexts/AuthContext';
 import { validatePhone } from '@/utils/phoneValidation';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
+
+const C = tokens.colors;
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: C.brand.main,
+  dark: C.surfaces.inverse,
+  white: C.surfaces.paper,
+  light: C.brand.soft,
+  surface: C.surfaces.default,
+  border: C.border.light,
+  muted: C.text.secondary,
 } as const;
 
 const fieldSx = {
@@ -196,7 +198,7 @@ export default function CreateAdminPage() {
         {/* Hero */}
         <Box
           sx={{
-            background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.primary} 100%)`,
+            bgcolor: BRAND.dark,
             color: BRAND.white,
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 3.5, md: 4.5 },

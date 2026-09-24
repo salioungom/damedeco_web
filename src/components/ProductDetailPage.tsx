@@ -38,20 +38,25 @@ import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
 import { PaymentIcons } from './PaymentIcons';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 const C = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  light: '#E6F1FB',
-  surface: '#F8FAFC',
-  border: '#D4E6F7',
-  mid: '#85B7EB',
-  muted: '#64748B',
-  text: '#5F5E5A',
-  gold: '#C6A75E',
+  primary: tokens.colors.brand.main,
+  dark:    tokens.colors.surfaces.inverse,
+  light:   tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border:  tokens.colors.border.light,
+  mid:     tokens.colors.brand.main,
+  muted:   tokens.colors.text.secondary,
+  text:    tokens.colors.text.primary,
+  paper:   tokens.colors.surfaces.paper,
+  gold:    tokens.colors.accent.main,
+  brandHover: tokens.colors.brand.hover,
+  statusError: tokens.colors.status.error,
+  statusSuccess: tokens.colors.status.success,
+  accentOnLight: tokens.colors.accent.onLight,
 } as const;
 
 const formatPrice = (amount: number) => formatFcfa(amount);
@@ -86,14 +91,14 @@ const navBtnSx = {
   position: 'absolute' as const,
   top: '50%',
   transform: 'translateY(-50%)',
-  bgcolor: alpha('#fff', 0.95),
+  bgcolor: alpha(C.paper, 0.95),
   color: C.dark,
   border: `1px solid ${C.border}`,
-  boxShadow: '0 4px 16px rgba(4,44,83,0.1)',
+  boxShadow: `0 4px 16px ${alpha(C.dark, 0.1)}`,
   width: { xs: 44, sm: 50, md: 55 },
   height: { xs: 44, sm: 50, md: 55 },
   zIndex: 2,
-  '&:hover': { bgcolor: '#fff', transform: 'translateY(-50%) scale(1.05)' },
+  '&:hover': { bgcolor: C.paper, transform: 'translateY(-50%) scale(1.05)' },
 };
 
 export function ProductDetailPage({
@@ -222,7 +227,7 @@ export function ProductDetailPage({
         borderRadius: '15px',
         overflow: 'hidden',
         border: selectedImage === index ? `2px solid ${C.primary}` : `1px solid ${C.border}`,
-        bgcolor: '#fff',
+        bgcolor: C.paper,
         p: 0,
         cursor: 'pointer',
         opacity: selectedImage === index ? 1 : 0.75,
@@ -303,7 +308,7 @@ export function ProductDetailPage({
                   position: 'relative',
                   borderRadius: { xs: '20px', sm: '22px', md: '25px' },
                   overflow: 'hidden',
-                  bgcolor: '#fff',
+                  bgcolor: C.paper,
                   border: `1px solid ${C.border}`,
                   aspectRatio: { xs: '1', sm: '4/5', md: '1' },
                   maxHeight: { md: 650, lg: 700 },
@@ -338,7 +343,7 @@ export function ProductDetailPage({
                         bottom: { xs: 12, sm: 14, md: 16 },
                         right: { xs: 12, sm: 14, md: 16 },
                         bgcolor: alpha(C.dark, 0.75),
-                        color: '#fff',
+                        color: C.paper,
                         fontWeight: 700,
                         fontSize: { xs: 13, sm: 14, md: 15 },
                         backdropFilter: 'blur(8px)',
@@ -373,7 +378,7 @@ export function ProductDetailPage({
               p: { xs: 2, sm: 3, md: 3.5 },
               borderRadius: { xs: '20px', sm: '22px', md: '25px' },
               border: `1px solid ${C.border}`,
-              bgcolor: '#fff',
+              bgcolor: C.paper,
               position: { lg: 'sticky' },
               top: { lg: 96 },
               boxShadow: `0 12px 40px ${alpha(C.dark, 0.06)}`,
@@ -384,7 +389,7 @@ export function ProductDetailPage({
                 <Chip
                   label="Populaire"
                   size="small"
-                  sx={{ bgcolor: alpha(C.gold, 0.15), color: '#92680a', fontWeight: 700, fontSize: { xs: 11.5, sm: 12.5, md: 13.75 } }}
+                  sx={{ bgcolor: alpha(C.gold, 0.15), color: C.accentOnLight, fontWeight: 700, fontSize: { xs: 11.5, sm: 12.5, md: 13.75 } }}
                 />
               )}
               {product.is_new && (
@@ -412,17 +417,17 @@ export function ProductDetailPage({
                 onClick={() => onToggleFavorite(productIdStr)}
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 sx={{
-                  border: '1px solid #185FA5',
+                  border: `1px solid ${C.primary}`,
                   borderRadius: '50%',
                   width: { xs: 36, sm: 45 },
                   height: { xs: 36, sm: 45 },
-                  color: isFavorite ? '#ff4d6d' : '#ffffff',
-                  bgcolor: '#185FA5',
-                  boxShadow: '0 2px 8px rgba(24, 95, 165, 0.25)',
+                  color: isFavorite ? C.statusError : C.paper,
+                  bgcolor: C.primary,
+                  boxShadow: `0 2px 8px ${alpha(C.primary, 0.25)}`,
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: '#185FA5',
-                    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
+                    bgcolor: C.brandHover,
+                    boxShadow: `0 4px 12px ${alpha(C.brandHover, 0.35)}`,
                     transform: 'scale(1.1)',
                   },
                 }}
@@ -447,7 +452,7 @@ export function ProductDetailPage({
 
             {product.average_rating && Number(product.average_rating) > 0 && (
               <Stack direction="row" spacing={{ xs: 0.5, sm: 0.75 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2 } }}>
-                <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: '#fbbf24' }} />
+                <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: C.gold }} />
                 <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, sm: 16, md: 17.5 }, color: C.dark }}>
                   {Number(product.average_rating).toFixed(1)}
                 </Typography>
@@ -474,9 +479,9 @@ export function ProductDetailPage({
                   <Chip
                     label={`-${discountPercent}%`}
                     size="small"
-                    sx={{ bgcolor: '#fef2f2', color: '#b91c1c', fontWeight: 800, fontSize: { xs: 13, sm: 14, md: 15 } }}
+                    sx={{ bgcolor: alpha(C.statusError, 0.08), color: C.statusError, fontWeight: 800, fontSize: { xs: 13, sm: 14, md: 15 } }}
                   />
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: '#16a34a', fontWeight: 600 }}>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.statusSuccess, fontWeight: 600 }}>
                     Économisez {formatPrice(originalPrice! - price)}
                   </Typography>
                 </Stack>
@@ -577,7 +582,7 @@ export function ProductDetailPage({
             mt: { xs: 4, sm: 5, md: 7 },
             borderRadius: { xs: '20px', sm: '22px', md: '25px' },
             border: `1px solid ${C.border}`,
-            bgcolor: '#fff',
+            bgcolor: C.paper,
             overflow: 'hidden',
           }}
         >

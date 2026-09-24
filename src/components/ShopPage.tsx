@@ -38,20 +38,21 @@ import ProductCard from './ProductCard';
 import { productService } from '../services/product.service';
 import { homeService } from '../services/home.service';
 import { Product, Category } from '../lib/types';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
-  primary: BRAND_BLUE,
-  dark:    '#042C53',
-  light:   '#E6F1FB',
-  surface: '#F5F9FE',
-  border:  '#E6F1FB',
-  mid:     '#85B7EB',
-  muted:   '#888780',
-  text:    '#5F5E5A',
+  primary: tokens.colors.brand.main,
+  dark:    tokens.colors.surfaces.inverse,
+  light:   tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border:  tokens.colors.border.light,
+  mid:     tokens.colors.brand.main,
+  muted:   tokens.colors.text.secondary,
+  text:    tokens.colors.text.primary,
+  paper:   tokens.colors.surfaces.paper,
 } as const;
 
 // ─── FilterSidebar (extracted outside ShopPage to prevent Slider remount crash) ──
@@ -75,7 +76,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
             Filtres
           </Typography>
           {activeFiltersCount > 0 && (
-            <Box sx={{ width: 22.5, height: 22.5, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 22.5, height: 22.5, borderRadius: '50%', bgcolor: C.primary, color: C.paper, fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {activeFiltersCount}
             </Box>
           )}
@@ -121,7 +122,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
                     sx={{
                       width: 25, height: 25,
                       borderRadius: '6.25px',
-                      border: `2px solid ${active ? C.primary : '#C4C3BF'}`,
+                      border: `2px solid ${active ? C.primary : C.border}`,
                       bgcolor: active ? C.primary : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0, transition: 'all 0.15s',
@@ -130,7 +131,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
                   >
                     {active && (
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke={C.paper} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     )}
                   </Box>
@@ -215,7 +216,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
           onChange={(_: Event, v: number | number[]) => setPriceRange(v as number[])}
           sx={{
             color: C.primary,
-            '& .MuiSlider-thumb': { width: 20, height: 20, border: `2px solid ${C.primary}`, bgcolor: '#fff', '&:hover': { boxShadow: `0 0 0 6px rgba(24,95,165,0.12)` } },
+            '& .MuiSlider-thumb': { width: 20, height: 20, border: `2px solid ${C.primary}`, bgcolor: C.paper, '&:hover': { boxShadow: `0 0 0 6px ${alpha(C.primary, 0.12)}` } },
             '& .MuiSlider-track': { height: 3.75 },
             '& .MuiSlider-rail': { height: 3.75, bgcolor: C.border },
           }}
@@ -336,10 +337,10 @@ export function ShopPage({
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ width: '100%', bgcolor: '#fff', minHeight: '100vh' }}>
+    <Box sx={{ width: '100%', bgcolor: C.paper, minHeight: '100vh' }}>
 
       {/* ── Barre haut de page ── */}
-      <Box sx={{ borderBottom: `1px solid ${C.border}`, bgcolor: '#fff', pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)` } }}>
+      <Box sx={{ borderBottom: `1px solid ${C.border}`, bgcolor: C.paper, pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)` } }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, md: 4 } }}>
           <Box
             sx={{
@@ -391,7 +392,7 @@ export function ShopPage({
               >
                 Filtres
                 {activeFiltersCount > 0 && (
-                  <Box sx={{ ml: 0.75, width: 22.5, height: 22.5, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{ ml: 0.75, width: 22.5, height: 22.5, borderRadius: '50%', bgcolor: C.primary, color: C.paper, fontSize: 12.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                     {activeFiltersCount}
                   </Box>
                 )}
@@ -463,7 +464,7 @@ export function ShopPage({
               height: 'calc(100vh - 64px)',
               overflowY: 'auto',
               borderRight: `1px solid ${C.border}`,
-              bgcolor: '#fff',
+              bgcolor: C.paper,
             }}
           >
             <FilterSidebar
@@ -573,7 +574,7 @@ export function ShopPage({
             sx: {
               width: 350,
               border: 'none',
-              boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
+              boxShadow: `4px 0 24px ${alpha(C.dark, 0.08)}`,
             },
           },
         }}

@@ -55,16 +55,18 @@ import { CategoriesManagement } from './CategoriesManagement';
 import { AdminOrderManagement } from './AdminOrderManagement';
 import ShippingManagement from './shipping/ShippingManagement';
 import { useAuth } from '@/contexts/AuthContext';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
+
+const C = tokens.colors;
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: C.brand.main,
+  dark: C.surfaces.inverse,
+  white: C.surfaces.paper,
+  light: C.brand.soft,
+  surface: C.surfaces.default,
+  border: C.border.light,
+  muted: C.text.secondary,
 } as const;
 
 interface ClientWithStats {
@@ -164,13 +166,13 @@ function getOrderCustomerName(order: { customer_name?: string | null; email?: st
 }
 
 const STATUS_META: { status: string; label: string; color: string }[] = [
-  { status: 'pending', label: 'En attente', color: '#F59E0B' },
-  { status: 'confirmed', label: 'Confirmée', color: '#185FA5' },
-  { status: 'processing', label: 'En traitement', color: '#2563EB' },
-  { status: 'shipped', label: 'Expédiée', color: '#6366F1' },
-  { status: 'delivered', label: 'Livrée', color: '#0D7A4A' },
-  { status: 'cancelled', label: 'Annulée', color: '#DC2626' },
-  { status: 'refunded', label: 'Remboursée', color: '#5F6B7A' },
+  { status: 'pending', label: 'En attente', color: C.status.warning },
+  { status: 'confirmed', label: 'Confirmée', color: C.brand.main },
+  { status: 'processing', label: 'En traitement', color: C.brand.hover },
+  { status: 'shipped', label: 'Expédiée', color: C.brand.active },
+  { status: 'delivered', label: 'Livrée', color: C.status.success },
+  { status: 'cancelled', label: 'Annulée', color: C.status.error },
+  { status: 'refunded', label: 'Remboursée', color: C.text.secondary },
 ];
 
 const PERIOD_OPTIONS: { value: 'all' | 'today' | '7d' | '30d'; label: string }[] = [
@@ -311,12 +313,12 @@ export function AdminDashboard() {
 
   const getStatusChipSx = (status: string) => {
     const colors: Record<string, { bg: string; color: string }> = {
-      pending: { bg: alpha('#F59E0B', 0.12), color: '#B45309' },
+      pending: { bg: alpha(C.status.warning, 0.12), color: C.status.warning },
       confirmed: { bg: alpha(BRAND.primary, 0.1), color: BRAND.primary },
       processing: { bg: alpha(BRAND.primary, 0.1), color: BRAND.primary },
-      shipped: { bg: alpha('#6366F1', 0.1), color: '#4F46E5' },
-      delivered: { bg: alpha('#0D7A4A', 0.1), color: '#0D7A4A' },
-      cancelled: { bg: alpha('#DC2626', 0.1), color: '#DC2626' },
+      shipped: { bg: alpha(C.brand.active, 0.12), color: C.brand.active },
+      delivered: { bg: alpha(C.status.success, 0.1), color: C.status.success },
+      cancelled: { bg: alpha(C.status.error, 0.1), color: C.status.error },
       refunded: { bg: alpha(BRAND.muted, 0.15), color: BRAND.muted },
     };
     const c = colors[status] || { bg: alpha(BRAND.muted, 0.1), color: BRAND.muted };
@@ -327,7 +329,7 @@ export function AdminDashboard() {
     <Box sx={{ bgcolor: BRAND.surface, minHeight: '100vh', pb: 6 }}>
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.primary} 100%)`,
+          bgcolor: BRAND.dark,
           color: BRAND.white,
           px: { xs: 2, sm: 3, md: 4 },
           py: { xs: 3.5, md: 4.5 },
@@ -470,7 +472,7 @@ export function AdminDashboard() {
                 subtitle={period === 'all' ? 'Hors commandes annulées/remboursées' : `Sur ${periodLabel.toLowerCase()}`}
                 icon={<DollarSign sx={{ fontSize: 30 }} />}
                 loading={loadingOverview}
-                accent="#0D7A4A"
+                accent={C.status.success}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -480,7 +482,7 @@ export function AdminDashboard() {
                 subtitle={period === 'all' ? 'Toutes commandes confondues' : `Sur ${periodLabel.toLowerCase()}`}
                 icon={<ShoppingCart sx={{ fontSize: 30 }} />}
                 loading={loadingOverview}
-                accent="#185FA5"
+                accent={C.brand.main}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -490,7 +492,7 @@ export function AdminDashboard() {
                 subtitle="Revenu ÷ commandes"
                 icon={<ReceiptIcon sx={{ fontSize: 30 }} />}
                 loading={loadingOverview}
-                accent="#6366F1"
+                accent={C.brand.active}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -500,7 +502,7 @@ export function AdminDashboard() {
                 subtitle="Catalogue (total backend)"
                 icon={<Package sx={{ fontSize: 30 }} />}
                 loading={loadingOverview}
-                accent="#B45309"
+                accent={C.status.warning}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -510,7 +512,7 @@ export function AdminDashboard() {
                 subtitle={period === 'all' ? 'Comptes enregistrés' : 'Sur la période sélectionnée'}
                 icon={<Users sx={{ fontSize: 30 }} />}
                 loading={loadingOverview}
-                accent="#0D9488"
+                accent={C.accent.main}
               />
             </Grid>
           </Grid>
