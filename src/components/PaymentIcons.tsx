@@ -6,8 +6,7 @@ interface PaymentIconsProps {
 }
 
 export function PaymentIcons({ size = 'md', showLabels = false }: PaymentIconsProps) {
-  const iconSize = size === 'sm' ? 32 : size === 'md' ? 48 : 64;
-  const containerSize = size === 'sm' ? 56 : size === 'md' ? 72 : 96;
+  const plaque = size === 'sm' ? { w: 56, h: 40 } : size === 'md' ? { w: 72, h: 52 } : { w: 96, h: 64 };
 
   const paymentMethods = [
     {
@@ -31,24 +30,21 @@ export function PaymentIcons({ size = 'md', showLabels = false }: PaymentIconsPr
   ];
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
       {paymentMethods.map((method) => (
         <Tooltip title={method.name} key={method.name}>
           <Box
             sx={{
-              width: containerSize,
-              height: containerSize,
-              bgcolor: 'white',
-              borderRadius: 2,
+              width: plaque.w,
+              height: plaque.h,
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              p: 1.5,
-              transition: 'all 0.2s ease-in-out',
-              cursor: 'pointer',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-              },
+              p: 0.5,
               '& img': {
                 maxWidth: '100%',
                 maxHeight: '100%',

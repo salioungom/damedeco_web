@@ -24,6 +24,9 @@ import {
   CheckCircle,
   Add as AddIcon,
   RequestQuote as RequestQuoteIcon,
+  Schedule,
+  LocalOffer,
+  SupportAgent,
 } from '@mui/icons-material';
 import { NAVBAR_HEIGHT } from './Navigation';
 
@@ -45,16 +48,23 @@ import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/error-handler';
 import { BRAND_BLUE, FONT_POPPINS } from '@/theme';
+import { tokens } from '@/theme/tokens';
 
 const C = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  light: '#E6F1FB',
-  surface: '#F8FAFC',
-  border: '#D4E6F7',
-  mid: '#85B7EB',
-  muted: '#64748B',
-  text: '#475569',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  light: tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.alt,
+  border: tokens.colors.border.light,
+  mid: tokens.colors.brand.soft,
+  muted: tokens.colors.text.secondary,
+  text: tokens.colors.text.secondary,
+  laiton: tokens.colors.accent.main,
+  laitonOnDark: tokens.colors.accent.onDark,
+  laitonOnLight: tokens.colors.accent.onLight,
+  ink: tokens.colors.surfaces.inverse,
+  onInverse: tokens.colors.text.onInverse,
+  onInverseMuted: tokens.colors.text.onInverseMuted,
 } as const;
 
 const HERO_IMAGE = '/banner.jpg';
@@ -66,7 +76,7 @@ const sectionLabelSx = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
-  color: C.primary,
+  color: C.laitonOnLight,
   mb: { xs: 1, sm: 1.25, md: 1.5 },
 };
 
@@ -109,6 +119,24 @@ const FEATURES = [
     description:
       'Transactions protégées et moyens de paiement locaux pour acheter en toute confiance.',
     paymentMethods: true,
+  },
+] as const;
+
+const CTA_BENEFITS = [
+  {
+    icon: Schedule,
+    title: 'Devis sous 24 h',
+    desc: 'Réponse chiffrée et personnalisée, y compris le week-end.',
+  },
+  {
+    icon: LocalOffer,
+    title: 'Tarifs négociés',
+    desc: 'Baisse automatique du prix dès 10 pièces commandées.',
+  },
+  {
+    icon: SupportAgent,
+    title: 'Accompagnement dédié',
+    desc: 'Un interlocuteur unique, du devis à la livraison.',
   },
 ] as const;
 
@@ -164,14 +192,14 @@ function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: st
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: imgSrc ? 'transparent' : `linear-gradient(145deg, ${C.primary} 0%, ${C.dark} 100%)`,
-        color: '#fff',
+        background: imgSrc ? 'transparent' : tokens.colors.brand.main,
+        color: tokens.colors.text.onInverse,
         fontWeight: 800,
         fontSize: 27.5,
         letterSpacing: '-0.02em',
         boxShadow: imgSrc
-          ? `0 4px 14px ${alpha(C.dark, 0.2)}`
-          : `0 4px 14px ${alpha(C.primary, 0.35)}`,
+          ? `0 4px 14px ${alpha(C.ink, 0.12)}`
+          : `0 4px 14px ${alpha(C.ink, 0.18)}`,
       }}
     >
       {imgSrc ? (
@@ -300,28 +328,15 @@ export function HomePage({
   return (
     <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: 'background.default' }}>
       {/* ── HERO PREMIUM ── */}
-      <Box
-        component="section"
-        sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          bgcolor: C.surface,
-          minHeight: { xs: 'auto', lg: heroMinHeight },
-        }}
-      >
-        <Box
+<Box
+          component="section"
           sx={{
-            position: 'absolute',
-            inset: 0,
-            background: `
-              radial-gradient(ellipse 80% 60% at 0% 0%, ${alpha(C.primary, 0.12)} 0%, transparent 55%),
-              radial-gradient(ellipse 60% 50% at 100% 100%, ${alpha(C.mid, 0.15)} 0%, transparent 50%),
-              linear-gradient(180deg, ${C.surface} 0%, #fff 100%)
-            `,
-            pointerEvents: 'none',
+            position: 'relative',
+            overflow: 'hidden',
+            bgcolor: C.surface,
+            minHeight: { xs: 'auto', lg: heroMinHeight },
           }}
-        />
-
+        >
         <Container
           maxWidth="xl"
           sx={{
@@ -345,8 +360,8 @@ export function HomePage({
                     display: { xs: 'none', sm: 'inline-flex' },
                     alignItems: 'center',
                     gap: { xs: 0.75, sm: 1 },
-                    bgcolor: alpha(C.primary, 0.04),
-                    border: `1px solid ${alpha(C.primary, 0.15)}`,
+                    bgcolor: alpha(C.ink, 0.04),
+                    border: `1px solid ${C.border}`,
                     borderRadius: '100px',
                     px: { xs: 1.25, sm: 1.5, md: 1.75 },
                     py: { xs: 0.5, sm: 0.625 },
@@ -354,7 +369,7 @@ export function HomePage({
                     boxShadow: '0 2px 12px rgba(4, 44, 83, 0.06)',
                   }}
                 >
-                  <Box sx={{ width: { xs: 7, sm: 8, md: 8.75 }, height: { xs: 7, sm: 8, md: 8.75 }, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
+                  <Box sx={{ width: { xs: 7, sm: 8, md: 8.75 }, height: { xs: 7, sm: 8, md: 8.75 }, borderRadius: '50%', bgcolor: tokens.colors.status.success, flexShrink: 0 }} />
                   <PlaceIcon sx={{ fontSize: { xs: 16, sm: 17, md: 18.75 }, color: C.primary }} />
                   <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 600, color: C.dark, letterSpacing: '0.04em' }}>
                     Dakar, Sénégal · Import premium direct depuis la Chine 🇨🇳 → 🇸🇳
@@ -374,15 +389,7 @@ export function HomePage({
                   }}
                 >
                   L&apos;art de{' '}
-                  <Box
-                    component="span"
-                    sx={{
-                      color: C.primary,
-                      background: `linear-gradient(135deg, ${C.primary} 0%, #2a7bc4 100%)`,
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    }}
-                  >
+                  <Box component="span" sx={{ color: C.laitonOnLight }}>
                     sublimer
                   </Box>{' '}
                   votre intérieur
@@ -454,13 +461,13 @@ export function HomePage({
                       textTransform: 'none',
                       width: { xs: '100%', sm: 'auto' },
                       whiteSpace: 'normal',
-                      boxShadow: `0 8px 28px ${alpha(C.primary, 0.35)}`,
+                      boxShadow: `0 8px 24px ${alpha(C.ink, 0.12)}`,
                       '&:hover': {
                         bgcolor: C.dark,
-                        boxShadow: `0 12px 32px ${alpha(C.primary, 0.4)}`,
                         transform: 'translateY(-1px)',
+                        boxShadow: `0 12px 32px ${alpha(C.ink, 0.14)}`,
                       },
-                      transition: 'all 0.2s ease',
+                      transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
                     }}
                   >
                     Explorer la Boutique →
@@ -473,7 +480,7 @@ export function HomePage({
                     sx={{
                       borderColor: C.border,
                       color: C.primary,
-                      bgcolor: '#fff',
+                      bgcolor: 'background.paper',
                       borderRadius: { xs: '10px', sm: '12.5px' },
                       px: { xs: 1.75, sm: 2.5, md: 3 },
                       py: { xs: 1.25, sm: 1.15, md: 1.25 },
@@ -516,13 +523,6 @@ export function HomePage({
                       sizes="(max-width: 600px) 100vw, (max-width: 900px) 90vw, 560px"
                       style={{ objectFit: 'cover', objectPosition: 'center' }}
                     />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: `linear-gradient(to top, ${alpha(C.dark, 0.35)} 0%, transparent 40%)`,
-                      }}
-                    />
                     <Paper
                       elevation={0}
                       sx={{
@@ -536,13 +536,13 @@ export function HomePage({
                         py: 1,
                         borderRadius: '15px',
                         bgcolor: C.dark,
-                        color: '#fff',
+                        color: C.onInverse,
                         boxShadow: '0 8px 24px rgba(4, 44, 83, 0.3)',
                       }}
                     >
                       <Truck sx={{ fontSize: 21.25, color: C.mid }} />
                       <Box>
-                        <Typography sx={{ fontSize: 11.25, color: alpha('#fff', 0.65), lineHeight: 1.2 }}>Livraison express</Typography>
+                        <Typography sx={{ fontSize: 11.25, color: alpha(C.onInverse, 0.65), lineHeight: 1.2 }}>Livraison express</Typography>
                         <Typography sx={{ fontSize: 13.75, fontWeight: 700 }}>Dakar & banlieue</Typography>
                       </Box>
                     </Paper>
@@ -567,19 +567,19 @@ export function HomePage({
                         px: { xs: 1, sm: 1.5 },
                         py: { xs: 0.5, sm: 0.75 },
                         borderRadius: '12.5px',
-                        bgcolor: '#fff',
+                        bgcolor: 'background.paper',
                         border: `1px solid ${C.border}`,
                         color: C.dark,
                         fontSize: { xs: 13, sm: 14.375 },
                         fontWeight: 600,
                         whiteSpace: 'nowrap',
-                        boxShadow: `0 4px 12px ${alpha(C.dark, 0.12)}`,
-                        transition: 'all 0.2s ease',
+                        boxShadow: `0 4px 12px ${alpha(C.ink, 0.10)}`,
+                        transition: 'background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease',
                         '&:hover': {
                           bgcolor: C.light,
                           borderColor: C.primary,
                           transform: 'translateY(-1px)',
-                          boxShadow: `0 6px 16px ${alpha(C.primary, 0.18)}`,
+                          boxShadow: `0 6px 16px ${alpha(C.ink, 0.12)}`,
                         },
                       }}
                     />
@@ -593,15 +593,15 @@ export function HomePage({
                       px: { xs: 1, sm: 1.5 },
                       py: { xs: 0.5, sm: 0.75 },
                       borderRadius: '12.5px',
-                      bgcolor: alpha(C.primary, 0.06),
-                      border: `1px dashed ${alpha(C.primary, 0.3)}`,
+                      bgcolor: alpha(C.ink, 0.04),
+                      border: `1px dashed ${C.border}`,
                       color: C.primary,
                       fontSize: { xs: 13, sm: 14.375 },
                       fontWeight: 600,
                       whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease',
+                      transition: 'background-color 0.15s ease, border-color 0.15s ease',
                       '&:hover': {
-                        bgcolor: alpha(C.primary, 0.1),
+                        bgcolor: alpha(C.ink, 0.06),
                         borderColor: C.primary,
                       },
                     }}
@@ -624,7 +624,7 @@ export function HomePage({
                     mt: 2,
                     p: 2,
                     borderRadius: '25px',
-                    bgcolor: '#fff',
+                    bgcolor: 'background.paper',
                     border: `1px solid ${C.border}`,
                     boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}`,
                     cursor: featuredProduct ? 'pointer' : 'default',
@@ -660,7 +660,7 @@ export function HomePage({
                             Sélection du moment
                           </Typography>
                           {featuredDiscount != null && (
-                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: 22.5, fontSize: 12.5, fontWeight: 800, bgcolor: '#fef2f2', color: '#b91c1c' }} />
+                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: 22.5, fontSize: 12.5, fontWeight: 800, bgcolor: alpha(tokens.colors.status.error, 0.1), color: tokens.colors.status.error }} />
                           )}
                         </Stack>
                         <Typography
@@ -747,36 +747,10 @@ export function HomePage({
         sx={{
           pt: { xs: 6, md: 8 },
           pb: { xs: 10, md: 13 },
-          background: `linear-gradient(180deg, #fff 0%, ${C.light} 100%)`,
+          bgcolor: 'background.paper',
           position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -220,
-            left: -180,
-            width: 520,
-            height: 520,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.primary, 0.06)} 0%, transparent 70%)`,
-            pointerEvents: 'none',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -120,
-            right: -160,
-            width: 460,
-            height: 460,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.mid, 0.12)} 0%, transparent 70%)`,
-            pointerEvents: 'none',
-          }}
-        />
-
         <Container maxWidth="xl" sx={{ position: 'relative', px: { xs: 2, sm: 3, md: 4 } }}>
           <Box
             sx={{
@@ -790,14 +764,14 @@ export function HomePage({
           >
             <Box sx={{ maxWidth: { xs: '100%', sm: 560 } }}>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: { xs: 1.5, md: 2 } }}>
-                <Box sx={{ width: 34, height: 2, borderRadius: '2px', bgcolor: C.primary }} />
+                <Box sx={{ width: 34, height: 2, borderRadius: '2px', bgcolor: C.laitonOnLight }} />
                 <Typography
                   sx={{
                     fontSize: { xs: 12, sm: 13, md: 14 },
                     fontWeight: 700,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    color: C.primary,
+                    color: C.laitonOnLight,
                   }}
                 >
                   Nos avantages
@@ -846,16 +820,16 @@ export function HomePage({
                     p: { xs: 2.5, sm: 3, md: 3.5 },
                     height: '100%',
                     borderRadius: { xs: '20px', md: '24px' },
-                    bgcolor: '#fff',
+                    bgcolor: 'background.paper',
                     border: `1px solid ${alpha(C.border, 0.7)}`,
-                    boxShadow: `0 2px 20px ${alpha(C.dark, 0.05)}`,
+                    boxShadow: `0 2px 20px ${alpha(C.ink, 0.04)}`,
                     display: 'flex',
                     flexDirection: 'column',
                     transition: 'box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease',
                     '&:hover': {
                       transform: 'translateY(-4px)',
-                      borderColor: alpha(C.primary, 0.35),
-                      boxShadow: `0 22px 48px ${alpha(C.dark, 0.1)}`,
+                      borderColor: C.primary,
+                      boxShadow: `0 22px 48px ${alpha(C.ink, 0.08)}`,
                     },
                     '@media (prefers-reduced-motion: reduce)': {
                       transition: 'none',
@@ -885,7 +859,7 @@ export function HomePage({
                         fontFamily: FONT_POPPINS,
                         fontSize: { xs: 15, md: 16 },
                         fontWeight: 700,
-                        color: alpha(C.muted, 0.55),
+                        color: C.laitonOnLight,
                         letterSpacing: '0.04em',
                       }}
                     >
@@ -979,7 +953,7 @@ export function HomePage({
                   fontWeight: 600,
                   textTransform: 'none',
                   flexShrink: 0,
-                  bgcolor: '#fff',
+                  bgcolor: 'background.paper',
                   '&:hover': { bgcolor: C.light, borderColor: C.mid },
                 }}
               >
@@ -1009,7 +983,7 @@ export function HomePage({
                 textAlign: 'center',
                 borderRadius: '22.5px',
                 border: `1px dashed ${C.border}`,
-                bgcolor: '#fff',
+                bgcolor: 'background.paper',
               }}
             >
               <Typography sx={{ color: C.muted, fontSize: 17.5 }}>Les catégories seront bientôt disponibles.</Typography>
@@ -1047,7 +1021,7 @@ export function HomePage({
                           '&:hover .cat-img': { transform: 'scale(1.06)' },
                           '&:hover .cat-cta': { opacity: 1, transform: 'translateX(0)' },
                           '&:hover .cat-overlay': {
-                            background: `linear-gradient(to top, ${alpha(C.dark, 0.88)} 0%, ${alpha(C.dark, 0.25)} 55%, transparent 100%)`,
+                            backgroundColor: alpha(C.dark, 0.55),
                           },
                         }}
                       >
@@ -1076,7 +1050,7 @@ export function HomePage({
                             sx={{
                               position: 'absolute',
                               inset: 0,
-                              background: `linear-gradient(135deg, ${C.dark} 0%, ${C.primary} 100%)`,
+                              bgcolor: C.primary,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -1091,8 +1065,8 @@ export function HomePage({
                           sx={{
                             position: 'absolute',
                             inset: 0,
-                            background: `linear-gradient(to top, ${alpha(C.dark, 0.75)} 0%, ${alpha(C.dark, 0.1)} 55%, transparent 100%)`,
-                            transition: 'background 0.35s ease',
+                            backgroundColor: alpha(C.dark, 0.35),
+                            transition: 'background-color 0.35s ease',
                           }}
                         />
 
@@ -1101,7 +1075,7 @@ export function HomePage({
                             <Box>
                               <Typography
                                 sx={{
-                                  color: '#fff',
+                                  color: C.onInverse,
                                   fontWeight: 800,
                                   fontSize: { xs: 20, md: 22.5 },
                                   letterSpacing: '-0.02em',
@@ -1111,7 +1085,7 @@ export function HomePage({
                                 {category.name}
                               </Typography>
                               {category.product_count !== undefined && (
-                                <Typography sx={{ color: alpha('#fff', 0.72), fontSize: 15, mt: 0.5 }}>
+                                <Typography sx={{ color: alpha(C.onInverse, 0.72), fontSize: 15, mt: 0.5 }}>
                                   {category.product_count} produit{category.product_count > 1 ? 's' : ''}
                                 </Typography>
                               )}
@@ -1121,7 +1095,7 @@ export function HomePage({
                               sx={{
                                 fontSize: 15,
                                 fontWeight: 700,
-                                color: '#fff',
+                                color: C.onInverse,
                                 opacity: 0,
                                 transform: 'translateX(-8px)',
                                 transition: 'all 0.3s ease',
@@ -1139,10 +1113,10 @@ export function HomePage({
                 <CarouselPrevious
                   sx={{
                     left: { xs: -12, md: -20 },
-                    bgcolor: '#fff',
+                    bgcolor: 'background.paper',
                     border: `1px solid ${C.border}`,
                     color: C.dark,
-                    boxShadow: `0 4px 16px ${alpha(C.dark, 0.12)}`,
+                    boxShadow: `0 4px 16px ${alpha(C.ink, 0.10)}`,
                     width: { xs: 45, md: 52.5 },
                     height: { xs: 45, md: 52.5 },
                     '&:hover': { bgcolor: C.light },
@@ -1152,10 +1126,10 @@ export function HomePage({
                 <CarouselNext
                   sx={{
                     right: { xs: -12, md: -20 },
-                    bgcolor: '#fff',
+                    bgcolor: 'background.paper',
                     border: `1px solid ${C.border}`,
                     color: C.dark,
-                    boxShadow: `0 4px 16px ${alpha(C.dark, 0.12)}`,
+                    boxShadow: `0 4px 16px ${alpha(C.ink, 0.10)}`,
                     width: { xs: 45, md: 52.5 },
                     height: { xs: 45, md: 52.5 },
                     '&:hover': { bgcolor: C.light },
@@ -1169,7 +1143,7 @@ export function HomePage({
       </Box>
 
       {/* Produits populaires */}
-      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#fff' }}>
+      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: 'background.paper' }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <SectionHeader
             label="Sélection"
@@ -1188,7 +1162,7 @@ export function HomePage({
                   fontSize: 16.25,
                   fontWeight: 700,
                   textTransform: 'none',
-                  boxShadow: `0 6px 20px ${alpha(C.primary, 0.3)}`,
+                  boxShadow: `0 6px 20px ${alpha(C.ink, 0.15)}`,
                   flexShrink: 0,
                   '&:hover': { bgcolor: C.dark },
                 }}
@@ -1245,100 +1219,137 @@ export function HomePage({
       <Box component="section" sx={{ pb: { xs: 6, md: 10 }, pt: { xs: 0, md: 2 } }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box
+            component="article"
             sx={{
-              borderRadius: '25px',
-              overflow: 'hidden',
               position: 'relative',
-              bgcolor: C.dark,
-              px: { xs: 3, sm: 3.5, md: 5 },
-              py: { xs: 4, sm: 5, md: 7 },
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'stretch', md: 'center' },
-              justifyContent: 'space-between',
-              gap: { xs: 3, md: 4 },
-              border: `1px solid ${alpha(C.mid, 0.2)}`,
-              background: `linear-gradient(135deg, ${C.dark} 0%, #0a3d6e 50%, ${C.primary} 120%)`,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: '-80px',
-                right: '-40px',
-                width: 400,
-                height: 400,
-                borderRadius: '50%',
-                background: alpha(C.mid, 0.2),
-                filter: 'blur(70px)',
-                pointerEvents: 'none',
-              },
+              overflow: 'hidden',
+              borderRadius: { xs: '16px', md: '20px' },
+              bgcolor: C.primary,
+              px: { xs: 3, sm: 4, md: 6 },
+              py: { xs: 4, sm: 5, md: 6 },
             }}
           >
-            <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 675 }}>
-              <Typography sx={{ ...sectionLabelSx, color: C.mid, mb: { xs: 1, md: 1.5 } }}>Achat en gros</Typography>
-              <Typography
-                component="h2"
-                sx={{
-                  fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.15rem' },
-                  fontWeight: 800,
-                  color: '#fff',
-                  lineHeight: 1.15,
-                  letterSpacing: '-0.03em',
-                  mb: 1.5,
-                }}
-              >
-                Vous commandez en grande quantité ?
-              </Typography>
-              <Typography sx={{ fontSize: { xs: 17.5, md: 18.75 }, color: alpha('#fff', 0.72), lineHeight: 1.75, maxWidth: 600 }}>
-                Tarifs dégressifs pour les professionnels, devis personnalisé sous 24h et accompagnement dédié.
-              </Typography>
-              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: { xs: 2.5, md: 3 } }}>
-                {['Devis sous 24h', 'Tarifs négociés', 'Support prioritaire'].map((tag) => (
-                  <Chip
-                    key={tag}
-                    label={tag}
-                    size="small"
-                    sx={{
-                      bgcolor: alpha('#fff', 0.1),
-                      color: alpha('#fff', 0.9),
-                      fontWeight: 600,
-                      fontSize: { xs: 12.5, sm: 13.25, md: 13.75 },
-                      border: `1px solid ${alpha('#fff', 0.18)}`,
-                      height: { xs: 28, md: 32 },
-                    }}
-                  />
-                ))}
-              </Stack>
-            </Box>
+            <Box
+              sx={{
+                position: 'relative',
+                zIndex: 1,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
+                gap: { xs: 4, md: 6 },
+                alignItems: 'center',
+              }}
+            >
+              {/* Contenu éditorial */}
+              <Box>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ width: 32, height: 2, borderRadius: 1, bgcolor: C.laitonOnDark }} />
+                  <Typography sx={{ ...sectionLabelSx, mb: 0, color: C.laitonOnDark }}>Achat en gros</Typography>
+                </Stack>
+                <Typography
+                  component="h2"
+                  sx={{
+                    fontFamily: FONT_POPPINS,
+                    fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.15rem', lg: '2.5rem' },
+                    fontWeight: 800,
+                    lineHeight: 1.15,
+                    letterSpacing: '-0.03em',
+                    color: C.onInverse,
+                    mb: 2,
+                  }}
+                >
+                  Vous approvisionnez en{' '}
+                  <Box component="span" sx={{ color: C.laitonOnDark }}>
+                    volume&nbsp;?
+                  </Box>
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 16, md: 17.5 }, color: C.onInverseMuted, lineHeight: 1.75, maxWidth: 620, mb: { xs: 3, md: 4 } }}>
+                  Tarifs dégressifs, devis personnalisé sous 24&nbsp;h et interlocuteur dédié pour hôtels, villas, boutiques et
+                  décorateurs au Sénégal.
+                </Typography>
 
-            <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0, display: 'flex', justifyContent: { xs: 'center', md: 'flex-end' }, width: { xs: '100%', md: 'auto' } }}>
-              <Button
-                variant="contained"
-                size="large"
-                endIcon={<ArrowRight />}
-                onClick={() => handleNavigate('contact')}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                    gap: { xs: 3, sm: 2 },
+                    pt: { xs: 2.5, md: 3 },
+                    borderTop: `1px solid ${alpha(C.onInverse, 0.14)}`,
+                  }}
+                >
+                  {CTA_BENEFITS.map((b) => {
+                    const Icon = b.icon;
+                    return (
+                      <Box key={b.title}>
+                        <Icon sx={{ fontSize: 24, color: C.laitonOnDark, mb: 1.25 }} />
+                        <Typography sx={{ fontSize: 15.5, fontWeight: 700, color: C.onInverse, mb: 0.5 }}>
+                          {b.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: 13.5, md: 14 }, color: C.onInverseMuted, lineHeight: 1.6 }}>
+                          {b.desc}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {/* Carte devis express — opaque */}
+              <Paper
+                elevation={0}
                 sx={{
-                  bgcolor: C.primary,
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: { xs: 15, sm: 16, md: 17.5 },
-                  px: { xs: 3, sm: 3.5, md: 4 },
-                  py: { xs: 1.5, sm: 1.6, md: 1.75 },
-                  borderRadius: '15px',
-                  textTransform: 'none',
-                  whiteSpace: 'nowrap',
-                  width: { xs: '100%', md: 'auto' },
-                  border: `2px solid ${alpha('#fff', 0.25)}`,
-                  boxShadow: `0 8px 32px ${alpha(C.primary, 0.5)}, inset 0 1px 0 ${alpha('#fff', 0.2)}`,
-                  '&:hover': {
-                    bgcolor: C.dark,
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 12px 40px ${alpha(C.primary, 0.6)}`,
-                  },
-                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  borderRadius: 1.5,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  p: { xs: 2.5, sm: 3, md: 3.5 },
                 }}
               >
-                Demander un devis
-              </Button>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.laitonOnLight, mb: 0.75 }}>
+                  Devis express
+                </Typography>
+                <Typography sx={{ fontSize: 19, fontWeight: 700, color: C.dark, lineHeight: 1.3, mb: 2.5 }}>
+                  Recevez votre tarif sous 24&nbsp;h
+                </Typography>
+
+                {[
+                  { label: 'Votre besoin', value: 'Meubles & décoration' },
+                  { label: 'Quantité estimée', value: 'Dès 10 pièces' },
+                  { label: 'Zone de livraison', value: 'Dakar & tout le Sénégal' },
+                ].map((row) => (
+                  <Box key={row.label} sx={{ py: 1.5, borderBottom: `1px dashed ${C.border}` }}>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.muted, mb: 0.25 }}>
+                      {row.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: 15, color: C.dark }}>{row.value}</Typography>
+                  </Box>
+                ))}
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  endIcon={<ArrowRight />}
+                  fullWidth
+                  onClick={() => handleNavigate('contact')}
+                  sx={{
+                    mt: 3,
+                    bgcolor: C.primary,
+                    color: C.onInverse,
+                    fontWeight: 700,
+                    fontSize: { xs: 15, md: 16 },
+                    py: 1.5,
+                    borderRadius: 1,
+                    textTransform: 'none',
+                    boxShadow: `0 8px 24px ${alpha(C.ink, 0.18)}`,
+                    '&:hover': { bgcolor: C.dark },
+                  }}
+                >
+                  Demander un devis
+                </Button>
+                <Typography sx={{ mt: 1.5, textAlign: 'center', fontSize: 12.5, color: C.muted }}>
+                  Réponse personnalisée · Sans engagement
+                </Typography>
+              </Paper>
             </Box>
           </Box>
         </Container>

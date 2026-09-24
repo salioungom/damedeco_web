@@ -5,6 +5,11 @@ import { tokens } from '@/theme/tokens';
 
 declare module '@mui/material/styles' {
   interface Palette {
+    accent: {
+      main: string;
+      onDark: string;
+      onLight: string;
+    };
     custom: {
       light: string;
       main: string;
@@ -25,6 +30,11 @@ declare module '@mui/material/styles' {
     };
   }
   interface PaletteOptions {
+    accent?: {
+      main?: string;
+      onDark?: string;
+      onLight?: string;
+    };
     custom?: {
       light?: string;
       main: string;
@@ -71,10 +81,10 @@ export const FONT_INTER = inter.style.fontFamily;
 export const FONT_POPPINS = poppins.style.fontFamily;
 export const FONT_FRAUNCES = fraunces.style.fontFamily;
 
-export const BRAND_BLUE = tokens.colors.brand;
+export const BRAND_BLUE = tokens.colors.brand.main;
 
 const { colors, fontSize } = tokens;
-const focusRing = `2px solid ${alpha(colors.brand, 0.4)}`;
+const focusRing = `2px solid ${tokens.colors.status.focus}`;
 
 const theme = createTheme({
   spacing: 10,
@@ -147,7 +157,7 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: colors.brand,
+      main: colors.brand.main,
       light: '#2E64A8',
       dark: colors.brandDark,
       contrastText: '#ffffff',
@@ -177,22 +187,27 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
     info: {
-      main: colors.brand,
+      main: colors.brand.main,
       light: '#2E64A8',
       dark: colors.brandDark,
     },
     text: {
-      primary: colors.ink,
-      secondary: colors.inkMuted,
-      disabled: colors.disabled,
+      primary: colors.text.primary,
+      secondary: colors.text.secondary,
+      disabled: colors.text.disabled,
     },
     background: {
-      default: '#f8fafc',
-      paper: colors.white,
+      default: colors.surfaces.default,
+      paper: colors.surfaces.paper,
     },
-    divider: colors.border,
+    divider: colors.border.light,
+    accent: {
+      main: colors.accent.main,
+      onDark: colors.accent.onDark,
+      onLight: colors.accent.onLight,
+    },
     custom: {
-      main: colors.brand,
+      main: colors.brand.main,
       light: '#2E64A8',
       dark: colors.brandDark,
       contrastText: '#ffffff',
@@ -204,10 +219,10 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
     laiton: {
-      main: colors.laiton,
-      light: '#C99B5F',
-      dark: '#96703A',
-      contrastText: '#ffffff',
+      main: colors.accent.main,
+      light: colors.accent.onDark,
+      dark: colors.accent.onLight,
+      contrastText: colors.text.primary,
     },
   },
   shape: {
@@ -248,7 +263,7 @@ const theme = createTheme({
           fontSize: fontSize.md,
         },
         containedPrimary: {
-          background: colors.brand,
+          background: colors.brand.main,
           '&:hover': {
             background: colors.brandDark,
           },
@@ -261,25 +276,25 @@ const theme = createTheme({
           },
         },
         outlinedPrimary: {
-          borderColor: colors.brand,
-          color: colors.brand,
+          borderColor: colors.brand.main,
+          color: colors.brand.main,
           '&:hover': {
             borderColor: colors.brandDark,
-            background: alpha(colors.brand, 0.06),
+            background: alpha(colors.brand.main, 0.06),
           },
         },
         outlined: {
-          borderColor: colors.border,
+          borderColor: colors.border.light,
           color: colors.ink,
           '&:hover': {
-            borderColor: colors.brand,
-            background: alpha(colors.brand, 0.05),
+            borderColor: colors.brand.main,
+            background: alpha(colors.brand.main, 0.05),
           },
         },
         textPrimary: {
-          color: colors.brand,
+          color: colors.brand.main,
           '&:hover': {
-            background: alpha(colors.brand, 0.08),
+            background: alpha(colors.brand.main, 0.08),
           },
         },
       },
@@ -289,7 +304,7 @@ const theme = createTheme({
         root: {
           borderRadius: 12,
           boxShadow: 'none',
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${colors.border.light}`,
         },
       },
     },
@@ -318,7 +333,7 @@ const theme = createTheme({
         root: {
           borderRadius: 8,
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.border,
+            borderColor: colors.border.light,
           },
           '&.Mui-error .MuiOutlinedInput-notchedOutline': {
             borderColor: colors.error,
@@ -329,12 +344,12 @@ const theme = createTheme({
             borderRadius: 8,
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.brand,
+            borderColor: colors.brand.main,
             borderWidth: 1,
           },
         },
         notchedOutline: {
-          borderColor: colors.border,
+          borderColor: colors.border.light,
         },
         input: {
           fontSize: '1rem',
@@ -348,7 +363,7 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          color: colors.brand,
+          color: colors.brand.main,
           textUnderlineOffset: '3px',
           '&.Mui-focusVisible': {
             outline: focusRing,
@@ -397,7 +412,7 @@ theme.components = {
         background: colors.ivory,
       },
       '::-webkit-scrollbar-thumb': {
-        background: colors.border,
+        background: colors.border.light,
         borderRadius: '5px',
         '&:hover': {
           background: colors.disabled,

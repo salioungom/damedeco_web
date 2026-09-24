@@ -1,916 +1,513 @@
 'use client';
 
-import {
-  VerifiedUser,
-  LocalShipping,
-  Star,
-  Visibility,
-  SupportAgent,
-  Shield,
-  Handshake,
-  Lightbulb,
-  Groups,
-  EmojiEvents,
-  TrendingUp,
-  WorkspacePremium,
-  ArrowForward,
-  Place,
-  Phone,
-  Email,
-  CheckCircle,
-  Diamond,
-  Spa,
-} from '@mui/icons-material';
-import {
-  Box,
-  Typography,
-  Container,
-  Stack,
-  Button,
-  Avatar,
-  alpha,
-} from '@mui/material';
+import { ArrowOutward, ArrowRight, LocalOffer, Schedule, SupportAgent } from '@mui/icons-material';
+import { alpha, Box, Container, Paper, Stack, Typography, Button, Link as MuiLink } from '@mui/material';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { BRAND_BLUE } from '@/theme';
+import { Eyebrow } from '@/components/ui/PageHeader';
+import { EditorialList } from '@/components/ui/EditorialList';
+import { useCategories } from '@/hooks/useCategories';
+import { FONT_FRAUNCES, FONT_POPPINS } from '@/theme';
+import { tokens } from '@/theme/tokens';
 
-// ─── Palette (unchanged) ──────────────────────────────────────────────────────
+const HISTORY = [
+  "Depuis 2010, DameDéco Import & Commerce importe depuis la Chine des produits premium — meubles, décoration et textile — pour les particuliers et les professionnels au Sénégal. Nous travaillons directement avec des fournisseurs certifiés pour garantir les meilleurs prix et un niveau de qualité constant, produit par produit.",
+  "Basée à Dakar, l’entreprise accompagne ses clients du choix du produit jusqu’à la livraison. Pour les pros comme pour les particuliers : devis personnalisé, tarifs dégressifs dès 10 pièces et un interlocuteur unique, disponible tout au long de la commande.",
+];
+
+const DISTINCTIONS = [
+  {
+    num: '01',
+    title: 'Une sélection exigeante',
+    description:
+      'Chaque produit est choisi directement chez des fournisseurs certifiés en Chine et contrôlé avant expédition — meubles, décoration et textile, sélectionnés pour leur finition.',
+  },
+  {
+    num: '02',
+    title: 'Devis chiffré sous 24 h',
+    description:
+      'Prix dégressifs dès 10 pièces et réponse chiffrée et personnalisée sous 24 h, y compris le week-end, pour les commandes des particuliers comme des professionnels.',
+  },
+  {
+    num: '03',
+    title: 'Accompagnement de bout en bout',
+    description:
+      'Un interlocuteur unique du devis à la livraison, une équipe basée à Dakar disponible du lundi au samedi, et une logistique répartie dans tout le Sénégal.',
+  },
+];
+
+const CTA_BENEFITS = [
+  {
+    icon: Schedule,
+    title: 'Devis sous 24 h',
+    desc: 'Réponse chiffrée et personnalisée, y compris le week-end.',
+  },
+  {
+    icon: LocalOffer,
+    title: 'Tarifs négociés',
+    desc: 'Baisse automatique du prix dès 10 pièces commandées.',
+  },
+  {
+    icon: SupportAgent,
+    title: 'Accompagnement dédié',
+    desc: 'Un interlocuteur unique, du devis à la livraison.',
+  },
+] as const;
+
 const C = {
-  primary: BRAND_BLUE,
-  dark:    '#042C53',
-  light:   '#E6F1FB',
-  surface: '#F5F9FE',
-  border:  '#E6F1FB',
-  mid:     '#85B7EB',
-  muted:   '#888780',
-  text:    '#5F5E5A',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  border: tokens.colors.border.light,
+  muted: tokens.colors.text.secondary,
+  laitonOnDark: tokens.colors.accent.onDark,
+  laitonOnLight: tokens.colors.accent.onLight,
+  ink: tokens.colors.surfaces.inverse,
+  onInverse: tokens.colors.text.onInverse,
+  onInverseMuted: tokens.colors.text.onInverseMuted,
 } as const;
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const TIMELINE = [
-  { year: '2010', title: "Création de l'entreprise", desc: "Dame Sarr débute l'importation avec une vision claire : offrir des produits de qualité accessibles à Dakar.", icon: <EmojiEvents sx={{ fontSize: 20 }} /> },
-  { year: '2015', title: 'Expansion de la gamme', desc: 'Diversification vers la literie, les meubles et la décoration. Premier partenariat majeur avec des fournisseurs certifiés en Chine.', icon: <TrendingUp sx={{ fontSize: 20 }} /> },
-  { year: '2020', title: 'Croissance & showroom', desc: '5 000+ clients satisfaits. Ouverture d\'un showroom moderne à Dakar et développement de l\'activité grossiste.', icon: <WorkspacePremium sx={{ fontSize: 20 }} /> },
-  { year: '2024', title: 'Excellence & e-commerce', desc: 'Lancement de la plateforme en ligne. Livraison express dans tout le Sénégal et service client 6j/7.', icon: <Groups sx={{ fontSize: 20 }} /> },
-];
+const sectionLabelSx = {
+  fontSize: { xs: 12, sm: 13, md: 14, lg: 15 },
+  fontWeight: 700,
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: C.laitonOnLight,
+  mb: { xs: 1, sm: 1.25, md: 1.5 },
+};
 
-const VALUES = [
-  { icon: <Shield sx={{ fontSize: 25 }} />,      title: 'Qualité garantie',           desc: 'Chaque produit est rigoureusement sélectionné chez des fournisseurs certifiés avant d\'être proposé à la vente.' },
-  { icon: <Handshake sx={{ fontSize: 25 }} />,   title: 'Accompagnement dédié',       desc: 'Un suivi personnalisé à chaque étape — de la commande à la livraison, nous sommes à vos côtés.' },
-  { icon: <Lightbulb sx={{ fontSize: 25 }} />,   title: 'Innovation continue',        desc: 'Nous améliorons constamment nos services pour vous offrir la meilleure expérience d\'achat.' },
-  { icon: <VerifiedUser sx={{ fontSize: 25 }} />, title: 'Confiance & transparence',  desc: 'Prix clairs, politique de retour simple, et communication honnête à chaque interaction.' },
-  { icon: <LocalShipping sx={{ fontSize: 25 }} />, title: 'Livraison rapide',         desc: 'Expédition express 24–48h sur Dakar et banlieue avec suivi en temps réel de votre colis.' },
-  { icon: <SupportAgent sx={{ fontSize: 25 }} />, title: 'Support réactif',           desc: 'Une équipe disponible du lundi au samedi pour répondre à toutes vos questions et vous conseiller.' },
-];
-
-const TEAM = [
-  { name: 'Dame Sarr',     role: 'Fondatrice & CEO',              initials: 'DS', color: C.primary },
-  { name: 'Aminata Diop',  role: 'Directrice des Opérations',     initials: 'AD', color: '#0C6E4F' },
-  { name: 'Moussa Ndiaye', role: 'Responsable Logistique',        initials: 'MN', color: '#7C3AED' },
-  { name: 'Fatou Seck',    role: 'Responsable Service Client',    initials: 'FS', color: '#B45309' },
-];
-
-const STATS = [
-  { num: '14+',   label: "Années d'expérience" },
-  { num: '5 000+', label: 'Clients satisfaits' },
-  { num: '1 200+', label: 'Produits disponibles' },
-  { num: '6j/7',  label: 'Support client' },
-];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function AboutPage() {
   const router = useRouter();
+  const { categories, loading } = useCategories();
+
+  const focusRing = {
+    '&:focus-visible': {
+      outline: `2px solid ${tokens.colors.status.focus}`,
+      outlineOffset: '2px',
+    },
+  };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#fff', width: '100%' }}>
-
-      {/* ══════════════════════════════════════════
-          1. HERO — premium split layout
-      ══════════════════════════════════════════ */}
-      <Box
-        sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          bgcolor: C.surface,
-          borderBottom: `1px solid ${C.border}`,
-          pt: { xs: 10, md: 14 },
-          pb: { xs: 8, md: 12 },
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `
-              radial-gradient(circle at 20px 20px, ${alpha(C.primary, 0.04)} 1px, transparent 1px)
-            `,
-            backgroundSize: '40px 40px',
-            pointerEvents: 'none',
-          },
-        }}
-      >
-        {/* Decorative blur orbs */}
-        <Box
+    <Box sx={{ width: '100%', bgcolor: 'background.default' }}>
+      {/* ── En-tête asymétrique 7/5 ── */}
+      <Box component="section" aria-labelledby="about-hero" sx={{ width: '100%' }}>
+        <Container
+          maxWidth="lg"
           sx={{
-            position: 'absolute',
-            top: '-120px',
-            right: '-80px',
-            width: 500,
-            height: 500,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.primary, 0.08)} 0%, transparent 70%)`,
-            filter: 'blur(60px)',
-            pointerEvents: 'none',
+            px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
+            py: 'clamp(3rem, 8vw, 6rem)',
           }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: '-100px',
-            left: '-60px',
-            width: 375,
-            height: 375,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.primary, 0.05)} 0%, transparent 70%)`,
-            filter: 'blur(50px)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, position: 'relative', zIndex: 1 }}>
+        >
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: { xs: 6, md: 10 },
+              gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
+              gap: { xs: 5, md: 8 },
               alignItems: 'center',
             }}
           >
-            {/* ─── Left: Text ─── */}
             <Box>
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  bgcolor: alpha(C.primary, 0.08),
-                  border: `1px solid ${alpha(C.primary, 0.15)}`,
-                  borderRadius: '25px',
-                  px: 1.5,
-                  py: 0.5,
-                  mb: 3,
-                  backdropFilter: 'blur(4px)',
-                }}
-              >
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22c55e' }} />
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.primary, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                  Depuis 2010 · Dakar, Sénégal
-                </Typography>
-              </Box>
-
+              <Eyebrow>À propos</Eyebrow>
               <Typography
+                id="about-hero"
                 component="h1"
                 sx={{
-                  fontSize: { xs: '2rem', sm: '2.6rem', md: '3.2rem' },
-                  fontWeight: 800,
-                  color: C.dark,
-                  lineHeight: 1.05,
-                  letterSpacing: '-0.035em',
+                  fontFamily: FONT_FRAUNCES,
+                  fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
+                  fontWeight: 600,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
+                  color: 'text.primary',
+                  mt: 2,
                   mb: 2.5,
                 }}
               >
-                L'excellence de{' '}
-                <Box
-                  component="span"
-                  sx={{
-                    color: C.primary,
-                    position: 'relative',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: 2,
-                      left: 0,
-                      right: 0,
-                    height: 5,
-                    bgcolor: alpha(C.primary, 0.15),
-                    borderRadius: '3px',
-                    },
-                  }}
-                >
-                  l'importation
-                </Box>{' '}
-                au Sénégal
+                Importer{' '}
+                <Box component="span" sx={{ color: tokens.colors.accent.onLight }}>
+                  le beau
+                </Box>
+                ,
+                <br />
+                pour habiter les intérieurs de Dakar.
               </Typography>
-
-              <Typography
-                sx={{
-                  fontSize: { xs: 18, md: 19 },
-                  color: C.text,
-                  lineHeight: 1.8,
-                  mb: 4,
-                  maxWidth: 650,
-                }}
-              >
-                DameDéco Import & Commerce sélectionne et importe des produits premium depuis la Chine — meubles, décoration, textile — pour les particuliers et professionnels au Sénégal.
+              <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: '65ch' }}>
+                DameDéco Import & Commerce sélectionne des produits premium — meubles, décoration
+                et textile — depuis la Chine, pour les particuliers et les professionnels au
+                Sénégal.
               </Typography>
-
-              <Stack spacing={1.25} sx={{ mb: 4 }}>
-                {['Fournisseurs certifiés en Chine', 'Livraison express 24–48h à Dakar', 'Tarifs grossiste pour les professionnels'].map((pt) => (
-                  <Stack key={pt} direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        width: 23,
-                        height: 23,
-                        borderRadius: '50%',
-                        bgcolor: alpha(C.primary, 0.1),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <CheckCircle sx={{ fontSize: 15, color: C.primary }} />
-                    </Box>
-                    <Typography sx={{ fontSize: 16, color: C.text }}>{pt}</Typography>
-                  </Stack>
-                ))}
-              </Stack>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                <Button
-                  variant="contained"
-                  onClick={() => router.push('/shop')}
-                  endIcon={<ArrowForward />}
-                  sx={{
-                    bgcolor: C.primary,
-                    color: '#fff',
-                    borderRadius: '13px',
-                    px: 4,
-                    py: 1.5,
-                    fontSize: 16,
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    boxShadow: `0 4px 16px ${alpha(C.primary, 0.25)}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      bgcolor: C.dark,
-                      boxShadow: `0 6px 24px ${alpha(C.primary, 0.35)}`,
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  Voir la boutique
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => router.push('/contact')}
-                  sx={{
-                    borderColor: C.border,
-                    color: C.primary,
-                    borderRadius: '13px',
-                    px: 3.5,
-                    py: 1.5,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      bgcolor: alpha(C.primary, 0.05),
-                      borderColor: C.primary,
-                      transform: 'translateY(-1px)',
-                    },
-                  }}
-                >
-                  Nous contacter
-                </Button>
-              </Stack>
             </Box>
 
-            {/* ─── Right: Stats cards ─── */}
             <Box
               sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 1.5,
+                position: 'relative',
+                aspectRatio: { xs: '16 / 10', sm: '4 / 3' },
+                minHeight: { xs: 240, sm: 320 },
+                borderRadius: 2,
+                border: `1px solid ${tokens.colors.border.light}`,
+                overflow: 'hidden',
               }}
             >
-              {STATS.map((s, i) => (
+              <Image
+                src="/banner.jpg"
+                alt="Produits de décoration et mobilier importés par DameDéco à Dakar"
+                fill
+                sizes="(max-width: 900px) 100vw, 45vw"
+                style={{ objectFit: 'cover' }}
+              />
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* ── Notre histoire ── */}
+      <Box component="section" aria-labelledby="about-histoire" sx={{ width: '100%', bgcolor: 'background.paper' }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, py: 'clamp(3rem, 8vw, 6rem)' }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1.15fr' },
+              gap: { xs: 4, md: 8 },
+            }}
+          >
+            <Box sx={{ alignSelf: { md: 'start' } }}>
+              <Eyebrow>Notre histoire</Eyebrow>
+              <Typography
+                id="about-histoire"
+                component="h2"
+                sx={{
+                  fontFamily: FONT_FRAUNCES,
+                  fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
+                  fontWeight: 600,
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.01em',
+                  color: 'text.primary',
+                  mt: 2,
+                }}
+              >
+                Une histoire de sélection, depuis 2010.
+              </Typography>
+            </Box>
+            <Box>
+              {HISTORY.map((paragraph) => (
+                <Typography
+                  key={paragraph.slice(0, 24)}
+                  variant="body1"
+                  sx={{ color: 'text.secondary', maxWidth: '65ch', lineHeight: 1.85, mb: 2.5 }}
+                >
+                  {paragraph}
+                </Typography>
+              ))}
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* ── Ce qui nous distingue ── */}
+      <Box component="section" aria-labelledby="about-valeurs" sx={{ width: '100%', bgcolor: tokens.colors.surfaces.alt }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, py: 'clamp(3rem, 8vw, 6rem)' }}>
+          <Eyebrow>Ce qui nous distingue</Eyebrow>
+          <Typography
+            id="about-valeurs"
+            component="h2"
+            sx={{
+              fontFamily: FONT_FRAUNCES,
+              fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
+              fontWeight: 600,
+              lineHeight: 1.15,
+              letterSpacing: '-0.01em',
+              color: 'text.primary',
+              mt: 2,
+              mb: { xs: 4, md: 6 },
+              maxWidth: '20ch',
+            }}
+          >
+            Un importateur, trois exigences.
+          </Typography>
+          <Box sx={{ maxWidth: 860 }}>
+            <EditorialList items={DISTINCTIONS} />
+          </Box>
+        </Container>
+      </Box>
+
+      {/* ── Nos catégories ── */}
+      <Box component="section" aria-labelledby="about-categories" sx={{ width: '100%' }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, py: 'clamp(3rem, 8vw, 6rem)' }}>
+          <Eyebrow>Nos univers</Eyebrow>
+          <Typography
+            id="about-categories"
+            component="h2"
+            sx={{
+              fontFamily: FONT_FRAUNCES,
+              fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
+              fontWeight: 600,
+              lineHeight: 1.15,
+              letterSpacing: '-0.01em',
+              color: 'text.primary',
+              mt: 2,
+              mb: { xs: 4, md: 6 },
+            }}
+          >
+            Nos catégories
+          </Typography>
+
+          {loading ? (
+            <Typography sx={{ color: 'text.secondary' }}>Chargement…</Typography>
+          ) : categories.length === 0 ? (
+            <Box
+              sx={{
+                bgcolor: tokens.colors.surfaces.alt,
+                border: `1px solid ${tokens.colors.border.light}`,
+                borderRadius: 2,
+                p: 4,
+              }}
+            >
+              <Typography sx={{ fontFamily: FONT_FRAUNCES, fontSize: 20, fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                TODO : catégories indisponibles
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', maxWidth: '65ch' }}>
+                L’API ne renvoie pas de catégories actives pour le moment. La liste ci-dessous se
+                remplira automatiquement dès qu’elles seront disponibles.
+              </Typography>
+            </Box>
+          ) : (
+            <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0 }}>
+              {categories.map((category, index) => (
                 <Box
-                  key={s.label}
+                  component="li"
+                  key={category.id}
                   sx={{
-                    borderRadius: '20px',
-                    p: { xs: 2.5, md: 3.5 },
-                    position: 'relative',
-                    overflow: 'hidden',
-                    transition: 'all 0.4s ease',
-                    cursor: 'default',
-                    ...(i === 0
-                      ? {
-                          bgcolor: C.dark,
-                          boxShadow: `0 8px 32px ${alpha(C.dark, 0.25)}`,
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: `0 12px 40px ${alpha(C.dark, 0.35)}`,
-                          },
-                        }
-                      : {
-                          bgcolor: '#fff',
-                          border: `1px solid ${C.border}`,
-                          boxShadow: `0 2px 12px ${alpha(C.dark, 0.04)}`,
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            borderColor: alpha(C.primary, 0.2),
-                            boxShadow: `0 8px 28px ${alpha(C.dark, 0.08)}`,
-                          },
-                        }),
-                    '&::after': i === 0
-                      ? {
-                          content: '""',
-                          position: 'absolute',
-                          top: '-40%',
-                          right: '-20%',
-                          width: 150,
-                          height: 150,
-                          borderRadius: '50%',
-                          background: `radial-gradient(circle, ${alpha('#fff', 0.06)} 0%, transparent 70%)`,
-                          pointerEvents: 'none',
-                        }
-                      : undefined,
+                    borderTop: index === 0 ? 'none' : `1px solid ${tokens.colors.border.light}`,
+                  }}
+                >
+                  <MuiLink
+                    href={`/shop?category=${category.id}`}
+                    underline="none"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 3,
+                      py: 2.5,
+                      minHeight: 56,
+                      color: 'text.primary',
+                      transition: 'color 200ms ease',
+                      '&:hover, &:focus-visible': {
+                        color: tokens.colors.brand.main,
+                        '.arrow': { transform: 'translateX(4px)' },
+                      },
+                      ...focusRing,
+                    }}
+                  >
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontFamily: FONT_FRAUNCES,
+                        fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
+                        fontWeight: 500,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {category.name}
+                    </Typography>
+                    <ArrowOutward
+                      className="arrow"
+                      sx={{
+                        fontSize: 22,
+                        color: tokens.colors.accent.onLight,
+                        flexShrink: 0,
+                        transition: 'transform 200ms ease, color 200ms ease',
+                      }}
+                    />
+                  </MuiLink>
+                </Box>
+              ))}
+              <Box component="li" sx={{ borderTop: `1px solid ${tokens.colors.border.light}` }}>
+                <MuiLink
+                  href="/shop"
+                  underline="none"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 3,
+                    py: 2.5,
+                    minHeight: 56,
+                    color: tokens.colors.brand.main,
+                    transition: 'color 200ms ease',
+                    '&:hover, &:focus-visible': {
+                      color: tokens.colors.brand.hover,
+                      '.arrow': { transform: 'translateX(4px)' },
+                    },
+                    ...focusRing,
                   }}
                 >
                   <Typography
+                    component="span"
                     sx={{
-                      fontSize: { xs: '1.75rem', md: '2.25rem' },
-                      fontWeight: 800,
-                      color: i === 0 ? '#fff' : C.dark,
-                      letterSpacing: '-2.5px',
-                      lineHeight: 1,
-                      mb: 0.5,
+                      fontFamily: FONT_FRAUNCES,
+                      fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
+                      fontWeight: 500,
+                      lineHeight: 1.3,
                     }}
                   >
-                    {s.num}
+                    Tout le catalogue
                   </Typography>
-                  <Typography sx={{ fontSize: 15, color: i === 0 ? alpha('#fff', 0.7) : C.muted, fontWeight: 500 }}>
-                    {s.label}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* ══════════════════════════════════════════
-          2. QUI SOMMES-NOUS — refined
-      ══════════════════════════════════════════ */}
-      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: '#fff' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: { xs: 6, md: 12 },
-              alignItems: 'start',
-            }}
-          >
-            {/* Gauche */}
-            <Box>
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  mb: 1.5,
-                }}
-              >
-                <Box sx={{ width: 35, height: 3, bgcolor: C.primary, borderRadius: '2px' }} />
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.primary, letterSpacing: '1.25px', textTransform: 'uppercase' }}>
-                  Qui sommes-nous
-                </Typography>
-              </Box>
-              <Typography
-                component="h2"
-                sx={{
-                  fontSize: { xs: 28, md: 38 },
-                  fontWeight: 700,
-                  color: C.dark,
-                  letterSpacing: '-0.5px',
-                  mb: 3,
-                }}
-              >
-                Notre raison d'être
-              </Typography>
-              <Typography sx={{ fontSize: 18, color: C.text, lineHeight: 1.85, mb: 2.5 }}>
-                Depuis 2010, DameDéco Import & Commerce s'est imposée comme le partenaire de référence pour l'importation de produits de qualité au Sénégal. Nous travaillons directement avec des fournisseurs certifiés en Chine pour garantir les meilleurs prix et standards de qualité.
-              </Typography>
-              <Typography sx={{ fontSize: 18, color: C.text, lineHeight: 1.85 }}>
-                Notre mission : rendre accessibles des produits premium à tous, particuliers comme professionnels, grâce à une logistique maîtrisée et un service client de proximité basé à Dakar.
-              </Typography>
-            </Box>
-
-            {/* Droite */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {[
-                { icon: <Place sx={{ fontSize: 21 }} />,  label: 'Adresse',   value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: 21 }} />,  label: 'Téléphone', value: '+221 77 133 36 58' },
-                { icon: <Email sx={{ fontSize: 21 }} />,  label: 'Email',     value: 'damedeco1@gmail.com' },
-              ].map((item) => (
-                <Box
-                  key={item.label}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    bgcolor: C.surface,
-                    border: `1px solid ${C.border}`,
-                    borderRadius: '15px',
-                    px: 2.5,
-                    py: 2,
-                    transition: 'all 0.3s ease',
-                    cursor: 'default',
-                    '&:hover': {
-                      borderColor: alpha(C.primary, 0.2),
-                      boxShadow: `0 4px 16px ${alpha(C.dark, 0.06)}`,
-                      transform: 'translateX(3px)',
-                    },
-                  }}
-                >
-                  <Box
+                  <ArrowOutward
+                    className="arrow"
                     sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '13px',
-                      bgcolor: alpha(C.primary, 0.08),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      fontSize: 22,
+                      color: tokens.colors.brand.main,
                       flexShrink: 0,
-                      color: C.primary,
+                      transition: 'transform 200ms ease, color 200ms ease',
                     }}
-                  >
-                    {item.icon}
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 14, color: C.muted, mb: 0.25 }}>{item.label}</Typography>
-                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: C.dark }}>{item.value}</Typography>
-                  </Box>
-                </Box>
-              ))}
+                  />
+                </MuiLink>
+              </Box>
             </Box>
-          </Box>
+          )}
         </Container>
       </Box>
 
-      {/* ══════════════════════════════════════════
-          3. VALEURS — premium cards
-      ══════════════════════════════════════════ */}
-      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: C.surface }}>
+      {/* ── CTA grossiste — copie exacte du bloc « Achat en gros » de l'accueil ── */}
+      <Box component="section" sx={{ pb: { xs: 6, md: 10 }, pt: { xs: 0, md: 2 }, width: '100%' }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ mb: 6 }}>
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: C.primary,
-                letterSpacing: '1.25px',
-                textTransform: 'uppercase',
-                mb: 1,
-              }}
-            >
-              Notre engagement
-            </Typography>
-            <Typography
-              component="h2"
-              sx={{
-                fontSize: { xs: 28, md: 38 },
-                fontWeight: 700,
-                color: C.dark,
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Nos valeurs fondamentales
-            </Typography>
-          </Box>
-
           <Box
+            component="article"
+            aria-labelledby="about-cta"
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-              gap: 2,
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: { xs: '16px', md: '20px' },
+              bgcolor: C.primary,
+              px: { xs: 3, sm: 4, md: 6 },
+              py: { xs: 4, sm: 5, md: 6 },
             }}
           >
-            {VALUES.map((v) => (
-              <Box
-                key={v.title}
-                sx={{
-                  bgcolor: '#fff',
-                  borderRadius: '20px',
-                  p: { xs: 3, md: 4 },
-                  border: `1px solid ${C.border}`,
-                  transition: 'all 0.4s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  cursor: 'default',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 4,
-                    background: `linear-gradient(90deg, ${C.primary}, ${alpha(C.primary, 0.3)})`,
-                    opacity: 0,
-                    transition: 'opacity 0.4s ease',
-                  },
-                  '&:hover': {
-                    transform: 'translateY(-6px)',
-                    borderColor: alpha(C.primary, 0.15),
-                    boxShadow: `0 12px 40px ${alpha(C.dark, 0.06)}`,
-                    '&::before': { opacity: 1 },
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: '15px',
-                    background: `linear-gradient(135deg, ${alpha(C.primary, 0.1)} 0%, ${alpha(C.primary, 0.03)} 100%)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2.5,
-                    color: C.primary,
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  {v.icon}
-                </Box>
-                <Typography
-                  component="h3"
-                  sx={{
-                    fontSize: 19,
-                    fontWeight: 600,
-                    color: C.dark,
-                    mb: 1,
-                  }}
-                >
-                  {v.title}
-                </Typography>
-                <Typography sx={{ fontSize: 16, color: C.text, lineHeight: 1.75 }}>
-                  {v.desc}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Container>
-      </Box>
-
-      {/* ══════════════════════════════════════════
-          4. TIMELINE — premium history
-      ══════════════════════════════════════════ */}
-      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: '#fff' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ mb: 6 }}>
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: C.primary,
-                letterSpacing: '1.25px',
-                textTransform: 'uppercase',
-                mb: 1,
-              }}
-            >
-              Notre parcours
-            </Typography>
-            <Typography
-              component="h2"
-              sx={{
-                fontSize: { xs: 28, md: 38 },
-                fontWeight: 700,
-                color: C.dark,
-                letterSpacing: '-0.5px',
-              }}
-            >
-              14 ans d'excellence
-            </Typography>
-          </Box>
-
-          <Box sx={{ position: 'relative', maxWidth: 950, mx: 'auto' }}>
-            {/* Vertical line */}
             <Box
               sx={{
-                position: 'absolute',
-                left: 24,
-                top: 24,
-                bottom: 24,
-                width: 3,
-                background: `linear-gradient(180deg, ${C.primary} 0%, ${alpha(C.primary, 0.15)} 100%)`,
-                display: { xs: 'none', sm: 'block' },
+                position: 'relative',
+                zIndex: 1,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
+                gap: { xs: 4, md: 6 },
+                alignItems: 'center',
               }}
-            />
+            >
+              {/* Contenu éditorial */}
+              <Box>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ width: 32, height: 2, borderRadius: 1, bgcolor: C.laitonOnDark }} />
+                  <Typography sx={{ ...sectionLabelSx, mb: 0, color: C.laitonOnDark }}>Achat en gros</Typography>
+                </Stack>
+                <Typography
+                  id="about-cta"
+                  component="h2"
+                  sx={{
+                    fontFamily: FONT_POPPINS,
+                    fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.15rem', lg: '2.5rem' },
+                    fontWeight: 800,
+                    lineHeight: 1.15,
+                    letterSpacing: '-0.03em',
+                    color: C.onInverse,
+                    mb: 2,
+                  }}
+                >
+                  Un projet en{' '}
+                  <Box component="span" sx={{ color: C.laitonOnDark }}>
+                    volume&nbsp;?
+                  </Box>
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 16, md: 17.5 }, color: C.onInverseMuted, lineHeight: 1.75, maxWidth: 620, mb: { xs: 3, md: 4 } }}>
+                  Tarifs dégressifs, devis personnalisé sous 24&nbsp;h et interlocuteur dédié pour hôtels, villas, boutiques et
+                  décorateurs au Sénégal.
+                </Typography>
 
-            {TIMELINE.map((ev, i) => (
-              <Box
-                key={ev.year}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                    gap: { xs: 3, sm: 2 },
+                    pt: { xs: 2.5, md: 3 },
+                    borderTop: `1px solid ${alpha(C.onInverse, 0.14)}`,
+                  }}
+                >
+                  {CTA_BENEFITS.map((b) => {
+                    const Icon = b.icon;
+                    return (
+                      <Box key={b.title}>
+                        <Icon sx={{ fontSize: 24, color: C.laitonOnDark, mb: 1.25 }} />
+                        <Typography sx={{ fontSize: 15.5, fontWeight: 700, color: C.onInverse, mb: 0.5 }}>
+                          {b.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: 13.5, md: 14 }, color: C.onInverseMuted, lineHeight: 1.6 }}>
+                          {b.desc}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {/* Carte devis express — opaque */}
+              <Paper
+                elevation={0}
                 sx={{
-                  display: 'flex',
-                  gap: { xs: 2.5, sm: 4 },
-                  alignItems: 'flex-start',
-                  pb: i < TIMELINE.length - 1 ? 4 : 0,
                   position: 'relative',
+                  borderRadius: 1.5,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  p: { xs: 2.5, sm: 3, md: 3.5 },
                 }}
               >
-                {/* Dot */}
-                <Box
-                  sx={{
-                    flexShrink: 0,
-                    position: 'relative',
-                    zIndex: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 63,
-                      height: 63,
-                      borderRadius: '50%',
-                      background: `linear-gradient(135deg, ${C.primary}, ${alpha(C.primary, 0.7)})`,
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: `3px solid ${alpha(C.primary, 0.15)}`,
-                      boxShadow: `0 4px 16px ${alpha(C.primary, 0.2)}`,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                        boxShadow: `0 6px 24px ${alpha(C.primary, 0.3)}`,
-                      },
-                    }}
-                  >
-                    {ev.icon}
-                  </Box>
-                </Box>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.laitonOnLight, mb: 0.75 }}>
+                  Devis express
+                </Typography>
+                <Typography sx={{ fontSize: 19, fontWeight: 700, color: C.dark, lineHeight: 1.3, mb: 2.5 }}>
+                  Recevez votre tarif sous 24&nbsp;h
+                </Typography>
 
-                {/* Content */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    bgcolor: C.surface,
-                    border: `1px solid ${C.border}`,
-                    borderRadius: '18px',
-                    p: 3,
-                    mt: 0.75,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      borderColor: alpha(C.primary, 0.15),
-                      boxShadow: `0 8px 28px ${alpha(C.dark, 0.06)}`,
-                      transform: 'translateX(4px)',
-                    },
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                    <Box
-                      sx={{
-                        bgcolor: C.primary,
-                        color: '#fff',
-                        fontSize: 14,
-                        fontWeight: 700,
-                        px: 1.25,
-                        py: 0.375,
-                        borderRadius: '8px',
-                        letterSpacing: '0.625px',
-                      }}
-                    >
-                      {ev.year}
-                    </Box>
-                    <Typography sx={{ fontSize: 18, fontWeight: 600, color: C.dark }}>
-                      {ev.title}
+                {[
+                  { label: 'Votre besoin', value: 'Meubles & décoration' },
+                  { label: 'Quantité estimée', value: 'Dès 10 pièces' },
+                  { label: 'Zone de livraison', value: 'Dakar & tout le Sénégal' },
+                ].map((row) => (
+                  <Box key={row.label} sx={{ py: 1.5, borderBottom: `1px dashed ${C.border}` }}>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.muted, mb: 0.25 }}>
+                      {row.label}
                     </Typography>
+                    <Typography sx={{ fontSize: 15, color: C.dark }}>{row.value}</Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 16, color: C.text, lineHeight: 1.75 }}>
-                    {ev.desc}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </Container>
-      </Box>
+                ))}
 
-      {/* ══════════════════════════════════════════
-          5. ÉQUIPE — premium cards
-      ══════════════════════════════════════════ */}
-      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: C.surface }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ mb: 6 }}>
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: C.primary,
-                letterSpacing: '1.25px',
-                textTransform: 'uppercase',
-                mb: 1,
-              }}
-            >
-              Notre équipe
-            </Typography>
-            <Typography
-              component="h2"
-              sx={{
-                fontSize: { xs: 28, md: 38 },
-                fontWeight: 700,
-                color: C.dark,
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Les artisans de votre satisfaction
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-              gap: 2.5,
-            }}
-          >
-            {TEAM.map((member) => (
-              <Box
-                key={member.name}
-                sx={{
-                  bgcolor: '#fff',
-                  border: `1px solid ${C.border}`,
-                  borderRadius: '20px',
-                  p: 3.5,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  transition: 'all 0.4s ease',
-                  cursor: 'default',
-                  '&:hover': {
-                    transform: 'translateY(-6px)',
-                    borderColor: alpha(member.color, 0.3),
-                    boxShadow: `0 12px 36px ${alpha(member.color, 0.1)}`,
-                  },
-                }}
-              >
-                <Avatar
+                <Button
+                  variant="contained"
+                  size="large"
+                  endIcon={<ArrowRight />}
+                  fullWidth
+                  onClick={() => router.push('/contact')}
                   sx={{
-                    width: 90,
-                    height: 90,
-                    background: `linear-gradient(135deg, ${member.color}, ${alpha(member.color, 0.6)})`,
-                    fontSize: 28,
+                    mt: 3,
+                    bgcolor: C.primary,
+                    color: C.onInverse,
                     fontWeight: 700,
-                    mb: 2.5,
-                    boxShadow: `0 4px 16px ${alpha(member.color, 0.2)}`,
-                    transition: 'all 0.3s ease',
+                    fontSize: { xs: 15, md: 16 },
+                    py: 1.5,
+                    borderRadius: 1,
+                    textTransform: 'none',
+                    boxShadow: `0 8px 24px ${alpha(C.ink, 0.18)}`,
+                    '&:hover': { bgcolor: C.dark },
                   }}
                 >
-                  {member.initials}
-                </Avatar>
-                <Typography sx={{ fontSize: 18, fontWeight: 600, color: C.dark, mb: 0.5 }}>
-                  {member.name}
+                  Demander un devis
+                </Button>
+                <Typography sx={{ mt: 1.5, textAlign: 'center', fontSize: 12.5, color: C.muted }}>
+                  Réponse personnalisée · Sans engagement
                 </Typography>
-                <Typography sx={{ fontSize: 15, color: C.primary, fontWeight: 500 }}>
-                  {member.role}
-                </Typography>
-              </Box>
-            ))}
+              </Paper>
+            </Box>
           </Box>
         </Container>
       </Box>
-
-      {/* ══════════════════════════════════════════
-          6. CTA FINAL — elevated
-      ══════════════════════════════════════════ */}
-      <Box
-        sx={{
-          mx: { xs: 2, sm: 4, md: 6 },
-          my: 8,
-          bgcolor: C.dark,
-          borderRadius: '20px',
-          px: { xs: 2.5, sm: 4, md: 5 },
-          py: { xs: 6, md: 9 },
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 4,
-          flexWrap: 'wrap',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: `0 16px 48px ${alpha(C.dark, 0.2)}`,
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: '-60px',
-            right: '-60px',
-            width: 375,
-            height: 375,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.primary, 0.2)} 0%, transparent 70%)`,
-            filter: 'blur(60px)',
-            pointerEvents: 'none',
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: '-80px',
-            left: '-40px',
-            width: 300,
-            height: 300,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.primary, 0.15)} 0%, transparent 70%)`,
-            filter: 'blur(50px)',
-            pointerEvents: 'none',
-          },
-        }}
-      >
-        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 625 }}>
-          <Typography
-            sx={{
-              fontSize: 14,
-              fontWeight: 600,
-              letterSpacing: '1.875px',
-              textTransform: 'uppercase',
-              color: alpha(C.mid, 0.8),
-              mb: 1.5,
-            }}
-          >
-            Prêt à commander ?
-          </Typography>
-          <Typography
-            component="h2"
-            sx={{
-              fontSize: { xs: 30, md: 40 },
-              fontWeight: 700,
-              color: '#fff',
-              lineHeight: 1.2,
-              letterSpacing: '-0.625px',
-              mb: 1.5,
-            }}
-          >
-            Découvrez notre catalogue
-          </Typography>
-          <Typography sx={{ fontSize: 18, color: alpha('#fff', 0.7), lineHeight: 1.75, maxWidth: 525 }}>
-            Parcourez plus de 1 200 produits importés directement pour vous, à des prix compétitifs.
-          </Typography>
-        </Box>
-
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
-          <Button
-            variant="contained"
-            onClick={() => router.push('/shop')}
-            endIcon={<ArrowForward />}
-            sx={{
-              bgcolor: '#fff',
-              color: C.dark,
-              fontWeight: 700,
-              fontSize: 16,
-              px: 4,
-              py: 1.5,
-              borderRadius: '13px',
-              textTransform: 'none',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                bgcolor: alpha('#fff', 0.9),
-                boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-                transform: 'translateY(-2px)',
-              },
-            }}
-          >
-            Visiter la boutique
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => router.push('/contact')}
-            sx={{
-              borderColor: alpha('#fff', 0.3),
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: 16,
-              px: 3.5,
-              py: 1.5,
-              borderRadius: '13px',
-              textTransform: 'none',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                bgcolor: alpha('#fff', 0.06),
-                borderColor: alpha('#fff', 0.6),
-                transform: 'translateY(-1px)',
-              },
-            }}
-          >
-            Nous contacter
-          </Button>
-        </Stack>
-      </Box>
-
     </Box>
   );
 }

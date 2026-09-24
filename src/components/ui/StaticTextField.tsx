@@ -14,7 +14,7 @@ export const staticLabelSx = {
   marginBottom: '8px',
   color: tokens.colors.ink,
   '&.Mui-focused': {
-    color: tokens.colors.brand,
+    color: tokens.colors.brand.main,
   },
   '&.Mui-error': {
     color: tokens.colors.error,

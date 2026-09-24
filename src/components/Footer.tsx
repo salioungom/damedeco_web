@@ -9,8 +9,6 @@ import {
   IconButton,
   Divider,
   Stack,
-  Button,
-  alpha,
 } from '@mui/material';
 import {
   LocationOn as MapPin,
@@ -20,16 +18,18 @@ import {
   Instagram,
   Twitter,
   WhatsApp,
-  ArrowForward,
 } from '@mui/icons-material';
 import { PaymentIcons } from './PaymentIcons';
-import { useTheme } from '@mui/material/styles';
+import { BrandMark } from './ui/BrandMark';
 import { useCategories } from '@/hooks/useCategories';
+import { tokens } from '@/theme/tokens';
 
-const PRIMARY = '#042C53';
-const LIGHT = '#85B7EB';
-const MUTED = alpha('#fff', 0.65);
-const SOFT = alpha('#fff', 0.08);
+/** Couleurs du footer — toutes issues des tokens (aucune valeur en dur) */
+const INK = tokens.colors.surfaces.inverse;
+const ON_INVERSE = tokens.colors.text.onInverse;
+const ON_INVERSE_MUTED = tokens.colors.text.onInverseMuted;
+const ON_ACCENT = tokens.colors.accent.onDark;
+const ON_DARK_BORDER = tokens.colors.border.onDark;
 
 const NAV_LINKS = [
   { label: 'Accueil', href: '/' },
@@ -59,53 +59,50 @@ const LEGAL_LINKS = [
 
 const linkSx = {
   fontSize: { xs: 14.5, sm: 16, md: 17.5 },
-  color: MUTED,
-  textDecoration: 'none',
-  transition: 'color 0.2s ease',
+  color: ON_INVERSE_MUTED,
+  textDecorationLine: 'none',
+  transition: 'color 0.15s ease, text-decoration-color 0.15s ease',
   display: 'block',
-  '&:hover': { color: '#fff' },
+  width: 'fit-content',
+  textUnderlineOffset: '3px',
+  '&:hover': {
+    color: ON_INVERSE,
+    textDecorationLine: 'underline',
+    textDecorationColor: ON_ACCENT,
+  },
 };
 
 const headingSx = {
   fontSize: { xs: 11.5, sm: 12.5, md: 13.75 },
   fontWeight: 700,
-  color: LIGHT,
+  color: ON_ACCENT,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
   mb: { xs: 1.5, sm: 2, md: 2.5 },
 };
 
 export function Footer() {
-  const theme = useTheme();
-  const ACCENT = theme.palette.primary.main;
   const { categories } = useCategories();
   return (
     <Box
       component="footer"
-      sx={{
-        mt: 'auto',
-        bgcolor: PRIMARY,
-        color: '#fff',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+      sx={{ mt: 'auto', bgcolor: INK, color: ON_INVERSE, position: 'relative', overflow: 'hidden' }}
     >
+      {/* Filet supérieur — accent laiton fin */}
       <Box
         sx={{
           position: 'absolute',
-          inset: 0,
-          background: `
-            radial-gradient(ellipse 70% 80% at 100% 0%, ${alpha(ACCENT, 0.35)} 0%, transparent 55%),
-            radial-gradient(ellipse 50% 60% at 0% 100%, ${alpha(LIGHT, 0.12)} 0%, transparent 50%)
-          `,
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          bgcolor: ON_ACCENT,
+          opacity: 0.55,
           pointerEvents: 'none',
         }}
       />
 
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 } }}>
-        {/* Bandeau CTA */}
-        
-        {/* Grille principale */}
         <Box
           sx={{
             display: 'grid',
@@ -114,38 +111,21 @@ export function Footer() {
             py: { xs: 3.5, sm: 4.5, md: 6, lg: 7 },
           }}
         >
-          {/* Brand */}
+          {/* Marque */}
           <Box>
             <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
-              <Box
-                sx={{
-                  width: { xs: 42, sm: 48, md: 55 },
-                  height: { xs: 42, sm: 48, md: 55 },
-                  borderRadius: { xs: '12px', sm: '13px', md: '15px' },
-                  background: `linear-gradient(135deg, ${ACCENT} 0%, ${LIGHT} 100%)`,
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: { xs: 14, sm: 15.5, md: 17.5 },
-                  fontWeight: 800,
-                  flexShrink: 0,
-                  boxShadow: `0 8px 24px ${alpha('#000', 0.25)}`,
-                }}
-              >
-                DS
-              </Box>
+              <BrandMark />
               <Box>
-                <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: ON_INVERSE, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
                   DameDéco
                 </Typography>
-                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: LIGHT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: ON_ACCENT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                   Import & Commerce
                 </Typography>
               </Box>
             </Stack>
 
-            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 } }}>
+            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: ON_INVERSE_MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 } }}>
               Importation de produits premium depuis la Chine. Votre partenaire de confiance à Dakar depuis 2010.
             </Typography>
 
@@ -156,8 +136,8 @@ export function Footer() {
                 { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'damedeco1@gmail.com' },
               ].map((item) => (
                 <Stack key={item.value} direction="row" spacing={{ xs: 1, sm: 1.15, md: 1.25 }} sx={{ alignItems: 'center' }}>
-                  <Box sx={{ color: LIGHT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: alpha('#fff', 0.8) }}>{item.value}</Typography>
+                  <Box sx={{ color: ON_ACCENT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: ON_INVERSE_MUTED }}>{item.value}</Typography>
                 </Stack>
               ))}
             </Stack>
@@ -204,20 +184,12 @@ export function Footer() {
             </Stack>
 
             <Typography sx={{ ...headingSx, mb: { xs: 1.5, sm: 1.75, md: 2 } }}>Paiement accepté</Typography>
-            <Box
-              sx={{
-                '& img': { filter: 'brightness(1.1)' },
-                '& > div': { gap: { xs: 0.75, sm: 1 } },
-              }}
-            >
-              <PaymentIcons size="sm" />
-            </Box>
+            <PaymentIcons size="sm" />
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: SOFT }} />
+        <Divider sx={{ borderColor: ON_DARK_BORDER }} />
 
-        {/* Bas de page */}
         <Box
           sx={{
             py: { xs: 2, sm: 2.5, md: 3, lg: 4 },
@@ -227,7 +199,7 @@ export function Footer() {
             gap: { xs: 2, sm: 2.25, md: 2 },
           }}
         >
-          <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: alpha('#fff', 0.45), textAlign: { xs: 'center', md: 'left' } }}>
+          <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: ON_INVERSE_MUTED, textAlign: { xs: 'center', md: 'left' } }}>
               © {new Date().getFullYear()} DameDéco · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
@@ -240,18 +212,16 @@ export function Footer() {
                 aria-label={label}
                 size="small"
                 sx={{
-                  width: { xs: 38, sm: 42, md: 47.5 },
-                  height: { xs: 38, sm: 42, md: 47.5 },
-                  borderRadius: { xs: '10px', sm: '11px', md: '12.5px' },
-                  border: `1px solid ${SOFT}`,
-                  color: alpha('#fff', 0.75),
-                  bgcolor: alpha('#fff', 0.04),
-                  transition: 'all 0.2s ease',
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  border: `1px solid ${ON_DARK_BORDER}`,
+                  color: ON_INVERSE_MUTED,
+                  transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
                   '&:hover': {
-                    color: '#fff',
-                    bgcolor: ACCENT,
-                    borderColor: ACCENT,
-                    transform: 'translateY(-2px)',
+                    color: ON_INVERSE,
+                    bgcolor: 'primary.main',
+                    borderColor: 'primary.main',
                   },
                 }}
               >

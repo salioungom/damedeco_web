@@ -48,6 +48,8 @@ import {
   KeyboardArrowDown,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
+import { BrandMark } from './ui/BrandMark';
+import { tokens } from '@/theme/tokens';
 
 /** Hauteur fixe de la navbar — utilisée pour le padding du layout */
 export const NAVBAR_HEIGHT = { xs: 72, sm: 80, md: 90 };
@@ -79,7 +81,6 @@ const NavActionButton = memo(function NavActionButton({
   active?: boolean;
 }) {
   const theme = useTheme();
-  const primary = theme.palette.primary.main;
 
   const sx = {
     width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
@@ -87,16 +88,17 @@ const NavActionButton = memo(function NavActionButton({
     minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
     minHeight: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
     p: 0,
-    borderRadius: { xs: '12px', sm: '13px', md: '15px' },
-    border: `1px solid ${alpha(primary, 0.12)}`,
-    bgcolor: active ? alpha(primary, 0.08) : 'transparent',
-    color: active ? primary : theme.palette.text.secondary,
+    borderRadius: 1,
+    border: '1px solid',
+    borderColor: 'divider',
+    bgcolor: active ? 'action.selected' : 'transparent',
+    color: active ? theme.palette.text.primary : theme.palette.text.secondary,
     flexShrink: 0,
-    transition: 'background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease',
+    transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
     '&:hover': {
-      bgcolor: alpha(primary, 0.06),
-      color: primary,
-      borderColor: alpha(primary, 0.25),
+      bgcolor: 'action.hover',
+      color: theme.palette.text.primary,
+      borderColor: theme.palette.text.secondary,
     },
     '& .MuiTouchRipple-root': { display: 'none' },
     '&:active': { transform: 'none' },
@@ -136,24 +138,7 @@ const Brand = memo(function Brand() {
       spacing={{ xs: 1, sm: 1.25 }}
       sx={{ alignItems: 'center', flexShrink: 0 }}
     >
-      <Box
-        sx={{
-          width: { xs: 42, sm: 46, md: 50 },
-          height: { xs: 42, sm: 46, md: 50 },
-          borderRadius: { xs: '12px', sm: '13px', md: '15px' },
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-          color: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: { xs: 14, sm: 15, md: 16.25 },
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
-        }}
-      >
-        DS
-      </Box>
+      <BrandMark />
       <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
         <Typography
           sx={{
@@ -199,7 +184,7 @@ const NavLink = memo(function NavLink({
       disableRipple
       sx={{
         position: 'relative',
-        borderRadius: { xs: '10px', md: '12.5px' },
+        borderRadius: 1,
         px: { xs: 1.25, md: 1.75 },
         py: { xs: 0.75, md: 1 },
         fontSize: { xs: 15, md: 17.5 },
@@ -209,8 +194,8 @@ const NavLink = memo(function NavLink({
         bgcolor: 'transparent',
         minWidth: 'auto',
         flexShrink: 0,
-        transition: 'color 0.2s ease',
-        '&:hover': { bgcolor: alpha(primary, 0.05), color: primary },
+        transition: 'color 0.15s ease',
+        '&:hover': { bgcolor: 'action.hover', color: theme.palette.text.primary },
         '&::after': {
           content: '""',
           position: 'absolute',
@@ -221,7 +206,7 @@ const NavLink = memo(function NavLink({
           height: { xs: 2, md: 2.5 },
           borderRadius: 1.25,
           bgcolor: primary,
-          transition: 'transform 0.25s ease',
+          transition: 'transform 0.15s ease',
         },
         '& .MuiButton-startIcon': {
           mr: { xs: 0.5, md: 0.75 },
@@ -250,7 +235,6 @@ const SearchField = memo(function SearchField({
   fullWidth?: boolean;
 }) {
   const theme = useTheme();
-  const primary = theme.palette.primary.main;
 
   return (
     <Box
@@ -265,17 +249,19 @@ const SearchField = memo(function SearchField({
           gap: { xs: 0.75, sm: 1 },
           height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
           px: { xs: 1, sm: 1.25, md: 1.5 },
-          borderRadius: { xs: '12px', sm: '13px', md: '15px' },
-          bgcolor: alpha(primary, 0.04),
-          border: `1px solid ${alpha(primary, 0.1)}`,
-          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+          borderRadius: 1,
+          bgcolor: 'action.hover',
+          border: '1px solid',
+          borderColor: 'divider',
+          transition: 'border-color 0.15s ease',
           '&:focus-within': {
-            borderColor: alpha(primary, 0.35),
-            boxShadow: `0 0 0 3px ${alpha(primary, 0.08)}`,
+            borderColor: theme.palette.primary.main,
+            outline: `2px solid ${tokens.colors.status.focus}`,
+            outlineOffset: '2px',
           },
         }}
       >
-        <SearchIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: alpha(primary, 0.5), flexShrink: 0 }} />
+        <SearchIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: theme.palette.text.secondary, flexShrink: 0 }} />
         <InputBase
           placeholder="Rechercher un produit…"
           value={value}
@@ -314,7 +300,6 @@ export function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
-  const [scrolled, setScrolled] = useState(false);
 
   const cartCount = useMemo(
     () => (cart || []).reduce((acc, item) => acc + item.quantity, 0),
@@ -324,13 +309,6 @@ export function Navigation() {
   const favoriteCount = favorites?.length ?? 0;
 
   const profileMenuOpen = Boolean(profileAnchor);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     setProfileAnchor(null);
@@ -423,7 +401,7 @@ export function Navigation() {
                     borderRadius: '12.5px',
                     py: { xs: 1, sm: 1.25 },
                     mb: 0.25,
-                    bgcolor: active ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                    bgcolor: active ? 'action.selected' : 'transparent',
                     color: active ? 'primary.main' : 'text.secondary',
                   }}
                 >
@@ -562,16 +540,16 @@ export function Navigation() {
                 sx={{
                   width: { xs: 48, sm: 55 },
                   height: { xs: 48, sm: 55 },
-                  borderRadius: { xs: '12px', sm: '15px' },
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  borderRadius: 2,
+                  bgcolor: 'primary.main',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mb: 1,
-                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.25)}`,
+                  color: 'primary.contrastText',
                 }}
               >
-                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 27.5 }, color: '#fff' }} />
+                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 27.5 } }} />
               </Box>
               <Typography fontSize={{ xs: 15, sm: 17.5 }} fontWeight={700} color="text.primary">
                 Bienvenue !
@@ -583,18 +561,16 @@ export function Navigation() {
             <Button
               fullWidth
               variant="contained"
+              color="primary"
               component={Link}
               href="/login"
               onClick={() => setMobileOpen(false)}
               disableElevation
               sx={{
                 py: { xs: 1, sm: 1.2 },
-                borderRadius: '12.5px',
                 fontWeight: 700,
                 fontSize: { xs: 15, sm: 17.5 },
                 textTransform: 'none',
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
               }}
             >
               Se connecter
@@ -646,15 +622,16 @@ export function Navigation() {
         height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
         pl: user && !isMobile ? { xs: 0.5, sm: 0.75 } : 0,
         pr: user && !isMobile ? { xs: 0.5, sm: 0.75, md: 1.25 } : 0,
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
-        borderRadius: { xs: '10px', sm: '12px', md: '15px' },
-        bgcolor: profileMenuOpen ? alpha(theme.palette.primary.main, 0.06) : 'transparent',
+        border: '1px solid',
+        borderColor: profileMenuOpen ? theme.palette.primary.main : 'divider',
+        borderRadius: 1,
+        bgcolor: profileMenuOpen ? 'action.selected' : 'transparent',
         cursor: 'pointer',
         flexShrink: 0,
-        transition: 'background-color 0.2s ease, border-color 0.2s ease',
+        transition: 'background-color 0.15s ease, border-color 0.15s ease',
         '&:hover': {
-          bgcolor: alpha(theme.palette.primary.main, 0.06),
-          borderColor: alpha(theme.palette.primary.main, 0.25),
+          bgcolor: 'action.hover',
+          borderColor: theme.palette.text.secondary,
         },
       }}
     >
@@ -696,15 +673,10 @@ export function Navigation() {
         sx={{
           height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
           justifyContent: 'center',
-          bgcolor: scrolled ? alpha('#fff', 0.92) : '#fff',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
+          bgcolor: 'background.paper',
           borderBottom: '1px solid',
-          borderColor: scrolled ? alpha(theme.palette.divider, 0.9) : 'divider',
-          boxShadow: scrolled
-            ? `0 4px 24px ${alpha(theme.palette.common.black, 0.06)}`
-            : `0 2px 12px ${alpha(theme.palette.common.black, 0.04)}`,
-          transition: 'background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+          borderColor: 'divider',
+          transition: 'background-color 0.15s ease',
           zIndex: theme.zIndex.appBar,
         }}
       >
@@ -797,6 +769,8 @@ export function Navigation() {
                       minWidth: { xs: 18, sm: 22.5 },
                       top: { xs: 4, sm: 5 },
                       right: { xs: 4, sm: 5 },
+                      border: '2px solid',
+                      borderColor: 'background.paper',
                     },
                   }}
                 >
@@ -817,6 +791,8 @@ export function Navigation() {
                       minWidth: { xs: 18, sm: 22.5 },
                       top: { xs: 4, sm: 5 },
                       right: { xs: 4, sm: 5 },
+                      border: '2px solid',
+                      borderColor: 'background.paper',
                     },
                   }}
                 >
@@ -838,15 +814,13 @@ export function Navigation() {
             right: 0,
             px: { xs: 1.5, sm: 2 },
             py: { xs: 1, sm: 1.5 },
-            bgcolor: alpha('#fff', 0.98),
-            backdropFilter: 'blur(12px)',
+            bgcolor: 'background.paper',
             borderBottom: '1px solid',
             borderColor: 'divider',
-            boxShadow: searchOpen ? `0 8px 24px ${alpha(theme.palette.common.black, 0.08)}` : 'none',
             opacity: searchOpen ? 1 : 0,
             visibility: searchOpen ? 'visible' : 'hidden',
             pointerEvents: searchOpen ? 'auto' : 'none',
-            transition: 'opacity 0.2s ease, visibility 0.2s ease',
+            transition: 'opacity 0.15s ease, visibility 0.15s ease',
             display: { md: 'none' },
           }}
         >
@@ -872,7 +846,7 @@ export function Navigation() {
             elevation: 0,
             sx: {
               mt: 1,
-              minWidth: { xs: 260, sm: 300, md: 325 },
+              minWidth: { xs: 248, sm: 264, md: 280 },
               maxWidth: { xs: '85vw', sm: 'auto' },
               borderRadius: { xs: '14px', sm: '17.5px' },
               border: '1px solid',
@@ -882,7 +856,7 @@ export function Navigation() {
             },
           },
           list: {
-            sx: { py: { xs: 0.75, sm: 1 } },
+            sx: { py: { xs: 0.5, sm: 0.6 } },
           },
         }}
         disableScrollLock
@@ -896,8 +870,8 @@ export function Navigation() {
               py: { xs: 1.25, sm: 1.5 },
               mx: { xs: 0.75, sm: 1 },
               mb: { xs: 0.25, sm: 0.5 },
-              borderRadius: { xs: '10px', sm: '12.5px' },
-              bgcolor: alpha(theme.palette.primary.main, 0.04),
+              borderRadius: 1,
+              bgcolor: 'action.hover',
             }}
           >
             <Stack direction="row" spacing={{ xs: 0.75, sm: 1, md: 1.25 }} sx={{ alignItems: 'center' }}>
@@ -935,101 +909,103 @@ export function Navigation() {
             </MenuItem>
           ))}
         {!user && (
-          <Box
-            component="li"
-            sx={{ listStyle: 'none', p: 0, minWidth: { xs: 260, sm: 300, md: 350 }, maxWidth: { xs: '85vw', sm: 'auto' } }}
-          >
+          <Box component="li" sx={{ listStyle: 'none', p: 0 }}>
             <Box
               sx={{
-                px: { xs: 2.5, sm: 3 },
-                pt: { xs: 2.5, sm: 3 },
-                pb: { xs: 2, sm: 2.5 },
-                background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+                px: { xs: 1.25, sm: 1.5, md: 1.5 },
+                py: { xs: 1, sm: 1.1, md: 1.25 },
+                bgcolor: tokens.colors.surfaces.alt,
               }}
             >
-              <Box
-                sx={{
-                  width: { xs: 48, sm: 52, md: 60 },
-                  height: { xs: 48, sm: 52, md: 60 },
-                  borderRadius: { xs: '12px', sm: '14px', md: '17.5px' },
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: { xs: 0.75, sm: 1, md: 1.5 },
-                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
-                }}
-              >
-                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 26, md: 30 }, color: '#fff' }} />
-              </Box>
-              <Typography
-                fontSize={{ xs: 15, sm: 17, md: 18.75 }}
-                fontWeight={700}
-                color="text.primary"
-                sx={{ lineHeight: 1.3, mb: { xs: 0.25, sm: 0.5 } }}
-              >
-                Bienvenue !
-              </Typography>
-              <Typography
-                fontSize={{ xs: 13, sm: 14, md: 15.625 }}
-                color="text.secondary"
-                sx={{ lineHeight: 1.5 }}
-              >
-                Connectez-vous pour suivre vos commandes, gérer vos favoris et profiter d&apos;offres exclusives.
-              </Typography>
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.1 }} sx={{ alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    width: { xs: 32, sm: 36, md: 40 },
+                    height: { xs: 32, sm: 36, md: 40 },
+                    borderRadius: 1,
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <PersonOutlined sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    fontSize={{ xs: 13, sm: 14, md: 15 }}
+                    fontWeight={700}
+                    color="text.primary"
+                    sx={{ lineHeight: 1.25, mb: 0.2 }}
+                  >
+                    Bienvenue !
+                  </Typography>
+                  <Typography
+                    fontSize={{ xs: 12, sm: 12.5, md: 13 }}
+                    color="text.secondary"
+                    sx={{ lineHeight: 1.35 }}
+                  >
+                    Commandes, favoris et offres exclusives après connexion.
+                  </Typography>
+                </Box>
+              </Stack>
             </Box>
-            <Box sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: { xs: 0.75, sm: 1 } }}>
+            <Box
+              sx={{
+                px: { xs: 1.25, sm: 1.5, md: 1.5 },
+                py: { xs: 1, sm: 1.1, md: 1.25 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: { xs: 0.6, sm: 0.7 },
+              }}
+            >
               <Button
                 fullWidth
                 variant="contained"
+                color="primary"
                 component={Link}
                 href="/login"
                 onClick={closeProfileMenu}
                 disableElevation
                 sx={{
-                  py: { xs: 0.85, sm: 1, md: 1.2 },
-                  borderRadius: { xs: '10px', sm: '12.5px' },
+                  py: { xs: 0.7, sm: 0.75, md: 0.85 },
                   fontWeight: 700,
-                  fontSize: { xs: 14, sm: 15, md: 17.5 },
+                  fontSize: { xs: 13, sm: 14, md: 15 },
                   textTransform: 'none',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-                    transform: 'translateY(-1px)',
-                  },
+                  transition: 'background-color 0.15s ease',
                 }}
               >
                 Se connecter
               </Button>
-<Button
-              fullWidth
-              variant="text"
-              component={Link}
-              href="/register"
-              onClick={closeProfileMenu}
-              sx={{
-                py: { xs: 0.75, sm: 0.9, md: 1.1 },
-                borderRadius: { xs: '10px', sm: '12.5px' },
-                fontWeight: 600,
-                fontSize: { xs: 13, sm: 14, md: 16.25 },
-                textTransform: 'none',
-                color: theme.palette.primary.main,
-                justifyContent: 'center',
-                textAlign: 'center',
-                flexWrap: 'wrap',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  bgcolor: alpha(theme.palette.primary.main, 0.06),
-                },
-              }}
-            >
-              Pas encore de compte ?{' '}
-              <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
-                Créer
-              </Box>
-            </Button>
+              <Button
+                fullWidth
+                variant="text"
+                component={Link}
+                href="/register"
+                onClick={closeProfileMenu}
+                sx={{
+                  py: { xs: 0.55, sm: 0.6, md: 0.7 },
+                  borderRadius: 1,
+                  fontWeight: 600,
+                  fontSize: { xs: 12.5, sm: 13, md: 14 },
+                  textTransform: 'none',
+                  color: 'primary.main',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  flexWrap: 'wrap',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                Pas encore de compte ?{' '}
+                <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+                  Créer
+                </Box>
+              </Button>
             </Box>
           </Box>
         )}

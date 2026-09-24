@@ -62,7 +62,7 @@ const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
     paddingTop: '100%', // sm et + : ratio 1:1 confortable
   },
   overflow: 'hidden',
-  backgroundColor: '#0f1923', // fond sombre neutre — fait ressortir le screenshot
+  backgroundColor: theme.palette.grey[900],
   borderBottom: 'none',
   borderRadius: '0',
   // Clip-path pour couper net sans border-radius visible
@@ -106,13 +106,14 @@ const FavoriteButton = muiStyled(IconButton)(({ theme }: { theme: any }) => ({
   zIndex: 3,
   width: 45,
   height: 45,
-  backgroundColor: '#185FA5',
-  border: '1px solid #185FA5',
-  boxShadow: '0 2px 8px rgba(24, 95, 165, 0.25)',
-  transition: 'all 0.2s ease',
+  backgroundColor: theme.palette.primary.main,
+  border: `1px solid ${theme.palette.primary.main}`,
+  boxShadow: theme.shadows[2],
+  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
   '&:hover': {
-    backgroundColor: '#185FA5',
-    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
+    backgroundColor: theme.palette.primary.main,
+    boxShadow: theme.shadows[4],
+    transform: 'translateY(-1px)',
   },
   [theme.breakpoints.down('sm')]: {
     width: 36,
@@ -293,20 +294,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </ImageInner>
 
-        {/* Gradient overlay subtil en bas — profondeur premium */}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '40%',
-            background: 'linear-gradient(to top, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.08) 50%, transparent 100%)',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        />
-
         {/* ── Bouton favori ── */}
         {onToggleFavorite && showFavorite && (
           <Tooltip
@@ -321,8 +308,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
               aria-pressed={isFavorite}
             >
               {isFavorite
-                ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: '#ff4d6d' }} />
-                : <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 22.5 }, color: '#ffffff' }} />
+                ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'error.main' }} />
+                : <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'primary.contrastText' }} />
               }
             </FavoriteButton>
           </Tooltip>
@@ -427,7 +414,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     height: 25,
                   }}
                 />
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: '#16a34a', lineHeight: 1.3 }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: 'success.main', lineHeight: 1.3 }}>
                   Économisez {fmt(Number(originalPrice) - Number(product.price))}
                 </Typography>
               </Stack>
@@ -464,14 +451,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 onClick={handleAddToCart}
                 sx={{
                   bgcolor: 'primary.main',
-                  color: 'white',
+                  color: 'primary.contrastText',
                   border: '1px solid',
                   borderColor: 'primary.main',
-                  boxShadow: '0 2px 8px rgba(24, 95, 165, 0.25)',
+                  boxShadow: theme.shadows[2],
                   '&:hover': {
                     bgcolor: 'primary.main',
-                    color: 'white',
-                    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
+                    color: 'primary.contrastText',
+                    boxShadow: theme.shadows[4],
                   },
                 }}
               >
