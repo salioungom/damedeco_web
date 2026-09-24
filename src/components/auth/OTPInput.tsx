@@ -62,14 +62,17 @@ export function OTPInput({ value, onChange, length = 6, disabled = false }: OTPI
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(index, e)}
           onPaste={index === 0 ? handlePaste : undefined}
           variant="outlined"
-          inputProps={{
-            maxLength: 1,
-            style: {
-              textAlign: 'center',
-              fontSize: '1.5rem',
-              fontFamily: 'monospace',
-              width: '3rem',
-              height: '3rem',
+          slotProps={{
+            htmlInput: {
+              maxLength: 1,
+              sx: {
+                textAlign: 'center',
+                fontSize: '1.5rem',
+                fontFamily: 'monospace',
+                width: '3rem',
+                height: '3rem',
+                p: 0,
+              },
             },
           }}
           disabled={disabled}

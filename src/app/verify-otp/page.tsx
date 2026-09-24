@@ -3,571 +3,255 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Box,
-  Container,
-  Paper,
-  Typography,
-  Alert,
-  CircularProgress,
-  Button,
-  ToggleButton,
-  ToggleButtonGroup,
-  Fab,
-  IconButton,
-  Divider,
-  alpha,
-  useTheme,
+    Box,
+    Alert,
+    Button,
+    Typography,
+    ToggleButton,
+    ToggleButtonGroup,
 } from '@mui/material';
-import { Refresh as RefreshIcon, ArrowBack, VerifiedUser } from '@mui/icons-material';
-import NextLink from 'next/link';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { OTPInput } from '@/components/auth/OTPInput';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
-import { BRAND_BLUE } from '@/theme';
+import { AuthShell } from '@/components/ui/AuthShell';
 
 function VerifyOTPForm() {
-  const [otp, setOtp] = useState('');
-  const [method, setMethod] = useState<'totp' | 'email'>('totp');
-  const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
-  const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
-  const theme = useTheme();
+    const [otp, setOtp] = useState('');
+    const [method, setMethod] = useState<'totp' | 'email'>('totp');
+    const [loading, setLoading] = useState(false);
+    const [resending, setResending] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (otp.length !== 6) {
-      setError('Veuillez entrer les 6 chiffres');
-      return;
-    }
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const email = searchParams.get('email') || '';
+    const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
 
-    setLoading(true);
-    setError('');
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/verify-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,  // Format FastAPI: "email" au lieu de "email: method === 'email'"
-          code: otp,    // Format FastAPI: "code" au lieu de "otp"
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(true);
-        
-        if (data.user) {
-          localStorage.setItem('user_fullname', data.user.name || data.user.fullname);
-          localStorage.setItem('user_email', data.user.email);
+        if (otp.length !== 6) {
+            setError('Veuillez entrer les 6 chiffres');
+            return;
         }
-        
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-        }
-        if (data.access_token) {
-          localStorage.setItem('token', data.access_token);
-        }
-        
-        // Redirection selon le rôle de l'utilisateur
-        setTimeout(() => {
-          if (redirectTo) {
-            router.push(redirectTo);
-          } else if (data.user?.role === 'superadmin') {
-            router.push('/dashboards');
-          } else if (data.user?.role === 'admin') {
-            router.push('/dashboard');
-          } else if (data.user?.role === 'client') {
-            router.push('/account');
-          } else {
-            router.push('/');
-          }
-        }, 2000);
-      } else {
-        // Gérer les erreurs FastAPI (422 validation, etc.)
-        if (data.detail && Array.isArray(data.detail)) {
-          // Erreur de validation FastAPI
-          const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
-          setError(errorMessages);
-        } else {
-          setError(data.message || data.detail || 'Code OTP invalide');
-        }
-      }
-    } catch (err) {
-      setError('Erreur de connexion au serveur');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleResend = async () => {
-    setResending(true);
-    setError('');
+        setLoading(true);
+        setError('');
 
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/resend-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,  // Format FastAPI: seulement "email"
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(true);
-        setSuccessMessage('Code renvoyé avec succès');
-      } else {
-        // Gérer les erreurs FastAPI (422 validation, etc.)
-        if (data.detail && Array.isArray(data.detail)) {
-          // Erreur de validation FastAPI
-          const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
-          setError(errorMessages);
-        } else {
-          setError(data.message || data.detail || 'Erreur lors du renvoi du code');
-        }
-      }
-    } catch (err) {
-      setError('Erreur de connexion au serveur');
-    } finally {
-      setResending(false);
-      // Effacer le message de succès après 3 secondes
-      if (successMessage) {
-        setTimeout(() => setSuccessMessage(''), 3000);
-      }
-    }
-  };
-
-  if (success) {
-    return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          position: 'relative',
-          overflow: 'hidden',
-          background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
-        }}
-      >
-        {/* Animated Background Elements */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '-10%',
-            right: '-10%',
-            width: '40%',
-            height: '40%',
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha('#85B7EB', 0.25)}, transparent)`,
-            animation: 'float 6s ease-in-out infinite',
-            '@keyframes float': {
-              '0%, 100%': { transform: 'translateY(0) translateX(0)' },
-              '50%': { transform: 'translateY(-20px) translateX(20px)' },
-            },
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: '-10%',
-            left: '-10%',
-            width: '50%',
-            height: '50%',
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha('#E6F1FB', 0.2)}, transparent)`,
-            animation: 'float 8s ease-in-out infinite',
-            animationDelay: '1s',
-          }}
-        />
-
-        {/* Back to Home Button */}
-        <IconButton
-          component={NextLink}
-          href="/"
-          sx={{
-            position: 'absolute',
-            top: 24,
-            left: 24,
-            color: 'white',
-            bgcolor: alpha('#fff', 0.1),
-            backdropFilter: 'blur(10px)',
-            '&:hover': {
-              bgcolor: alpha('#fff', 0.2),
-              transform: 'translateX(-4px)',
-            },
-            transition: 'all 0.3s',
-            zIndex: 10,
-          }}
-        >
-          <ArrowBack />
-        </IconButton>
-
-        <Container component="main" maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
-          <Box
-            sx={{
-              minHeight: '100vh',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              py: 4,
-            }}
-          >
-            <Box
-              sx={{
-                width: '100%',
-                p: { xs: 3, sm: 5 },
-                borderRadius: 4,
-                background: alpha('#fff', 0.95),
-                backdropFilter: 'blur(20px)',
-                boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2)`,
-                border: `1px solid ${alpha('#fff', 0.3)}`,
-                animation: 'slideUp 0.6s ease-out',
-                '@keyframes slideUp': {
-                  from: {
-                    opacity: 0,
-                    transform: 'translateY(30px)',
-                  },
-                  to: {
-                    opacity: 1,
-                    transform: 'translateY(0)',
-                  },
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/verify-otp`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-              }}
+                body: JSON.stringify({
+                    email: email,
+                    code: otp,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSuccess(true);
+
+                if (data.user) {
+                    localStorage.setItem('user_fullname', data.user.name || data.user.fullname);
+                    localStorage.setItem('user_email', data.user.email);
+                }
+
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
+                if (data.access_token) {
+                    localStorage.setItem('token', data.access_token);
+                }
+
+                setTimeout(() => {
+                    if (redirectTo) {
+                        router.push(redirectTo);
+                    } else if (data.user?.role === 'superadmin') {
+                        router.push('/dashboards');
+                    } else if (data.user?.role === 'admin') {
+                        router.push('/dashboard');
+                    } else if (data.user?.role === 'client') {
+                        router.push('/account');
+                    } else {
+                        router.push('/');
+                    }
+                }, 2000);
+            } else {
+                if (data.detail && Array.isArray(data.detail)) {
+                    const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
+                    setError(errorMessages);
+                } else {
+                    setError(data.message || data.detail || 'Code OTP invalide');
+                }
+            }
+        } catch (err) {
+            setError('Erreur de connexion au serveur');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResend = async () => {
+        setResending(true);
+        setError('');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/resend-otp`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSuccess(true);
+                setSuccessMessage('Code renvoyé avec succès');
+            } else {
+                if (data.detail && Array.isArray(data.detail)) {
+                    const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
+                    setError(errorMessages);
+                } else {
+                    setError(data.message || data.detail || 'Erreur lors du renvoi du code');
+                }
+            }
+        } catch (err) {
+            setError('Erreur de connexion au serveur');
+        } finally {
+            setResending(false);
+            if (successMessage) {
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        }
+    };
+
+    if (success) {
+        return (
+            <AuthShell
+                eyebrow="Sécurité · Compte"
+                title="Vérifiée."
+                paragraph="Votre identité a bien été confirmée. Redirection vers votre espace…"
+                note="Vous pouvez maintenant profiter pleinement de votre compte DameDéco."
             >
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontWeight: 800,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 1,
-                  }}
-                >
-                        DameDéco
-                </Typography>
-                <Typography variant="h6" color="text.secondary" fontWeight={500}>
-                  Vérification réussie
-                </Typography>
-              </Box>
-              
-              <Alert
-                severity="success"
-                sx={{
-                  borderRadius: 2,
-                  animation: 'slideUp 0.6s ease-out',
-                }}
-              >
-                Vérification réussie ! Redirection en cours...
-              </Alert>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
-    );
-  }
+                <Alert severity="success" variant="outlined">
+                    Vérification réussie ! Redirection en cours…
+                </Alert>
+            </AuthShell>
+        );
+    }
 
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        position: 'relative',
-        overflow: 'hidden',
-        background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
-      }}
-    >
-      {/* Animated Background Elements */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '-10%',
-          right: '-10%',
-          width: '40%',
-          height: '40%',
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.secondary.light, 0.3)}, transparent)`,
-          animation: 'float 6s ease-in-out infinite',
-          '@keyframes float': {
-            '0%, 100%': { transform: 'translateY(0) translateX(0)' },
-            '50%': { transform: 'translateY(-20px) translateX(20px)' },
-          },
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '-10%',
-          left: '-10%',
-          width: '50%',
-          height: '50%',
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.primary.light, 0.3)}, transparent)`,
-          animation: 'float 8s ease-in-out infinite',
-          animationDelay: '1s',
-        }}
-      />
-
-      {/* Back to Home Button */}
-      <IconButton
-        component={NextLink}
-        href="/"
-        sx={{
-          position: 'absolute',
-          top: 24,
-          left: 24,
-          color: 'white',
-          bgcolor: alpha('#fff', 0.1),
-          backdropFilter: 'blur(10px)',
-          '&:hover': {
-            bgcolor: alpha('#fff', 0.2),
-            transform: 'translateX(-4px)',
-          },
-          transition: 'all 0.3s',
-          zIndex: 10,
-        }}
-      >
-        <ArrowBack />
-      </IconButton>
-
-      <Container component="main" maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
-        <Box
-          sx={{
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            py: 4,
-          }}
+    return (
+        <AuthShell
+            eyebrow="Sécurité · Compte"
+            title="Vérifiez votre identité."
+            paragraph="Entrez le code à 6 chiffres que nous avons envoyé pour confirmer votre identité."
+            note="Pensez à vérifier vos spams. Vous pouvez renvoyer le code ci-dessous."
         >
-          <Box
-            sx={{
-              width: '100%',
-              p: { xs: 3.5, sm: 5 },
-              borderRadius: '16px',
-              background: alpha('#fff', 0.97),
-              backdropFilter: 'blur(24px)',
-              boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.4)',
-              animation: 'slideUp 0.6s ease-out',
-              '@keyframes slideUp': {
-                from: {
-                  opacity: 0,
-                  transform: 'translateY(30px)',
-                },
-                to: {
-                  opacity: 1,
-                  transform: 'translateY(0)',
-                },
-              },
-            }}
-          >
-            {/* Logo/Title */}
-            <Box sx={{ textAlign: 'center', mb: 4.5 }}>
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 56,
-                  height: 56,
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                  mb: 2.5,
-                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
-                }}
-              >
-                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
-                  DS
+            {email && (
+                <Typography
+                    variant="body2"
+                    sx={{ color: 'text.secondary', fontWeight: 500, mb: 3, textAlign: 'center' }}
+                >
+                    Code envoyé à&nbsp;: <Box component="span" sx={{ color: 'text.primary', fontWeight: 600 }}>{email}</Box>
                 </Typography>
-              </Box>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  color: '#042C53',
-                  mb: 0.75,
-                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
-                }}
-              >
-                Vérification en deux étapes
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
-                Entrez le code à 6 chiffres pour vérifier votre identité
-              </Typography>
-              {email && (
-                <Typography variant="body2" color="#185FA5" sx={{ mt: 1, fontWeight: 600, fontSize: '0.85rem' }}>
-                  Code envoyé à: {email}
-                </Typography>
-              )}
-            </Box>
+            )}
 
             {error && (
-              <Alert
-                severity="error"
-                variant="outlined"
-                sx={{
-                  mb: 3,
-                  animation: 'slideUp 0.35s ease-out',
-                  '@keyframes slideUp': {
-                    from: { opacity: 0, transform: 'translateY(-8px)' },
-                    to: { opacity: 1, transform: 'translateY(0)' },
-                  },
-                }}
-              >
-                {error}
-              </Alert>
+                <Alert severity="error" variant="outlined" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
             )}
 
             {successMessage && (
-              <Alert
-                severity="success"
-                variant="outlined"
-                sx={{
-                  mb: 3,
-                  animation: 'slideUp 0.35s ease-out',
-                  '@keyframes slideUp': {
-                    from: { opacity: 0, transform: 'translateY(-8px)' },
-                    to: { opacity: 1, transform: 'translateY(0)' },
-                  },
-                }}
-              >
-                {successMessage}
-              </Alert>
+                <Alert severity="success" variant="outlined" sx={{ mb: 3 }}>
+                    {successMessage}
+                </Alert>
             )}
 
-            <Box component="form" onSubmit={handleSubmit}>
-              {/* Method Selection */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" gutterBottom sx={{ mb: 2, textAlign: 'center' }}>
-                  Méthode de vérification:
-                </Typography>
-                <ToggleButtonGroup
-                  value={method}
-                  exclusive
-                  onChange={(_: React.MouseEvent<HTMLElement>, newMethod: "totp" | "email" | null) => newMethod && setMethod(newMethod)}
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiToggleButton-root': {
-                      borderRadius: '8px',
-                      border: '1.5px solid rgba(24, 95, 165, 0.3)',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      '&.Mui-selected': {
-                        background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                        color: 'white',
-                        borderColor: BRAND_BLUE,
-                      },
-                    },
-                  }}
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1.5, textAlign: 'center', color: 'text.secondary' }}>
+                        Méthode de vérification
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={method}
+                        exclusive
+                        onChange={(_: React.MouseEvent<HTMLElement>, newMethod: 'totp' | 'email' | null) => newMethod && setMethod(newMethod)}
+                        fullWidth
+                        size="small"
+                        sx={{
+                            '& .MuiToggleButton-root': {
+                                py: 1,
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                color: 'text.secondary',
+                                borderColor: 'divider',
+                                '&.Mui-selected': {
+                                    bgcolor: 'primary.main',
+                                    color: '#fff',
+                                    '&:hover': {
+                                        bgcolor: 'primary.dark',
+                                    },
+                                },
+                            },
+                        }}
+                    >
+                        <ToggleButton value="totp">Application</ToggleButton>
+                        <ToggleButton value="email">Email</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+                    <OTPInput
+                        value={otp}
+                        onChange={setOtp}
+                        length={6}
+                        disabled={loading}
+                    />
+                </Box>
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={loading || otp.length !== 6}
+                    sx={{ height: 48 }}
                 >
-                  <ToggleButton value="totp">
-                    Application
-                  </ToggleButton>
-                  <ToggleButton value="email">
-                    Email
-                  </ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
+                    {loading ? 'Vérification…' : 'Vérifier'}
+                </Button>
 
-              <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-                <OTPInput
-                  value={otp}
-                  onChange={setOtp}
-                  length={6}
-                  disabled={loading}
-                />
-              </Box>
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading || otp.length !== 6}
-                startIcon={loading ? <CircularProgress size={20} /> : <VerifiedUser />}
-                sx={{
-                  py: 1.625,
-                  borderRadius: '10px',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.35)',
-                  transition: 'all 0.25s ease',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 100%)',
-                    boxShadow: '0 6px 20px rgba(24, 95, 165, 0.45)',
-                    transform: 'translateY(-1px)',
-                  },
-                  '&:active': {
-                    transform: 'translateY(0)',
-                  },
-                  '&.Mui-disabled': {
-                    background: '#E6F1FB',
-                    color: '#888780',
-                  },
-                }}
-              >
-                {loading ? 'Vérification en cours...' : 'Vérifier'}
-              </Button>
+                <Button
+                    type="button"
+                    variant="text"
+                    fullWidth
+                    onClick={handleResend}
+                    disabled={resending}
+                    startIcon={!resending && <RefreshIcon sx={{ fontSize: 16 }} />}
+                    sx={{ mt: 2, py: 1, fontWeight: 600 }}
+                >
+                    {resending ? 'Envoi en cours…' : 'Renvoyer le code'}
+                </Button>
             </Box>
-
-            <Divider sx={{ my: 3.5, borderColor: '#E6F1FB' }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', fontWeight: 500 }}>
-                ou
-              </Typography>
-            </Divider>
-
-            <Button
-              variant="text"
-              fullWidth
-              onClick={handleResend}
-              disabled={resending}
-              startIcon={resending ? <CircularProgress size={16} /> : <RefreshIcon />}
-              sx={{
-                py: 1.625,
-                borderRadius: '10px',
-                fontWeight: 600,
-                textTransform: 'none',
-                color: BRAND_BLUE,
-                fontSize: '0.95rem',
-                transition: 'all 0.25s ease',
-                '&:hover': {
-                  bgcolor: 'rgba(24, 95, 165, 0.06)',
-                  transform: 'translateY(-1px)',
-                },
-              }}
-            >
-              {resending ? 'Envoi en cours...' : 'Renvoyer le code'}
-            </Button>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
-  );
+        </AuthShell>
+    );
 }
 
 export default function VerifyOTPPage() {
-  return (
-    <Suspense>
-      <VerifyOTPForm />
-    </Suspense>
-  );
+    return (
+        <Suspense>
+            <VerifyOTPForm />
+        </Suspense>
+    );
 }

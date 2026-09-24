@@ -93,7 +93,6 @@ function FavoritesInitializer() {
 
 export function Providers({ children }: ProvidersProps) {
   const pathname = usePathname();
-  const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/register');
 
   return (
     <SnackbarProvider
@@ -112,7 +111,8 @@ export function Providers({ children }: ProvidersProps) {
           overflowX: 'hidden',
         }}
       >
-        {!isAuthPage && <Navigation />}
+        <Navigation />
+
         <Box
           component="main"
           sx={{
@@ -120,14 +120,18 @@ export function Providers({ children }: ProvidersProps) {
             width: '100%',
             maxWidth: '100%',
             mx: 'auto',
-            pt: isAuthPage ? 0 : `${NAVBAR_HEIGHT}px`,
+            pt: {
+              xs: `${NAVBAR_HEIGHT.xs}px`,
+              sm: `${NAVBAR_HEIGHT.sm}px`,
+              md: `${NAVBAR_HEIGHT.md}px`,
+            },
           }}
         >
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
         </Box>
-        {!isAuthPage && <Footer />}
+        <Footer />
         <CartDrawer />
         <Toaster />
       </Box>

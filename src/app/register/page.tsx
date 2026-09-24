@@ -5,35 +5,23 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { authAPI } from '@/lib/auth';
 import {
     Box,
-    TextField,
     Button,
     Alert,
     Typography,
-    Container,
-    IconButton,
-    InputAdornment,
-    Divider,
-    alpha,
-    useTheme,
     Grid,
     List,
     ListItem,
     ListItemText,
     ListItemIcon,
     Chip,
+    Link as MuiLink,
 } from '@mui/material';
-import {
-    Visibility,
-    VisibilityOff,
-    PersonAdd,
-    Login as LoginIcon,
-    ArrowBack,
-    CheckCircle,
-    Cancel,
-} from '@mui/icons-material';
+import { CheckCircle, Cancel } from '@mui/icons-material';
 import NextLink from 'next/link';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
-import { BRAND_BLUE } from '@/theme';
+import { AuthShell } from '@/components/ui/AuthShell';
+import { StaticTextField } from '@/components/ui/StaticTextField';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 // ClientOnly wrapper to prevent hydration mismatches
 const ClientOnly = ({ children }: { children: React.ReactNode }) => {
@@ -45,7 +33,6 @@ const ClientOnly = ({ children }: { children: React.ReactNode }) => {
 function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const theme = useTheme();
     const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
     const [formData, setFormData] = useState({
         fullName: '',
@@ -54,8 +41,6 @@ function RegisterForm() {
         password: '',
         confirmPassword: ''
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
@@ -276,483 +261,135 @@ function RegisterForm() {
     );
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                display: 'flex',
-                position: 'relative',
-                overflow: 'hidden',
-                background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
-            }}
+        <AuthShell
+            eyebrow="Maison · Dakar"
+            title="Créer un compte."
+            paragraph="Rejoignez DameDéco et profitez de nos sélections déco livrées à Dakar et ses alentours."
+            note="Inscription gratuite. Paiement à la livraison · Wave · Orange Money · Carte bancaire"
+            formMaxWidth={600}
         >
-            {/* Animated Background Elements */}
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: '-10%',
-                    right: '-10%',
-                    width: '40%',
-                    height: '40%',
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${alpha('#85B7EB', 0.25)}, transparent)`,
-                    animation: 'float 6s ease-in-out infinite',
-                    '@keyframes float': {
-                        '0%, 100%': { transform: 'translateY(0) translateX(0)' },
-                        '50%': { transform: 'translateY(-20px) translateX(20px)' },
-                    },
-                }}
-            />
-            <Box
-                sx={{
-                    position: 'absolute',
-                    bottom: '-10%',
-                    left: '-10%',
-                    width: '50%',
-                    height: '50%',
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${alpha('#E6F1FB', 0.2)}, transparent)`,
-                    animation: 'float 8s ease-in-out infinite',
-                    animationDelay: '1s',
-                }}
-            />
+            {error && (
+                <Alert severity="error" variant="outlined" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
+            )}
 
-            {/* Back to Home Button */}
-            <IconButton
-                component={NextLink}
-                href="/"
-                aria-label="Retour à l'accueil"
-                sx={{
-                    position: 'absolute',
-                    top: { xs: 16, sm: 24 },
-                    left: { xs: 16, sm: 24 },
-                    width: { xs: 44, sm: 48 },
-                    height: { xs: 44, sm: 48 },
-                    color: 'white',
-                    bgcolor: alpha('#fff', 0.15),
-                    border: '1px solid rgba(255, 255, 255, 0.25)',
-                    backdropFilter: 'blur(10px)',
-                    '&:hover': {
-                        bgcolor: alpha('#fff', 0.25),
-                        transform: 'translateX(-4px)',
-                    },
-                    transition: 'all 0.3s',
-                    zIndex: 10,
-                }}
-            >
-                <ArrowBack />
-            </IconButton>
+            {success && (
+                <Alert severity="success" variant="outlined" sx={{ mb: 3 }}>
+                    {success}
+                </Alert>
+            )}
 
-            <Container component="main" maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-                <Box
-                    sx={{
-                        minHeight: '100vh',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-py: { xs: 2, sm: 4 },
-                        }}
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+                <Grid container spacing={2.5}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <ClientOnly>
+                            <StaticTextField
+                                id="fullName"
+                                name="fullName"
+                                label="Nom complet"
+                                autoComplete="name"
+                                autoFocus
+                                required
+                                value={formData.fullName}
+                                onChange={handleChange}
+                                error={!!fieldErrors.fullName}
+                                helperText={fieldErrors.fullName}
+                            />
+                        </ClientOnly>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <ClientOnly>
+                            <StaticTextField
+                                id="email"
+                                name="email"
+                                label="Adresse email"
+                                type="email"
+                                autoComplete="email"
+                                required
+                                value={formData.email}
+                                onChange={handleChange}
+                                error={!!fieldErrors.email}
+                                helperText={fieldErrors.email}
+                            />
+                        </ClientOnly>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <ClientOnly>
+                            <StaticTextField
+                                id="phone"
+                                name="phone"
+                                label="Téléphone"
+                                type="tel"
+                                autoComplete="tel"
+                                required
+                                value={formData.phone}
+                                onChange={handleChange}
+                                error={!!fieldErrors.phone}
+                                helperText={fieldErrors.phone}
+                            />
+                        </ClientOnly>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <ClientOnly>
+                            <PasswordField
+                                id="password"
+                                name="password"
+                                label="Mot de passe"
+                                autoComplete="new-password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                onFocus={() => setPasswordFocused(true)}
+                                onBlur={() => setPasswordFocused(false)}
+                                error={!!fieldErrors.password}
+                                helperText={fieldErrors.password}
+                                required
+                            />
+                            <PasswordStrengthIndicator />
+                        </ClientOnly>
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <ClientOnly>
+                            <PasswordField
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                label="Confirmer le mot de passe"
+                                autoComplete="new-password"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                error={!!fieldErrors.confirmPassword}
+                                helperText={fieldErrors.confirmPassword}
+                                required
+                            />
+                        </ClientOnly>
+                    </Grid>
+                </Grid>
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={loading}
+                    sx={{ height: 48, mt: 3 }}
+                >
+                    {loading ? 'Création…' : 'Créer mon compte'}
+                </Button>
+
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Déjà un compte&nbsp;?
+                    </Typography>
+                    <MuiLink
+                        component={NextLink}
+                        href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login'}
+                        sx={{ fontSize: 14, fontWeight: 600 }}
                     >
-                        {/* Register Card with Glassmorphism */}
-                        <Box
-                            sx={{
-                                width: '100%',
-                                maxWidth: 680,
-                                p: { xs: 2.5, sm: 5 },
-                            borderRadius: '16px',
-                            background: alpha('#fff', 0.97),
-                            backdropFilter: 'blur(24px)',
-                            boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
-                            border: '1px solid rgba(255, 255, 255, 0.4)',
-                            animation: 'slideUp 0.6s ease-out',
-                            '@keyframes slideUp': {
-                                from: {
-                                    opacity: 0,
-                                    transform: 'translateY(30px)',
-                                },
-                                to: {
-                                    opacity: 1,
-                                    transform: 'translateY(0)',
-                                },
-                            },
-                        }}
-                    >
-                        {/* Logo/Title */}
-                        <Box sx={{ textAlign: 'center', mb: { xs: 3.25, sm: 4.5 } }}>
-                            <Box
-                            sx={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: { xs: 48, sm: 56 },
-                                    height: { xs: 48, sm: 56 },
-                                    borderRadius: { xs: '12px', sm: '14px' },
-                                    background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                                    mb: { xs: 2, sm: 2.5 },
-                                    boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
-                                }}
-                            >
-                                <Typography sx={{ fontSize: { xs: 18, sm: 20 }, fontWeight: 800, color: '#fff' }}>
-                                    DS
-                                </Typography>
-                            </Box>
-                            <Typography
-                                variant="h4"
-                                sx={{
-                                    fontWeight: 700,
-                                    color: '#042C53',
-                                    mb: 0.75,
-                                    fontSize: { xs: '1.5rem', sm: '2rem' },
-                                }}
-                            >
-                                Créer un compte
-                            </Typography>
-                            <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '0.95rem' }, lineHeight: 1.6 }}>
-                                Rejoignez DameDéco et accédez à nos services exclusifs
-                            </Typography>
-                        </Box>
-
-                        {error && (
-                            <Alert
-                                severity="error"
-                                variant="outlined"
-                                sx={{
-                                    mb: 3,
-                                    animation: 'slideUp 0.35s ease-out',
-                                    '@keyframes slideUp': {
-                                        from: { opacity: 0, transform: 'translateY(-8px)' },
-                                        to: { opacity: 1, transform: 'translateY(0)' },
-                                    },
-                                }}
-                            >
-                                {error}
-                            </Alert>
-                        )}
-
-                        {success && (
-                            <Alert
-                                severity="success"
-                                variant="outlined"
-                                sx={{
-                                    mb: 3,
-                                    animation: 'slideUp 0.35s ease-out',
-                                    '@keyframes slideUp': {
-                                        from: { opacity: 0, transform: 'translateY(-8px)' },
-                                        to: { opacity: 1, transform: 'translateY(0)' },
-                                    },
-                                }}
-                            >
-                                {success}
-                            </Alert>
-                        )}
-
-                        <Box component="form" onSubmit={handleSubmit} noValidate>
-                            <Box sx={{ maxWidth: 600, mx: 'auto' }}>
-                                {/* Layout à deux colonnes responsive avec alignement strict */}
-                                <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ alignItems: 'center' }}>
-                                    {/* Ligne 1: Nom complet (gauche) et Email (droite) */}
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <ClientOnly>
-                                            <TextField
-                                                required
-                                                fullWidth
-                                                id="fullName"
-                                                label="Nom complet"
-                                                name="fullName"
-                                                autoComplete="name"
-                                                autoFocus
-                                                value={formData.fullName}
-                                                onChange={handleChange}
-                                                error={!!fieldErrors.fullName}
-                                                helperText={fieldErrors.fullName}
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '10px',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            borderColor: '#85B7EB',
-                                                        },
-                                                        '&.Mui-focused': {
-                                                            borderColor: BRAND_BLUE,
-                                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                                        },
-                                                    },
-                                                    '& .MuiInputLabel-root': {
-                                                        fontSize: '0.875rem',
-                                                        '&.Mui-focused': {
-                                                            color: BRAND_BLUE,
-                                                        },
-                                                    },
-                                                }}
-                                            />
-                                        </ClientOnly>
-                                    </Grid>
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <ClientOnly>
-                                            <TextField
-                                                required
-                                                fullWidth
-                                                id="email"
-                                                label="Adresse email"
-                                                name="email"
-                                                autoComplete="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                error={!!fieldErrors.email}
-                                                helperText={fieldErrors.email}
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '10px',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            borderColor: '#85B7EB',
-                                                        },
-                                                        '&.Mui-focused': {
-                                                            borderColor: BRAND_BLUE,
-                                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                                        },
-                                                    },
-                                                    '& .MuiInputLabel-root': {
-                                                        fontSize: '0.875rem',
-                                                        '&.Mui-focused': {
-                                                            color: BRAND_BLUE,
-                                                        },
-                                                    },
-                                                }}
-                                            />
-                                        </ClientOnly>
-                                    </Grid>
-
-                                    {/* Ligne 2: Téléphone (gauche) et Mot de passe (droite) */}
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <ClientOnly>
-                                            <TextField
-                                                required
-                                                fullWidth
-                                                id="phone"
-                                                label="Téléphone"
-                                                name="phone"
-                                                autoComplete="tel"
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                error={!!fieldErrors.phone}
-                                                helperText={fieldErrors.phone}
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '10px',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            borderColor: '#85B7EB',
-                                                        },
-                                                        '&.Mui-focused': {
-                                                            borderColor: BRAND_BLUE,
-                                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                                        },
-                                                    },
-                                                    '& .MuiInputLabel-root': {
-                                                        fontSize: '0.875rem',
-                                                        '&.Mui-focused': {
-                                                            color: BRAND_BLUE,
-                                                        },
-                                                    },
-                                                }}
-                                            />
-                                        </ClientOnly>
-                                    </Grid>
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <ClientOnly>
-                                            <TextField
-                                                required
-                                                fullWidth
-                                                name="password"
-                                                label="Mot de passe"
-                                                type={showPassword ? 'text' : 'password'}
-                                                id="password"
-                                                autoComplete="new-password"
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                onFocus={() => setPasswordFocused(true)}
-                                                onBlur={() => setPasswordFocused(false)}
-                                                error={!!fieldErrors.password}
-                                                helperText={fieldErrors.password}
-                                                slotProps={{
-                                                    input: {
-                                                        endAdornment: (
-                                                            <InputAdornment position="end">
-                                                                <IconButton
-                                                                    onClick={() => setShowPassword(!showPassword)}
-                                                                    edge="end"
-                                                                    sx={{
-                                                                        color: '#888780',
-                                                                        p: 1.15,
-                                                                        '&:hover': {
-                                                                            color: BRAND_BLUE,
-                                                                            bgcolor: 'rgba(24, 95, 165, 0.08)',
-                                                                        },
-                                                                    }}
-                                                                >
-                                                                    {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                                                                </IconButton>
-                                                            </InputAdornment>
-                                                        ),
-                                                    },
-                                                }}
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '10px',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            borderColor: '#85B7EB',
-                                                        },
-                                                        '&.Mui-focused': {
-                                                            borderColor: BRAND_BLUE,
-                                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                                        },
-                                                    },
-                                                    '& .MuiInputLabel-root': {
-                                                        fontSize: '0.875rem',
-                                                        '&.Mui-focused': {
-                                                            color: BRAND_BLUE,
-                                                        },
-                                                    },
-                                                }}
-                                            />
-                                            <PasswordStrengthIndicator />
-                                        </ClientOnly>
-                                    </Grid>
-
-                                    {/* Ligne 3: Confirmation mot de passe (pleine largeur) */}
-                                    <Grid size={{ xs: 12, sm: 12 }}>
-                                        <ClientOnly>
-                                            <TextField
-                                                required
-                                                fullWidth
-                                                name="confirmPassword"
-                                                label="Confirmer le mot de passe"
-                                                type={showConfirmPassword ? 'text' : 'password'}
-                                                id="confirmPassword"
-                                                autoComplete="new-password"
-                                                value={formData.confirmPassword}
-                                                onChange={handleChange}
-                                                error={!!fieldErrors.confirmPassword}
-                                                helperText={fieldErrors.confirmPassword}
-                                                slotProps={{
-                                                    input: {
-                                                        endAdornment: (
-                                                            <InputAdornment position="end">
-                                                                <IconButton
-                                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                                    edge="end"
-                                                                    sx={{
-                                                                        color: theme.palette.text.secondary,
-                                                                        p: 1.15,
-                                                                        '&:hover': {
-                                                                            color: theme.palette.primary.main,
-                                                                        },
-                                                                    }}
-                                                                >
-                                                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                                                </IconButton>
-                                                            </InputAdornment>
-                                                        ),
-                                                    },
-                                                }}
-                                                sx={{
-                                                    mb: { xs: 1, sm: 2.5 },
-                                                    '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '10px',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            borderColor: '#85B7EB',
-                                                        },
-                                                        '&.Mui-focused': {
-                                                            borderColor: BRAND_BLUE,
-                                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                                        },
-                                                    },
-                                                    '& .MuiInputLabel-root': {
-                                                        fontSize: '0.875rem',
-                                                        '&.Mui-focused': {
-                                                            color: BRAND_BLUE,
-                                                        },
-                                                    },
-                                                }}
-                                            />
-                                        </ClientOnly>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                disabled={loading}
-                                startIcon={!loading && <PersonAdd sx={{ fontSize: 18 }} />}
-                                sx={{
-                                    py: { xs: 1.25, sm: 1.625 },
-                                    borderRadius: '10px',
-                                    fontSize: '0.95rem',
-                                    fontWeight: 700,
-                                    textTransform: 'none',
-                                    background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                                    boxShadow: '0 4px 16px rgba(24, 95, 165, 0.35)',
-                                    transition: 'all 0.25s ease',
-                                    '&:hover': {
-                                        background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 100%)',
-                                        boxShadow: '0 6px 20px rgba(24, 95, 165, 0.45)',
-                                        transform: 'translateY(-1px)',
-                                    },
-                                    '&:active': {
-                                        transform: 'translateY(0)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        background: '#E6F1FB',
-                                        color: '#888780',
-                                    },
-                                }}
-                            >
-                                {loading ? 'Création...' : 'Créer mon compte'}
-                            </Button>
-
-                            <Divider sx={{ my: { xs: 2, sm: 3.5 }, borderColor: '#E6F1FB' }}>
-                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', fontWeight: 500 }}>
-                                    ou
-                                </Typography>
-                            </Divider>
-
-                            <Button
-                                component={NextLink}
-                                href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login'}
-                                fullWidth
-                                variant="outlined"
-                                startIcon={<LoginIcon sx={{ fontSize: 18 }} />}
-                                sx={{
-                                    py: { xs: 1.25, sm: 1.625 },
-                                    borderRadius: '10px',
-                                    borderWidth: 1.5,
-                                    fontWeight: 600,
-                                    textTransform: 'none',
-                                    borderColor: BRAND_BLUE,
-                                    color: BRAND_BLUE,
-                                    fontSize: '0.95rem',
-                                    transition: 'all 0.25s ease',
-                                    '&:hover': {
-                                        borderWidth: 1.5,
-                                        borderColor: '#0C447C',
-                                        bgcolor: 'rgba(24, 95, 165, 0.06)',
-                                        transform: 'translateY(-1px)',
-                                        boxShadow: '0 4px 12px rgba(24, 95, 165, 0.2)',
-                                    },
-                                }}
-                            >
-                                Se connecter
-                            </Button>
-                        </Box>
-                    </Box>
+                        Se connecter
+                    </MuiLink>
                 </Box>
-            </Container>
-        </Box>
+            </Box>
+        </AuthShell>
     );
 }
 

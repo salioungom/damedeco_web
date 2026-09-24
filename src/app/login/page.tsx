@@ -2,45 +2,26 @@
 
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-    Box,
-    TextField,
-    Button,
-    Alert,
-    Typography,
-    Container,
-    Link as MuiLink,
-    IconButton,
-    InputAdornment,
-    Divider,
-    alpha,
-    useTheme,
-} from '@mui/material';
-import {
-    Visibility,
-    VisibilityOff,
-    Login as LoginIcon,
-    PersonAdd,
-    ArrowBack,
-} from '@mui/icons-material';
+import { Button, Alert, Typography, Box, Link as MuiLink } from '@mui/material';
 import NextLink from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClientOnly } from '@/components/ClientOnly';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
-import { BRAND_BLUE } from '@/theme';
+import { AuthShell } from '@/components/ui/AuthShell';
+import { StaticTextField } from '@/components/ui/StaticTextField';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const theme = useTheme();
     const { login } = useAuth();
     const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+
+    const registerHref = redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register';
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -93,366 +74,80 @@ function LoginForm() {
     }
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                display: 'flex',
-                position: 'relative',
-                overflow: 'hidden',
-                background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
-            }}
+        <AuthShell
+            eyebrow="Maison · Dakar"
+            title="Bon retour."
+            paragraph="Retrouvez votre espace, vos favoris et le suivi de vos commandes. Une sélection déco pensée pour le Sénégal."
+            note="Paiement à la livraison · Wave · Orange Money · Carte bancaire"
         >
-            {/* Animated Background Elements */}
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: '-10%',
-                    right: '-10%',
-                    width: '40%',
-                    height: '40%',
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${alpha('#85B7EB', 0.25)}, transparent)`,
-                    animation: 'float 6s ease-in-out infinite',
-                    '@keyframes float': {
-                        '0%, 100%': { transform: 'translateY(0) translateX(0)' },
-                        '50%': { transform: 'translateY(-20px) translateX(20px)' },
-                    },
-                }}
-            />
-            <Box
-                sx={{
-                    position: 'absolute',
-                    bottom: '-10%',
-                    left: '-10%',
-                    width: '50%',
-                    height: '50%',
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${alpha('#E6F1FB', 0.2)}, transparent)`,
-                    animation: 'float 8s ease-in-out infinite',
-                    animationDelay: '1s',
-                }}
-            />
+            {error && (
+                <Alert severity="error" variant="outlined" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
+            )}
 
-            {/* Back to Home Button */}
-            <IconButton
-                component={NextLink}
-                href="/"
-                aria-label="Retour à l'accueil"
-                sx={{
-                    position: 'absolute',
-                    top: { xs: 16, sm: 24 },
-                    left: { xs: 16, sm: 24 },
-                    width: { xs: 44, sm: 48 },
-                    height: { xs: 44, sm: 48 },
-                    color: 'white',
-                    bgcolor: alpha('#fff', 0.15),
-                    border: '1px solid rgba(255, 255, 255, 0.25)',
-                    backdropFilter: 'blur(10px)',
-                    '&:hover': {
-                        bgcolor: alpha('#fff', 0.25),
-                        transform: 'translateX(-4px)',
-                    },
-                    transition: 'all 0.3s',
-                    zIndex: 10,
-                }}
-            >
-                <ArrowBack />
-            </IconButton>
-
-            <Container component="main" maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
-                <Box
-                    sx={{
-                        minHeight: '100vh',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        py: 4,
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+                <StaticTextField
+                    id="email"
+                    name="email"
+                    label="Adresse email"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    required
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setEmail(e.target.value);
+                        if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' }));
                     }}
-                >
-                    {/* Login Card with Glassmorphism */}
-                    <ClientOnly>
-                        <Box
-                            sx={{
-                                width: '100%',
-                                maxWidth: 440,
-                                p: { xs: 3.5, sm: 5 },
-                                borderRadius: '16px',
-                                background: alpha('#fff', 0.97),
-                                backdropFilter: 'blur(24px)',
-                                boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
-                                border: '1px solid rgba(255, 255, 255, 0.4)',
-                                animation: 'slideUp 0.6s ease-out',
-                                '@keyframes slideUp': {
-                                    from: {
-                                        opacity: 0,
-                                        transform: 'translateY(30px)',
-                                    },
-                                    to: {
-                                        opacity: 1,
-                                        transform: 'translateY(0)',
-                                    },
-                                },
-                            }}
-                        >
-                            {/* Logo/Title */}
-                            <Box sx={{ textAlign: 'center', mb: { xs: 3.25, sm: 4.5 } }}>
-                                <Box
-                                    sx={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: 56,
-                                        height: 56,
-                                        borderRadius: '14px',
-                                        background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                                        mb: 2.5,
-                                        boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
-                                    }}
-                                >
-                                    <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
-                                        DS
-                                    </Typography>
-                                </Box>
-                                <Typography
-                                    variant="h4"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: '#042C53',
-                                        mb: 0.75,
-                                        fontSize: { xs: '1.75rem', sm: '2rem' },
-                                    }}
-                                >
-                                    Bienvenue
-                                </Typography>
-                                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-                                    Connectez-vous à votre compte DameDéco
-                                </Typography>
-                            </Box>
+                    error={!!fieldErrors.email}
+                    helperText={fieldErrors.email}
+                    sx={{ mb: 3 }}
+                />
 
-                            {error && (
-                                <Alert
-                                    severity="error"
-                                    variant="outlined"
-                                    sx={{
-                                        mb: 3,
-                                        animation: 'slideUp 0.35s ease-out',
-                                        '@keyframes slideUp': {
-                                            from: { opacity: 0, transform: 'translateY(-8px)' },
-                                            to: { opacity: 1, transform: 'translateY(0)' },
-                                        },
-                                    }}
-                                >
-                                    {error}
-                                </Alert>
-                            )}
+                <PasswordField
+                    id="password"
+                    name="password"
+                    label="Mot de passe"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' }));
+                    }}
+                    error={!!fieldErrors.password}
+                    helperText={fieldErrors.password}
+                    sx={{ mb: 1 }}
+                />
 
-                            <Box component="form" onSubmit={handleSubmit} noValidate>
-                                <TextField
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    id="email"
-                                    label="Adresse email"
-                                    name="email"
-                                    autoComplete="email"
-                                    autoFocus
-                                    value={email}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                        setEmail(e.target.value);
-                                        if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' }));
-                                    }}
-                                    error={!!fieldErrors.email}
-                                    helperText={fieldErrors.email}
-                                    sx={{
-                                        mb: 2.5,
-                                        '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
-                                            WebkitBoxShadow: '0 0 0 1000px #ffffff inset',
-                                            WebkitTextFillColor: '#112233',
-                                            WebkitTextDecorationColor: '#112233',
-                                            caretColor: '#112233',
-                                            transition: 'background-color 9999s ease-in-out 0s',
-                                        },
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: '10px',
-                                            transition: 'all 0.2s ease',
-                                            '&:hover': {
-                                                borderColor: '#85B7EB',
-                                            },
-                                            '&.Mui-focused': {
-                                                borderColor: BRAND_BLUE,
-                                                boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                            },
-                                        },
-                                        '& .MuiInputLabel-root': {
-                                            fontSize: '0.875rem',
-                                            '&.Mui-focused': {
-                                                color: BRAND_BLUE,
-                                            },
-                                        },
-                                    }}
-                                />
-                            <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                name="password"
-                                label="Mot de passe"
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                autoComplete="current-password"
-                                value={password}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    setPassword(e.target.value);
-                                    if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' }));
-                                }}
-                                error={!!fieldErrors.password}
-                                helperText={fieldErrors.password}
-                                slotProps={{
-                                    input: {
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    edge="end"
-                                                    sx={{
-                                                        color: '#888780',
-                                                        p: 1.15,
-                                                        '&:hover': {
-                                                            color: BRAND_BLUE,
-                                                            bgcolor: 'rgba(24, 95, 165, 0.08)',
-                                                        },
-                                                    }}
-                                                >
-                                                    {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    },
-                                }}
-                                sx={{
-                                    mb: 2,
-                                    '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
-                                        WebkitBoxShadow: '0 0 0 1000px #ffffff inset',
-                                        WebkitTextFillColor: '#112233',
-                                        WebkitTextDecorationColor: '#112233',
-                                        caretColor: '#112233',
-                                        transition: 'background-color 9999s ease-in-out 0s',
-                                    },
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: '10px',
-                                        transition: 'all 0.2s ease',
-                                        '&:hover': {
-                                            borderColor: '#85B7EB',
-                                        },
-                                        '&.Mui-focused': {
-                                            borderColor: BRAND_BLUE,
-                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
-                                        },
-                                    },
-                                    '& .MuiInputLabel-root': {
-                                        fontSize: '0.875rem',
-                                        '&.Mui-focused': {
-                                            color: BRAND_BLUE,
-                                        },
-                                    },
-                                }}
-                            />
-
-                            <Box sx={{ mb: 3, textAlign: 'right' }}>
-                                <MuiLink
-                                    component={NextLink}
-                                    href="/forgot-password"
-                                    sx={{
-                                        display: 'inline-block',
-                                        py: { xs: 1, sm: 0.5 },
-                                        px: 0.5,
-                                        marginRight: '-0.5rem',
-                                        color: BRAND_BLUE,
-                                        textDecoration: 'none',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 600,
-                                        '&:hover': {
-                                            textDecoration: 'underline',
-                                            color: '#0C447C',
-                                        },
-                                    }}
-                                >
-                                    Mot de passe oublié ?
-                                </MuiLink>
-                            </Box>
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                disabled={loading}
-                                startIcon={!loading && <LoginIcon sx={{ fontSize: 18 }} />}
-                                sx={{
-                                    py: 1.625,
-                                    borderRadius: '10px',
-                                    fontSize: '0.95rem',
-                                    fontWeight: 700,
-                                    textTransform: 'none',
-                                    background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                                    boxShadow: '0 4px 16px rgba(24, 95, 165, 0.35)',
-                                    transition: 'all 0.25s ease',
-                                    '&:hover': {
-                                        background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 100%)',
-                                        boxShadow: '0 6px 20px rgba(24, 95, 165, 0.45)',
-                                        transform: 'translateY(-1px)',
-                                    },
-                                    '&:active': {
-                                        transform: 'translateY(0)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        background: '#E6F1FB',
-                                        color: '#888780',
-                                    },
-                                }}
-                            >
-                                {loading ? 'Connexion...' : 'Se connecter'}
-                            </Button>
-                        </Box>
-
-                        <Divider sx={{ my: { xs: 2.5, sm: 3.5 }, borderColor: '#E6F1FB' }}>
-                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', fontWeight: 500 }}>
-                                ou
-                            </Typography>
-                        </Divider>
-
-                        <Button
-                            component={NextLink}
-                            href={redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register'}
-                            fullWidth
-                            variant="outlined"
-                            startIcon={<PersonAdd sx={{ fontSize: 18 }} />}
-                            sx={{
-                                py: 1.625,
-                                borderRadius: '10px',
-                                borderWidth: 1.5,
-                                fontWeight: 600,
-                                textTransform: 'none',
-                                borderColor: BRAND_BLUE,
-                                color: BRAND_BLUE,
-                                fontSize: '0.95rem',
-                                transition: 'all 0.25s ease',
-                                '&:hover': {
-                                    borderWidth: 1.5,
-                                    borderColor: '#0C447C',
-                                    bgcolor: 'rgba(24, 95, 165, 0.06)',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.2)',
-                                },
-                            }}
-                        >
-                            Créer un compte
-                        </Button>
-                        </Box>
-                    </ClientOnly>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                    <MuiLink component={NextLink} href="/forgot-password" sx={{ fontSize: 14, fontWeight: 500 }}>
+                        Mot de passe oublié&nbsp;?
+                    </MuiLink>
                 </Box>
-            </Container>
-        </Box>
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={loading}
+                    sx={{ height: 48 }}
+                >
+                    {loading ? 'Connexion…' : 'Se connecter'}
+                </Button>
+
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Pas encore de compte&nbsp;?
+                    </Typography>
+                    <MuiLink component={NextLink} href={registerHref} sx={{ fontSize: 14, fontWeight: 600 }}>
+                        Créer un compte
+                    </MuiLink>
+                </Box>
+            </Box>
+        </AuthShell>
     );
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -19,6 +19,7 @@ import {
   Inventory2 as Package,
   LocalShipping as Truck,
   Security as Shield,
+  VerifiedUser,
   Place as PlaceIcon,
   CheckCircle,
   Add as AddIcon,
@@ -328,13 +329,13 @@ export function HomePage({
             zIndex: 1,
             px: { xs: 2, sm: 3, md: 4 },
             pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 10, md: 11, lg: 13 },
-            pb: { xs: 7, sm: 9, lg: 11 },
+            pb: { xs: 4, sm: 5, lg: 6 },
             maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
           }}
         >
           <Grid
             container
-            spacing={{ xs: 3, sm: 4, lg: 6 }}
+            spacing={{ xs: 3, sm: 4, lg: 5 }}
             sx={{ alignItems: 'center', minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
             <Grid size={{ xs: 12, lg: 6 }}>
@@ -344,8 +345,8 @@ export function HomePage({
                     display: { xs: 'none', sm: 'inline-flex' },
                     alignItems: 'center',
                     gap: { xs: 0.75, sm: 1 },
-                    bgcolor: '#fff',
-                    border: `1px solid ${C.border}`,
+                    bgcolor: alpha(C.primary, 0.04),
+                    border: `1px solid ${alpha(C.primary, 0.15)}`,
                     borderRadius: '100px',
                     px: { xs: 1.25, sm: 1.5, md: 1.75 },
                     py: { xs: 0.5, sm: 0.625 },
@@ -356,7 +357,7 @@ export function HomePage({
                   <Box sx={{ width: { xs: 7, sm: 8, md: 8.75 }, height: { xs: 7, sm: 8, md: 8.75 }, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
                   <PlaceIcon sx={{ fontSize: { xs: 16, sm: 17, md: 18.75 }, color: C.primary }} />
                   <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 600, color: C.dark, letterSpacing: '0.04em' }}>
-                    Dakar · Import premium depuis la Chine
+                    Dakar, Sénégal · Import premium direct depuis la Chine 🇨🇳 → 🇸🇳
                   </Typography>
                 </Box>
 
@@ -396,24 +397,38 @@ export function HomePage({
                     maxWidth: { xs: '100%', sm: 550, md: 600 },
                   }}
                 >
-                  Meubles, décoration et textile sélectionnés par DameDéco — import direct,
-                  qualité contrôlée, livraison partout au Sénégal.
+                  Mobilier d'exception, décoration tendance et textiles haut de gamme sélectionnés par DameDéco — import direct usine sans intermédiaire, qualité rigoureusement contrôlée, livraison express à Dakar & banlieue.
                 </Typography>
 
-                <Stack spacing={{ xs: 1, sm: 1.25 }} sx={{ mb: { xs: 3.5, sm: 4.5 } }}>
+                <Stack spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 3.5, sm: 4.5 } }}>
                   {[
-                    'Sélection rigoureuse chez des fournisseurs certifiés',
-                    'Tarifs dégressifs pour les professionnels',
-                    'Suivi de commande et livraison express',
+                    {
+                      title: 'Sélection rigoureuse chez des fournisseurs certifiés ISO/CE',
+                      sub: 'Inspection vidéo systématique en usine à Guangzhou & Ningbo',
+                    },
+                    {
+                      title: 'Tarifs dégressifs pour revendeurs & professionnels',
+                      sub: 'Avantages exclusifs pour hôtels, villas & décorateurs',
+                    },
+                    {
+                      title: 'Suivi de commande transparent & livraison express',
+                      sub: 'Expédition sous 24/48h avec option paiement à la livraison',
+                    },
                   ].map((pt) => (
                     <Stack
-                      key={pt}
-                      direction="row"
-                      spacing={{ xs: 1, sm: 1.25 }}
+                      key={pt.title}
+                      spacing={{ xs: 0.5, sm: 0.75 }}
                       sx={{ alignItems: 'flex-start' }}
                     >
-                      <CheckCircle sx={{ fontSize: { xs: 18, sm: 20, md: 21.25 }, color: C.primary, mt: { xs: 0.15, sm: 0.25 }, flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: { xs: 14, sm: 15.5, md: 16.875 }, color: C.text, lineHeight: { xs: 1.4, sm: 1.5 } }}>{pt}</Typography>
+                      <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'flex-start' }}>
+                        <CheckCircle sx={{ fontSize: { xs: 18, sm: 20, md: 21.25 }, color: C.primary, mt: { xs: 0.15, sm: 0.25 }, flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: { xs: 14, sm: 15.5, md: 16.875 }, color: C.dark, fontWeight: 600, lineHeight: { xs: 1.4, sm: 1.5 } }}>
+                          {pt.title}
+                        </Typography>
+                      </Stack>
+                      <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 14.5 }, color: C.muted, lineHeight: { xs: 1.4, sm: 1.5 }, ml: { xs: 3.25, sm: 4.25 } }}>
+                        {pt.sub}
+                      </Typography>
                     </Stack>
                   ))}
                 </Stack>
@@ -448,7 +463,7 @@ export function HomePage({
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    Explorer
+                    Explorer la Boutique →
                   </Button>
                   <Button
                     variant="outlined"
@@ -470,7 +485,7 @@ export function HomePage({
                       '&:hover': { bgcolor: C.light, borderColor: C.mid },
                     }}
                   >
-                    Devis
+                    Demander un Devis
                   </Button>
                 </Stack>
               </Box>
@@ -536,46 +551,45 @@ export function HomePage({
 
                 <Box
                   sx={{
-                    display: { xs: 'flex', lg: 'none' },
+                    display: 'flex',
                     flexWrap: 'wrap',
                     gap: { xs: 0.75, sm: 1 },
                     mt: { xs: 1.5, sm: 2 },
                   }}
                 >
                   {heroCategoryTags.map((cat) => (
-                      <Button
-                        key={cat.id}
-                        disableRipple
-                        onClick={() => (onViewCategory ? onViewCategory(cat.id) : handleNavigate('shop'))}
-                        sx={{
-                          minWidth: 0,
-                          px: { xs: 1, sm: 1.5 },
-                          py: { xs: 0.5, sm: 0.75 },
-                          borderRadius: '12.5px',
-                          bgcolor: '#fff',
-                          border: `1px solid ${C.border}`,
-                          color: C.dark,
-                          fontSize: { xs: 13, sm: 14.375 },
-                          fontWeight: 600,
-                          whiteSpace: 'nowrap',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            bgcolor: C.light,
-                            borderColor: C.primary,
-                            transform: 'translateY(-1px)',
-                            boxShadow: `0 4px 12px ${alpha(C.primary, 0.12)}`,
-                          },
-                        }}
-                      >
-                        {cat.name}
-                      </Button>
-                    ))}
-                  <Button
-                    disableRipple
-                    startIcon={<AddIcon sx={{ fontSize: { xs: 16, sm: 17.5 }, color: C.primary }} />}
+                    <Chip
+                      key={cat.id}
+                      label={cat.name}
+                      onClick={() => (onViewCategory ? onViewCategory(cat.id) : handleNavigate('shop'))}
+                      clickable
+                      sx={{
+                        px: { xs: 1, sm: 1.5 },
+                        py: { xs: 0.5, sm: 0.75 },
+                        borderRadius: '12.5px',
+                        bgcolor: '#fff',
+                        border: `1px solid ${C.border}`,
+                        color: C.dark,
+                        fontSize: { xs: 13, sm: 14.375 },
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        boxShadow: `0 4px 12px ${alpha(C.dark, 0.12)}`,
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          bgcolor: C.light,
+                          borderColor: C.primary,
+                          transform: 'translateY(-1px)',
+                          boxShadow: `0 6px 16px ${alpha(C.primary, 0.18)}`,
+                        },
+                      }}
+                    />
+                  ))}
+                  <Chip
+                    label="Plus"
+                    icon={<AddIcon sx={{ fontSize: { xs: 15, sm: 17.5 }, color: C.primary }} />}
                     onClick={() => handleNavigate('shop')}
+                    clickable
                     sx={{
-                      minWidth: 0,
                       px: { xs: 1, sm: 1.5 },
                       py: { xs: 0.5, sm: 0.75 },
                       borderRadius: '12.5px',
@@ -591,9 +605,7 @@ export function HomePage({
                         borderColor: C.primary,
                       },
                     }}
-                  >
-                    Plus
-                  </Button>
+                  />
                 </Box>
 
                 <Paper
@@ -733,7 +745,8 @@ export function HomePage({
         id="features"
         component="section"
         sx={{
-          py: { xs: 10, md: 13 },
+          pt: { xs: 6, md: 8 },
+          pb: { xs: 10, md: 13 },
           background: `linear-gradient(180deg, #fff 0%, ${C.light} 100%)`,
           position: 'relative',
           overflow: 'hidden',
@@ -742,28 +755,85 @@ export function HomePage({
         <Box
           sx={{
             position: 'absolute',
-            top: -200,
-            right: -150,
-            width: 500,
-            height: 500,
+            top: -220,
+            left: -180,
+            width: 520,
+            height: 520,
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(C.primary, 0.05)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${alpha(C.primary, 0.06)} 0%, transparent 70%)`,
+            pointerEvents: 'none',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: -120,
+            right: -160,
+            width: 460,
+            height: 460,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${alpha(C.mid, 0.12)} 0%, transparent 70%)`,
+            pointerEvents: 'none',
           }}
         />
 
         <Container maxWidth="xl" sx={{ position: 'relative', px: { xs: 2, sm: 3, md: 4 } }}>
-          <SectionHeader
-            centered
-            label="Nos avantages"
-            title="Pourquoi nous choisir ?"
-            description="Une expérience d'achat pensée pour le Sénégal : sélection premium, logistique réactive et paiements de confiance."
-          />
+          <Box
+            sx={{
+              mb: { xs: 5, md: 7 },
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', md: 'flex-end' },
+              gap: { xs: 2.5, md: 8 },
+            }}
+          >
+            <Box sx={{ maxWidth: { xs: '100%', sm: 560 } }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: { xs: 1.5, md: 2 } }}>
+                <Box sx={{ width: 34, height: 2, borderRadius: '2px', bgcolor: C.primary }} />
+                <Typography
+                  sx={{
+                    fontSize: { xs: 12, sm: 13, md: 14 },
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: C.primary,
+                  }}
+                >
+                  Nos avantages
+                </Typography>
+              </Stack>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: FONT_POPPINS,
+                  fontSize: { xs: '1.6rem', sm: '1.9rem', md: '2.25rem', lg: '2.6rem' },
+                  fontWeight: 800,
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.025em',
+                  color: C.dark,
+                }}
+              >
+                Pourquoi nous choisir&nbsp;?
+              </Typography>
+            </Box>
+            <Typography
+              sx={{
+                maxWidth: { xs: '100%', sm: 420 },
+                fontSize: { xs: 15, md: 16.5 },
+                color: C.text,
+                lineHeight: { xs: 1.65, md: 1.75 },
+              }}
+            >
+              Une expérience d'achat pensée pour le Sénégal : sélection premium, logistique réactive et paiements de confiance.
+            </Typography>
+          </Box>
 
           <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-              gap: { xs: 3, md: 3.5 },
+              gap: { xs: 2.5, sm: 3, md: 4 },
             }}
           >
             {FEATURES.map((feature) => {
@@ -772,70 +842,112 @@ export function HomePage({
                 <Box
                   key={feature.num}
                   sx={{
-                    p: { xs: 2.5, sm: 3, md: 4 },
+                    position: 'relative',
+                    p: { xs: 2.5, sm: 3, md: 3.5 },
                     height: '100%',
-                    borderRadius: { xs: '16px', sm: '18px', md: '20px' },
-                    bgcolor: alpha('#fff', 0.85),
-                    backdropFilter: 'blur(12px)',
-                    boxShadow: `0 1px 3px ${alpha(C.dark, 0.04)}`,
+                    borderRadius: { xs: '20px', md: '24px' },
+                    bgcolor: '#fff',
+                    border: `1px solid ${alpha(C.border, 0.7)}`,
+                    boxShadow: `0 2px 20px ${alpha(C.dark, 0.05)}`,
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease',
                     '&:hover': {
-                      boxShadow: `0 20px 56px ${alpha(C.dark, 0.1)}`,
-                      transform: 'translateY(-6px)',
-                      bgcolor: '#fff',
+                      transform: 'translateY(-4px)',
+                      borderColor: alpha(C.primary, 0.35),
+                      boxShadow: `0 22px 48px ${alpha(C.dark, 0.1)}`,
+                    },
+                    '@media (prefers-reduced-motion: reduce)': {
+                      transition: 'none',
                     },
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: { xs: 48, sm: 52, md: 56 },
-                      height: { xs: 48, sm: 52, md: 56 },
-                      borderRadius: { xs: '12px', sm: '13px', md: '14px' },
-                      background: `linear-gradient(135deg, ${C.primary} 0%, ${C.dark} 100%)`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: { xs: 2, sm: 2.5, md: 3 },
-                      boxShadow: `0 8px 24px ${alpha(C.primary, 0.3)}`,
-                    }}
+                  <Stack
+                    direction="row"
+                    sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: { xs: 2, md: 2.5 } }}
                   >
-                    <Icon sx={{ fontSize: { xs: 24, sm: 26, md: 28 }, color: '#fff' }} />
-                  </Box>
+                    <Box
+                      sx={{
+                        width: { xs: 52, sm: 56, md: 60 },
+                        height: { xs: 52, sm: 56, md: 60 },
+                        borderRadius: { xs: '16px', md: '18px' },
+                        bgcolor: alpha(C.light, 0.7),
+                        border: `1px solid ${alpha(C.border, 0.7)}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Icon sx={{ fontSize: { xs: 26, md: 28 }, color: C.primary }} />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: FONT_POPPINS,
+                        fontSize: { xs: 15, md: 16 },
+                        fontWeight: 700,
+                        color: alpha(C.muted, 0.55),
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {feature.num}
+                    </Typography>
+                  </Stack>
 
                   <Typography
                     component="h3"
                     sx={{
-                      fontSize: { xs: 18, sm: 19.5, md: 21, lg: 23 },
+                      fontFamily: FONT_POPPINS,
+                      fontSize: { xs: 18, sm: 19, md: 20.5, lg: 22 },
                       fontWeight: 700,
                       color: C.dark,
-                      fontFamily: FONT_POPPINS,
-                      mb: { xs: 1, sm: 1.15, md: 1.25 },
-                      letterSpacing: '-0.01em',
+                      letterSpacing: '-0.015em',
+                      mb: { xs: 0.75, md: 1 },
                     }}
                   >
                     {feature.title}
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: 14.5, sm: 15.5, md: 16, lg: 17 }, color: C.muted, lineHeight: { xs: 1.6, sm: 1.7, md: 1.8 }, flex: 1 }}>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: 14.5, sm: 15, md: 15.5, lg: 16 },
+                      color: C.muted,
+                      lineHeight: { xs: 1.65, md: 1.7 },
+                      flex: 1,
+                    }}
+                  >
                     {feature.description}
                   </Typography>
 
                   {'paymentMethods' in feature && feature.paymentMethods && (
-                    <Box sx={{ mt: { xs: 2, sm: 2.5, md: 3 }, pt: { xs: 2, sm: 2.25, md: 2.5 }, borderTop: `1px solid ${alpha(C.border, 0.6)}` }}>
+                    <Box
+                      sx={{
+                        mt: { xs: 2.5, md: 3 },
+                        pt: { xs: 2, md: 2.25 },
+                        borderTop: `1px dashed ${alpha(C.border, 0.8)}`,
+                      }}
+                    >
                       <Typography
                         sx={{
-                          fontSize: { xs: 11.5, sm: 12, md: 13 },
+                          fontSize: { xs: 11, md: 11.5 },
                           fontWeight: 700,
-                          color: alpha(C.muted, 0.8),
-                          mb: { xs: 1, sm: 1.25, md: 1.5 },
+                          color: C.primary,
+                          mb: 1.25,
                           textTransform: 'uppercase',
-                          letterSpacing: '0.1em',
+                          letterSpacing: '0.12em',
                         }}
                       >
                         Moyens acceptés
                       </Typography>
-                      <PaymentIcons size="sm" showLabels />
+                      <Box
+                        sx={{
+                          display: 'inline-flex',
+                          p: { xs: 1, md: 1.25 },
+                          borderRadius: '16px',
+                          bgcolor: alpha(C.light, 0.45),
+                          border: `1px solid ${alpha(C.border, 0.5)}`,
+                        }}
+                      >
+                        <PaymentIcons size="sm" />
+                      </Box>
                     </Box>
                   )}
                 </Box>

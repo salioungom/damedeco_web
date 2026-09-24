@@ -1,6 +1,7 @@
 'use client';
 import { createTheme, alpha } from '@mui/material/styles';
-import { Inter, Poppins } from 'next/font/google';
+import { Inter, Poppins, Fraunces } from 'next/font/google';
+import { tokens } from '@/theme/tokens';
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -16,6 +17,12 @@ declare module '@mui/material/styles' {
       dark: string;
       contrastText: string;
     };
+    laiton: {
+      light: string;
+      main: string;
+      dark: string;
+      contrastText: string;
+    };
   }
   interface PaletteOptions {
     custom?: {
@@ -25,6 +32,12 @@ declare module '@mui/material/styles' {
       contrastText?: string;
     };
     golden?: {
+      light?: string;
+      main: string;
+      dark?: string;
+      contrastText?: string;
+    };
+    laiton?: {
       light?: string;
       main: string;
       dark?: string;
@@ -47,128 +60,158 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
+const fraunces = Fraunces({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fraunces',
+});
+
 export const FONT_INTER = inter.style.fontFamily;
 export const FONT_POPPINS = poppins.style.fontFamily;
+export const FONT_FRAUNCES = fraunces.style.fontFamily;
 
-export const BRAND_BLUE = '#185FA5';
+export const BRAND_BLUE = tokens.colors.brand;
+
+const { colors, fontSize } = tokens;
+const focusRing = `2px solid ${alpha(colors.brand, 0.4)}`;
 
 const theme = createTheme({
   spacing: 10,
   typography: {
-    fontFamily: [inter.style.fontFamily, poppins.style.fontFamily, 'sans-serif'].join(','),
+    fontFamily: [inter.style.fontFamily, fraunces.style.fontFamily, poppins.style.fontFamily, 'sans-serif'].join(','),
     h1: {
-      fontSize: '3.5rem',
-      fontWeight: 800,
-      lineHeight: 1.2,
-      fontFamily: poppins.style.fontFamily,
+      fontFamily: FONT_FRAUNCES,
+      fontSize: fontSize.xxl,
+      fontWeight: 600,
+      lineHeight: 1.08,
+      letterSpacing: '-0.02em',
     },
     h2: {
-      fontSize: '2.5rem',
-      fontWeight: 700,
-      lineHeight: 1.2,
-      fontFamily: poppins.style.fontFamily,
+      fontFamily: FONT_FRAUNCES,
+      fontSize: fontSize.xl,
+      fontWeight: 600,
+      lineHeight: 1.12,
+      letterSpacing: '-0.015em',
     },
     h3: {
-      fontSize: '2rem',
+      fontFamily: FONT_FRAUNCES,
+      fontSize: fontSize.xl,
       fontWeight: 600,
-      fontFamily: poppins.style.fontFamily,
+      lineHeight: 1.2,
     },
     h4: {
-      fontSize: '1.75rem',
+      fontFamily: FONT_FRAUNCES,
+      fontSize: fontSize.lg,
       fontWeight: 600,
-      fontFamily: poppins.style.fontFamily,
+      lineHeight: 1.2,
     },
     h5: {
-      fontSize: '1.5rem',
+      fontFamily: FONT_FRAUNCES,
+      fontSize: fontSize.md,
       fontWeight: 600,
-      fontFamily: poppins.style.fontFamily,
+      lineHeight: 1.25,
     },
     h6: {
-      fontSize: '1.25rem',
+      fontFamily: FONT_FRAUNCES,
+      fontSize: fontSize.md,
       fontWeight: 600,
-      fontFamily: poppins.style.fontFamily,
+      lineHeight: 1.3,
     },
     subtitle1: {
-      fontSize: '1rem',
+      fontSize: fontSize.md,
       fontWeight: 500,
     },
     subtitle2: {
-      fontSize: '0.875rem',
+      fontSize: fontSize.sm,
       fontWeight: 500,
     },
     body1: {
-      fontSize: '1rem',
+      fontSize: fontSize.md,
       lineHeight: 1.7,
     },
     body2: {
-      fontSize: '0.875rem',
-      lineHeight: 1.7,
+      fontSize: fontSize.sm,
+      lineHeight: 1.6,
+    },
+    caption: {
+      fontSize: fontSize.xs,
+      lineHeight: 1.5,
     },
     button: {
+      fontSize: 15,
+      fontWeight: 600,
       textTransform: 'none',
-      fontWeight: 500,
     },
   },
   palette: {
     mode: 'light',
     primary: {
-      main: '#185FA5',
-      light: '#2a7bc4',
-      dark: '#0f3d6e',
+      main: colors.brand,
+      light: '#2E64A8',
+      dark: colors.brandDark,
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#7c3aed', // Violet 600
-      light: '#8b5cf6', // Violet 500
-      dark: '#6d28d9', // Violet 700
+      main: '#7c3aed',
+      light: '#8b5cf6',
+      dark: '#6d28d9',
       contrastText: '#ffffff',
     },
     success: {
-      main: '#10b981', // Emerald 500
-      light: '#34d399', // Emerald 400
-      dark: '#059669', // Emerald 600
+      main: colors.success,
+      light: '#44946A',
+      dark: '#176039',
       contrastText: '#ffffff',
     },
     error: {
-      main: '#ef4444', // Red 500
-      light: '#f87171', // Red 400
-      dark: '#dc2626', // Red 600
+      main: colors.error,
+      light: '#C94F45',
+      dark: '#8F1D14',
+      contrastText: '#ffffff',
     },
     warning: {
-      main: '#f59e0b', // Amber 500
-      light: '#fbbf24', // Amber 400
-      dark: '#d97706', // Amber 600
+      main: colors.warning,
+      light: '#A9862F',
+      dark: '#6C5216',
+      contrastText: '#ffffff',
     },
     info: {
-      main: '#185FA5',
-      light: '#2a7bc4',
-      dark: '#0f3d6e',
+      main: colors.brand,
+      light: '#2E64A8',
+      dark: colors.brandDark,
     },
     text: {
-      primary: '#1e293b', // Slate 800
-      secondary: '#475569', // Slate 600
-      disabled: '#94a3b8', // Slate 400
+      primary: colors.ink,
+      secondary: colors.inkMuted,
+      disabled: colors.disabled,
     },
     background: {
-      default: '#f8fafc', // Slate 50
-      paper: '#ffffff',
+      default: '#f8fafc',
+      paper: colors.white,
     },
-    divider: '#e2e8f0', // Slate 200
+    divider: colors.border,
     custom: {
-      main: '#185FA5',
-      light: '#2a7bc4',
-      dark: '#0f3d6e',
+      main: colors.brand,
+      light: '#2E64A8',
+      dark: colors.brandDark,
       contrastText: '#ffffff',
     },
     golden: {
-      main: '#C6A75E', // Premium golden
+      main: '#C6A75E',
       light: '#D4B76E',
       dark: '#B8965E',
       contrastText: '#ffffff',
     },
+    laiton: {
+      main: colors.laiton,
+      light: '#C99B5F',
+      dark: '#96703A',
+      contrastText: '#ffffff',
+    },
   },
   shape: {
-    borderRadius: 15,
+    borderRadius: 8,
   },
   components: {
     MuiCssBaseline: {
@@ -188,37 +231,55 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 8,
           fontWeight: 600,
-          padding: '12.5px 30px',
-          textTransform: 'none',
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-1.25px)',
-            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+          padding: '13px 24px',
+          '&.Mui-focusVisible': {
+            outline: focusRing,
+            outlineOffset: '2px',
           },
-          '&:active': {
-            transform: 'translateY(0)',
-          },
-        },
-        sizeLarge: {
-          padding: '15px 40px',
-          fontSize: '1rem',
         },
         sizeSmall: {
-          padding: '7.5px 20px',
-          fontSize: '0.875rem',
+          padding: '6px 14px',
+          fontSize: fontSize.sm,
+        },
+        sizeLarge: {
+          padding: '15px 32px',
+          fontSize: fontSize.md,
         },
         containedPrimary: {
-          background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, #2a7bc4 100%)`,
+          background: colors.brand,
           '&:hover': {
-            background: `linear-gradient(90deg, #0f3d6e 0%, ${BRAND_BLUE} 100%)`,
+            background: colors.brandDark,
+          },
+          '&:active': {
+            background: colors.brandDark,
+          },
+          '&.Mui-disabled': {
+            background: colors.sand,
+            color: colors.disabled,
+          },
+        },
+        outlinedPrimary: {
+          borderColor: colors.brand,
+          color: colors.brand,
+          '&:hover': {
+            borderColor: colors.brandDark,
+            background: alpha(colors.brand, 0.06),
           },
         },
         outlined: {
-          borderWidth: '2.5px',
+          borderColor: colors.border,
+          color: colors.ink,
           '&:hover': {
-            borderWidth: '2.5px',
+            borderColor: colors.brand,
+            background: alpha(colors.brand, 0.05),
+          },
+        },
+        textPrimary: {
+          color: colors.brand,
+          '&:hover': {
+            background: alpha(colors.brand, 0.08),
           },
         },
       },
@@ -226,25 +287,16 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 20,
-          boxShadow: '0 5px 25px 0 rgba(0, 0, 0, 0.05)',
-          transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-5px)',
-            boxShadow: '0 10px 31px 0 rgba(0, 0, 0, 0.1)',
-          },
-          overflow: 'visible',
+          borderRadius: 12,
+          boxShadow: 'none',
+          border: `1px solid ${colors.border}`,
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(12.5px)',
-          WebkitBackdropFilter: 'blur(12.5px)',
-          boxShadow: '0 2.5px 37.5px 0 rgba(0, 0, 0, 0.05)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+          boxShadow: 'none',
         },
       },
     },
@@ -256,23 +308,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 15,
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#cbd5e1',
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderWidth: '2.5px',
-            },
-          },
-        },
-      },
-    },
-    MuiInputLabel: {
-      styleOverrides: {
-        root: {
-          color: '#64748b',
-          '&.Mui-focused': {
-            color: BRAND_BLUE,
+            borderRadius: 8,
           },
         },
       },
@@ -280,15 +316,45 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
+          borderRadius: 8,
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#cbd5e1',
+            borderColor: colors.border,
+          },
+          '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+            borderColor: colors.error,
+          },
+          '&.Mui-focused': {
+            outline: focusRing,
+            outlineOffset: '2px',
+            borderRadius: 8,
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: BRAND_BLUE,
+            borderColor: colors.brand,
+            borderWidth: 1,
           },
         },
+        notchedOutline: {
+          borderColor: colors.border,
+        },
         input: {
-          padding: '15px 20px',
+          fontSize: '1rem',
+          padding: '13px 14px',
+        },
+      },
+    },
+    MuiLink: {
+      defaultProps: {
+        underline: 'always',
+      },
+      styleOverrides: {
+        root: {
+          color: colors.brand,
+          textUnderlineOffset: '3px',
+          '&.Mui-focusVisible': {
+            outline: focusRing,
+            outlineOffset: '2px',
+            borderRadius: 4,
+          },
         },
       },
     },
@@ -296,7 +362,6 @@ const theme = createTheme({
       styleOverrides: {
         paper: {
           borderRight: 'none',
-          boxShadow: '2.5px 0 25px rgba(0, 0, 0, 0.05)',
         },
       },
     },
@@ -304,7 +369,7 @@ const theme = createTheme({
       styleOverrides: {
         badge: {
           fontWeight: 600,
-          padding: '0 7.5px',
+          padding: '0 7px',
         },
       },
     },
@@ -320,7 +385,6 @@ const theme = createTheme({
   },
 });
 
-// Add global styles
 theme.components = {
   ...theme.components,
   MuiCssBaseline: {
@@ -330,13 +394,13 @@ theme.components = {
         height: '10px',
       },
       '::-webkit-scrollbar-track': {
-        background: '#f1f5f9',
+        background: colors.ivory,
       },
       '::-webkit-scrollbar-thumb': {
-        background: '#cbd5e1',
+        background: colors.border,
         borderRadius: '5px',
         '&:hover': {
-          background: '#94a3b8',
+          background: colors.disabled,
         },
       },
     },

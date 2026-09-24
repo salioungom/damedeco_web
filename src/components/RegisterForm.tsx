@@ -10,18 +10,16 @@ import {
     TextField,
     Button,
     Alert,
-    IconButton,
     InputAdornment,
     Typography,
     CircularProgress,
 } from '@mui/material';
 import {
-    Visibility,
-    VisibilityOff,
     Person,
     Email,
     Phone,
 } from '@mui/icons-material';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 // Schéma de validation Zod
 const registerSchema = z.object({
@@ -59,8 +57,6 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) => {
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -69,22 +65,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
         register,
         handleSubmit,
         formState: { errors },
-        watch,
         setError: setFormError,
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
         mode: 'onChange',
     });
-
-    const watchedPassword = watch('password');
-
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const toggleConfirmPasswordVisibility = () => {
-        setShowConfirmPassword(!showConfirmPassword);
-    };
 
     const onSubmit = async (data: RegisterFormData) => {
         setLoading(true);
@@ -239,59 +224,29 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
             />
 
             {/* Champ Mot de passe */}
-            <TextField
+            <PasswordField
                 {...register('password')}
                 label="Mot de passe"
-                type={showPassword ? 'text' : 'password'}
                 variant="outlined"
                 fullWidth
                 margin="normal"
+                autoComplete="new-password"
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 disabled={loading}
-                slotProps={{
-                    input: {
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    onClick={togglePasswordVisibility}
-                                    edge="end"
-                                    disabled={loading}
-                                >
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                    },
-                }}
             />
 
             {/* Champ Confirmation mot de passe */}
-            <TextField
+            <PasswordField
                 {...register('confirmPassword')}
                 label="Confirmer le mot de passe"
-                type={showConfirmPassword ? 'text' : 'password'}
                 variant="outlined"
                 fullWidth
                 margin="normal"
+                autoComplete="new-password"
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
                 disabled={loading}
-                slotProps={{
-                    input: {
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    onClick={toggleConfirmPasswordVisibility}
-                                    edge="end"
-                                    disabled={loading}
-                                >
-                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                    },
-                }}
             />
 
             {/* Bouton de soumission */}
