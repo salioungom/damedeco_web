@@ -184,9 +184,9 @@ function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: st
   return (
     <Box
       sx={{
-        width: 70,
-        height: 70,
-        borderRadius: '15px',
+        width: { xs: 52, sm: 70 },
+        height: { xs: 52, sm: 70 },
+        borderRadius: { xs: '12px', sm: '15px' },
         flexShrink: 0,
         overflow: 'hidden',
         display: 'flex',
@@ -195,7 +195,7 @@ function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: st
         background: imgSrc ? 'transparent' : tokens.colors.brand.main,
         color: tokens.colors.text.onInverse,
         fontWeight: 800,
-        fontSize: 27.5,
+        fontSize: { xs: 21, sm: 27.5 },
         letterSpacing: '-0.02em',
         boxShadow: imgSrc
           ? `0 4px 14px ${alpha(C.ink, 0.12)}`
@@ -353,7 +353,7 @@ export function HomePage({
             spacing={{ xs: 3, sm: 4, lg: 5 }}
             sx={{ alignItems: 'center', minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
-            <Grid size={{ xs: 12, lg: 6 }}>
+            <Grid size={{ xs: 12, lg: 5 }} offset={{ lg: 1 }}>
               <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 725 } }}>
                 <Box
                   sx={{
@@ -622,8 +622,8 @@ export function HomePage({
                   aria-label={featuredProduct ? `Voir le produit ${featuredProduct.name ?? ''}`.trim() : undefined}
                   sx={{
                     mt: 2,
-                    p: 2,
-                    borderRadius: '25px',
+                    p: { xs: 1.25, sm: 2 },
+                    borderRadius: { xs: '16px', sm: '25px' },
                     bgcolor: 'background.paper',
                     border: `1px solid ${C.border}`,
                     boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}`,
@@ -652,21 +652,21 @@ export function HomePage({
                       </Box>
                     </Stack>
                   ) : featuredProduct ? (
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
                       <HeroProductThumb name={featuredProduct.name} coverImage={featuredProduct.cover_image_url} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
-                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
+                          <Typography sx={{ fontSize: { xs: 10.5, sm: 12.5 }, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
                             Sélection du moment
                           </Typography>
                           {featuredDiscount != null && (
-                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: 22.5, fontSize: 12.5, fontWeight: 800, bgcolor: alpha(tokens.colors.status.error, 0.1), color: tokens.colors.status.error }} />
+                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: { xs: 20, sm: 22.5 }, fontSize: { xs: 11, sm: 12.5 }, fontWeight: 800, bgcolor: alpha(tokens.colors.status.error, 0.1), color: tokens.colors.status.error }} />
                           )}
                         </Stack>
                         <Typography
                           sx={{
                             fontWeight: 700,
-                            fontSize: 18.75,
+                            fontSize: { xs: 15.5, sm: 18.75 },
                             color: C.dark,
                             lineHeight: 1.3,
                             overflow: 'hidden',
@@ -678,11 +678,11 @@ export function HomePage({
                           {featuredProduct.name}
                         </Typography>
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', mt: 0.5 }}>
-                          <Typography sx={{ fontSize: 18.75, fontWeight: 800, color: C.primary }}>
+                          <Typography sx={{ fontSize: { xs: 15.5, sm: 18.75 }, fontWeight: 800, color: C.primary }}>
                             {formatPrice(featuredProduct.price)}
                           </Typography>
                           {featuredProduct.compare_price && featuredProduct.compare_price > featuredProduct.price && (
-                            <Typography sx={{ fontSize: 15, color: C.muted, textDecoration: 'line-through' }}>
+                            <Typography sx={{ fontSize: { xs: 12.5, sm: 15 }, color: C.muted, textDecoration: 'line-through' }}>
                               {formatPrice(featuredProduct.compare_price)}
                             </Typography>
                           )}
@@ -694,7 +694,7 @@ export function HomePage({
                           height: 45,
                           borderRadius: '12.5px',
                           bgcolor: C.light,
-                          display: 'flex',
+                          display: { xs: 'none', sm: 'flex' },
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,

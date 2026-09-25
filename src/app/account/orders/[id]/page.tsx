@@ -605,16 +605,13 @@ function OrderDetailContent() {
                 sx={{
                     p: { xs: 3, sm: 4 },
                     mb: 4,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
+                    background: theme.palette.primary.dark,
                     color: 'white',
                     position: 'relative',
                     overflow: 'hidden',
                     borderRadius: 3,
                 }}
             >
-                <Box sx={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
-                <Box sx={{ position: 'absolute', bottom: -60, left: -20, width: 250, height: 250, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)' }} />
-                <Box sx={{ position: 'absolute', top: '30%', right: '20%', width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.03)' }} />
 
                 <Box sx={{ position: 'relative', zIndex: 1 }}>
                     <Grid container spacing={3} sx={{ alignItems: 'center' }}>

@@ -547,17 +547,6 @@ export default function SuperAdminDashboardPage() {
           overflow: 'hidden',
         }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -80,
-            right: -80,
-            width: 320,
-            height: 320,
-            borderRadius: '50%',
-            bgcolor: alpha(BRAND.white, 0.06),
-          }}
-        />
         <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1200, mx: 'auto' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}>
             <Box>

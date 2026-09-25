@@ -158,14 +158,12 @@ function AccountPageContent() {
                     borderRadius: 4,
                     p: { xs: 2.5, sm: 3.5, md: 6 },
                     mb: { xs: 3, sm: 4, md: 5 },
-                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.9)} 0%, ${alpha(theme.palette.info.main || '#8b5cf6', 0.8)} 100%)`,
+                    background: theme.palette.primary.main,
                     color: 'white',
                     boxShadow: '0 20px 40px -15px rgba(0,0,0,0.2)',
                 }}
             >
-                {/* Decorative Elements */}
-                <Box sx={{ position: 'absolute', top: -50, right: -50, width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)' }} />
-                <Box sx={{ position: 'absolute', bottom: -100, left: '15%', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)' }} />
+                
 
                 <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 3, md: 4 } }}>
                     <Avatar

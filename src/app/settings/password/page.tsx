@@ -8,14 +8,19 @@ import {
     Typography,
     Button,
     Alert,
+    Stack,
 } from '@mui/material';
 import apiClient from '@/lib/api-client';
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter';
 import { SettingsTabs } from '@/components/ui/SettingsTabs';
 import { PasswordField } from '@/components/ui/PasswordField';
 import { tokens } from '@/theme/tokens';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PasswordPage() {
+    const router = useRouter();
+    const { user } = useAuth();
     const [userId, setUserId] = useState<number | null>(null);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -68,6 +73,15 @@ export default function PasswordPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCancel = () => {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setError('');
+        setSuccess('');
+        router.push(user?.role === 'superadmin' ? '/dashboards' : user?.role === 'admin' ? '/dashboard' : '/account');
     };
 
     const checkPasswordStrength = async (password: string) => {
@@ -157,16 +171,26 @@ export default function PasswordPage() {
                             sx={{ mt: 2 }}
                         />
 
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            disabled={loading || !currentPassword || !newPassword || !confirmPassword || !userId}
-                            sx={{ height: 48, mt: 3.5 }}
-                        >
-                            {loading ? 'Modification…' : 'Changer le mot de passe'}
-                        </Button>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 3.5, alignItems: 'stretch' }}>
+                            <Button
+                                type="button"
+                                variant="outlined"
+                                color="inherit"
+                                onClick={handleCancel}
+                                sx={{ height: 48, flex: { sm: 1 } }}
+                            >
+                                Annuler
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                disabled={loading || !currentPassword || !newPassword || !confirmPassword || !userId}
+                                sx={{ height: 48, flex: { sm: 2 } }}
+                            >
+                                {loading ? 'Modification…' : 'Changer le mot de passe'}
+                            </Button>
+                        </Stack>
                     </Box>
                 </Paper>
             </Container>

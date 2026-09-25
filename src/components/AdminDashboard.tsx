@@ -337,17 +337,6 @@ export function AdminDashboard() {
           overflow: 'hidden',
         }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -80,
-            right: -80,
-            width: 350,
-            height: 350,
-            borderRadius: '50%',
-            bgcolor: alpha(BRAND.white, 0.06),
-          }}
-        />
         <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1500, mx: 'auto' }}>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}

@@ -10,12 +10,16 @@ import {
     Alert,
     Avatar,
     Grid,
-    Chip,
+
+    Stack,
 } from '@mui/material';
 import apiClient from '@/lib/api-client';
+import { AddressService, type Address } from '@/services/address.service';
 import { SettingsTabs } from '@/components/ui/SettingsTabs';
 import { StaticTextField } from '@/components/ui/StaticTextField';
 import { tokens } from '@/theme/tokens';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserProfile {
     id: number;
@@ -30,18 +34,21 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+    const router = useRouter();
+    const { user } = useAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [formData, setFormData] = useState({
-        name: '',
         full_name: '',
         username: '',
         email: '',
         phone: '',
     });
+    const [address, setAddress] = useState('');
+    const [savedAddress, setSavedAddress] = useState<Address | null>(null);
 
     const parseErrorMessage = useCallback((err: any): string => {
         const detail = err.response?.data?.detail;
@@ -56,12 +63,14 @@ export default function ProfilePage() {
             const data = response.data;
             setProfile(data);
             setFormData({
-                name: data.name || '',
                 full_name: data.full_name || '',
                 username: data.username || '',
                 email: data.email || '',
                 phone: data.phone || '',
             });
+            const addr = await AddressService.getDefaultAddress();
+            setSavedAddress(addr);
+            setAddress(addr?.address_line_1 || '');
         } catch (err: any) {
             setError(parseErrorMessage(err));
         } finally {
@@ -80,8 +89,41 @@ export default function ProfilePage() {
         setSuccess('');
         try {
             const response = await apiClient.patch('/api/v1/users/me', formData);
-            setSuccess('Profil mis à jour avec succès !');
             setProfile(response.data);
+            setSuccess('Profil mis à jour avec succès !');
+
+            const trimmedAddress = address.trim();
+            if (trimmedAddress) {
+                try {
+                    if (savedAddress) {
+                        await AddressService.updateAddress(savedAddress.id, {
+                            address_type: savedAddress.address_type,
+                            address_line_1: trimmedAddress,
+                            address_line_2: savedAddress.address_line_2,
+                            city: savedAddress.city,
+                            state: savedAddress.state,
+                            first_name: savedAddress.first_name,
+                            last_name: savedAddress.last_name,
+                            phone: savedAddress.phone,
+                            delivery_instructions: savedAddress.delivery_instructions,
+                            is_default: savedAddress.is_default,
+                        });
+                    } else {
+                        const names = (profile?.full_name || profile?.name || '').trim().split(/\s+/);
+                        await AddressService.createAddress({
+                            address_type: 'billing',
+                            address_line_1: trimmedAddress,
+                            city: 'Dakar',
+                            first_name: names[0] || profile?.username || '',
+                            last_name: names.slice(1).join(' ') || '',
+                            phone: profile?.phone || '',
+                            is_default: true,
+                        });
+                    }
+                } catch (addrErr: any) {
+                    setError(`Profil enregistré, mais l'adresse n'a pas pu être sauvegardée : ${addrErr.message || 'erreur inconnue'}`);
+                }
+            }
         } catch (err: any) {
             setError(parseErrorMessage(err));
         } finally {
@@ -91,6 +133,19 @@ export default function ProfilePage() {
 
     const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    };
+
+    const handleCancel = () => {
+        setFormData({
+            full_name: profile?.full_name || '',
+            username: profile?.username || '',
+            email: profile?.email || '',
+            phone: profile?.phone || '',
+        });
+        setAddress(savedAddress?.address_line_1 || '');
+        setError('');
+        setSuccess('');
+        router.push(user?.role === 'superadmin' ? '/dashboards' : user?.role === 'admin' ? '/dashboard' : '/account');
     };
 
     if (loading) {
@@ -164,13 +219,6 @@ export default function ProfilePage() {
                             <Typography variant="body2" color="text.secondary">
                                 {profile?.email}
                             </Typography>
-                            <Box sx={{ mt: 0.5 }}>
-                                <Chip
-                                    label={profile?.role || 'Utilisateur'}
-                                    size="small"
-                                    sx={{ textTransform: 'capitalize', bgcolor: 'primary.main', color: '#fff', fontWeight: 600, fontSize: '0.75rem', borderRadius: '6px' }}
-                                />
-                            </Box>
                         </Box>
                         <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
                             <Typography variant="caption" color="text.secondary" display="block">
@@ -202,18 +250,18 @@ export default function ProfilePage() {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <StaticTextField
-                                    label="Nom d'affichage"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange('name')}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <StaticTextField
                                     label="Numéro de téléphone"
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange('phone')}
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <StaticTextField
+                                    label="Adresse"
+                                    name="address"
+                                    value={address}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12 }}>
@@ -228,16 +276,26 @@ export default function ProfilePage() {
                             </Grid>
                         </Grid>
 
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            disabled={saving}
-                            sx={{ height: 48, mt: 3.5 }}
-                        >
-                            {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
-                        </Button>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 3.5, alignItems: 'stretch' }}>
+                            <Button
+                                type="button"
+                                variant="outlined"
+                                color="inherit"
+                                onClick={handleCancel}
+                                sx={{ height: 48, flex: { sm: 1 } }}
+                            >
+                                Annuler
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                disabled={saving}
+                                sx={{ height: 48, flex: { sm: 2 } }}
+                            >
+                                {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+                            </Button>
+                        </Stack>
                     </Box>
                 </Paper>
             </Container>
