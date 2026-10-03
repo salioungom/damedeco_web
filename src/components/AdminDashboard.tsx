@@ -37,6 +37,7 @@ import {
   Settings,
   AttachMoney as DollarSign,
   Receipt as ReceiptIcon,
+  Payments as PaidIcon,
   Category,
   AdminPanelSettings,
   Search as SearchIcon,
@@ -48,8 +49,9 @@ import { Product } from '@/lib/types';
 import { productService } from '@/services/product.service';
 import { DashboardService } from '@/services/dashboard.service';
 import type { DashboardOverview, RecentOrderItem } from '@/services/dashboard.service';
-import { api } from '@/lib/api';
+import { api, getAdminOrders } from '@/lib/api';
 import { formatFcfa } from '@/lib/format';
+import { computePaidRevenue } from '@/utils/paidRevenue';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
 import { AdminOrderManagement } from './AdminOrderManagement';
@@ -208,6 +210,7 @@ export function AdminDashboard() {
   const [recentOrdersData, setRecentOrdersData] = useState<RecentOrderItem[]>([]);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [paidRevenue, setPaidRevenue] = useState<number | null>(null);
   const [period, setPeriod] = useState<'all' | 'today' | '7d' | '30d'>('all');
 
   const [clientSearch, setClientSearch] = useState('');
@@ -221,15 +224,18 @@ export function AdminDashboard() {
     setOverviewError(null);
     try {
       const range = getDateRange(period);
-      const [overviewRes, recentRes] = await Promise.all([
+      const [overviewRes, recentRes, ordersRes] = await Promise.all([
         DashboardService.getOverview(range.start_date, range.end_date),
         DashboardService.getRecentOrders(5),
+        getAdminOrders(0, 100).catch(() => []),
       ]);
       setOverview(overviewRes);
       setRecentOrdersData(Array.isArray(recentRes) ? recentRes : []);
+      setPaidRevenue(computePaidRevenue(Array.isArray(ordersRes) ? ordersRes : [], range));
     } catch (err) {
       setOverview(null);
       setRecentOrdersData([]);
+      setPaidRevenue(null);
       setOverviewError(err instanceof Error ? err.message : 'Impossible de charger la vue d\'ensemble');
     } finally {
       setLoadingOverview(false);
@@ -462,6 +468,16 @@ export function AdminDashboard() {
                 icon={<DollarSign sx={{ fontSize: 30 }} />}
                 loading={loadingOverview}
                 accent={C.status.success}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Total encaissé"
+                value={paidRevenue == null ? '—' : formatFcfa(paidRevenue)}
+                subtitle={period === 'all' ? 'Commandes payées uniquement' : `Payé sur ${periodLabel.toLowerCase()}`}
+                icon={<PaidIcon sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.brand.main}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -836,7 +852,9 @@ export function AdminDashboard() {
         </CustomTabPanel>
 
         <CustomTabPanel value={activeTab} index={5}>
-          <ShippingManagement />
+          {/* Après sauvegarde des frais de livraison, on revient sur
+              « Vue d'ensemble » (onglet 0). */}
+          <ShippingManagement onSaved={() => setActiveTab(0)} />
         </CustomTabPanel>
       </Box>
     </Box>

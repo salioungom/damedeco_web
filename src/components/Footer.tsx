@@ -25,7 +25,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { tokens } from '@/theme/tokens';
 
 /** Couleurs du footer — toutes issues des tokens (aucune valeur en dur) */
-const INK = tokens.colors.surfaces.inverse;
+const INK = tokens.colors.surfaces.inverseFooter;
 const ON_INVERSE = tokens.colors.text.onInverse;
 const ON_INVERSE_MUTED = tokens.colors.text.onInverseMuted;
 const ON_ACCENT = tokens.colors.accent.onDark;

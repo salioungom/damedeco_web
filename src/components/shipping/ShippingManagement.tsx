@@ -13,7 +13,11 @@ const BRAND = {
   muted: '#5F6B7A',
 } as const;
 
-export default function ShippingManagement() {
+export interface ShippingManagementProps {
+  onSaved?: () => void;
+}
+
+export default function ShippingManagement({ onSaved }: ShippingManagementProps = {}) {
   return (
     <Box sx={{ width: '100%' }}>
       <Paper
@@ -52,7 +56,7 @@ export default function ShippingManagement() {
           </Typography>
         </Box>
       </Paper>
-      <ShippingSettingsForm />
+      <ShippingSettingsForm onSaved={onSaved} />
     </Box>
   );
 }

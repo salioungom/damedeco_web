@@ -17,6 +17,7 @@ import {
   Paper,
   Breadcrumbs,
   Skeleton,
+  Alert,
   alpha,
 } from '@mui/material';
 import {
@@ -33,7 +34,7 @@ import {
   NavigateNext,
   VerifiedUser,
 } from '@mui/icons-material';
-import { Product } from '../types/product';
+import { Product, ProductStatus } from '../types/product';
 import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
@@ -199,7 +200,21 @@ export function ProductDetailPage({
       ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : null;
   const reviewCount = product.review_count ?? 0;
-  const inStock = product.inventory_quantity > 0;
+
+  // ── DISPONIBILITÉ COMMERCIALE ─────────────────────────────────────────────
+  // Le stock ne pilote PLUS l'UX d'achat (gestion du stock différée) :
+  // un produit à 0 exemplaire reste sélectionnable, commandable et
+  // ajoutable au panier. Seul le statut commercial décide de l'achat.
+  //
+  // `status` absent ⇒ fail open (on n'interdit pas la vente) pour ne pas
+  // bloquer un produit dont le statut serait mal sérialisé par l'API.
+  const isActive = !product.status || product.status === ProductStatus.ACTIVE;
+  const canBuy = isActive;
+
+  // Information non bloquante uniquement : à 0 on n'affiche rien, sinon on
+  // afficherait « Plus que 0 exemplaire en stock », qui est un non-sens.
+  const isLowStock =
+    product.inventory_quantity > 0 && product.inventory_quantity <= 5;
 
   const handlePrevImage = () => {
     setSelectedImage((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
@@ -508,7 +523,9 @@ export function ProductDetailPage({
               <Typography sx={{ fontSize: { xs: 15, sm: 16, md: 17.5 }, fontWeight: 700, color: C.dark }}>Quantité</Typography>
               <Stack direction="row" spacing={{ xs: 0.25, sm: 0.5 }} sx={{ alignItems: 'center' }}>
                 <IconButton
+                  aria-label="Diminuer la quantité"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={!canBuy || quantity <= 1}
                   size="small"
                   sx={{ border: `1px solid ${C.border}`, borderRadius: { xs: '10px', sm: '11px', md: '12.5px' }, width: { xs: 38, sm: 42, md: 45 }, height: { xs: 38, sm: 42, md: 45 } }}
                 >
@@ -518,8 +535,9 @@ export function ProductDetailPage({
                   {quantity}
                 </Typography>
                 <IconButton
+                  aria-label="Augmenter la quantité"
                   onClick={() => setQuantity(quantity + 1)}
-                  disabled={quantity >= product.inventory_quantity}
+                  disabled={!canBuy}
                   size="small"
                   sx={{ border: `1px solid ${C.border}`, borderRadius: { xs: '10px', sm: '11px', md: '12.5px' }, width: { xs: 38, sm: 42, md: 45 }, height: { xs: 38, sm: 42, md: 45 } }}
                 >
@@ -528,6 +546,16 @@ export function ProductDetailPage({
               </Stack>
             </Stack>
 
+            {!canBuy ? (
+              <Alert severity="warning" variant="outlined" sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+                Produit indisponible à la vente.
+              </Alert>
+            ) : isLowStock ? (
+              <Alert severity="info" variant="outlined" sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+                {`Plus que ${product.inventory_quantity} ${product.inventory_quantity > 1 ? 'exemplaires' : 'exemplaire'} en stock.`}
+              </Alert>
+            ) : null}
+
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
               <Button
                 variant="contained"
@@ -535,7 +563,7 @@ export function ProductDetailPage({
                 fullWidth
                 startIcon={<ShoppingCart sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
                 onClick={() => onAddToCart(product, quantity)}
-                disabled={!inStock}
+                disabled={!canBuy}
                 sx={{
                   py: { xs: 1.25, sm: 1.4, md: 1.5 },
                   borderRadius: { xs: '12px', sm: '13px', md: '15px' },
@@ -547,7 +575,7 @@ export function ProductDetailPage({
                   '&:hover': { bgcolor: C.dark },
                 }}
               >
-                Ajouter au panier
+                {canBuy ? 'Ajouter au panier' : 'Indisponible'}
               </Button>
             </Stack>
 

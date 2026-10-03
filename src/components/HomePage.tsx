@@ -237,7 +237,11 @@ export function HomePage({
   onToggleFavorite,
 }: HomePageProps) {
   const router = useRouter();
-  const autoplayPlugin = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
+  const autoplayPlugin = useRef(Autoplay({
+    delay: 3500,
+    stopOnInteraction: false,
+    stopOnMouseEnter: true,
+  }));
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -626,16 +630,27 @@ export function HomePage({
                     borderRadius: { xs: '16px', sm: '25px' },
                     bgcolor: 'background.paper',
                     border: `1px solid ${C.border}`,
-                    boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}`,
                     cursor: featuredProduct ? 'pointer' : 'default',
                     outline: 'none',
-                    transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+                    willChange: 'transform',
+                    '@keyframes heroProductFloat': {
+                      '0%': { transform: 'translateY(0)', boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}` },
+                      '10%': { transform: 'translateY(-7px)', boxShadow: `0 16px 48px ${alpha(C.dark, 0.15)}` },
+                      '24%': { transform: 'translateY(-7px)', boxShadow: `0 16px 48px ${alpha(C.dark, 0.15)}` },
+                      '32%': { transform: 'translateY(0)', boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}` },
+                      '100%': { transform: 'translateY(0)', boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}` },
+                    },
+                    animation: 'heroProductFloat 3.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.2s infinite',
+                    '@media (prefers-reduced-motion: reduce)': {
+                      animation: 'none',
+                    },
                     '&:focus-visible': {
                       borderColor: C.primary,
                       boxShadow: `0 0 0 2px ${C.primary}`,
                     },
                     ...(featuredProduct && {
                       '&:hover': {
+                        animationPlayState: 'paused',
                         transform: 'translateY(-3px)',
                         boxShadow: `0 16px 48px ${alpha(C.dark, 0.14)}`,
                       },
@@ -660,7 +675,16 @@ export function HomePage({
                             Sélection du moment
                           </Typography>
                           {featuredDiscount != null && (
-                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: { xs: 20, sm: 22.5 }, fontSize: { xs: 11, sm: 12.5 }, fontWeight: 800, bgcolor: alpha(tokens.colors.status.error, 0.1), color: tokens.colors.status.error }} />
+                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{
+                              height: { xs: 20, sm: 22.5 }, fontSize: { xs: 11, sm: 12.5 }, fontWeight: 800,
+                              bgcolor: alpha(tokens.colors.status.error, 0.1), color: tokens.colors.status.error,
+                              '@keyframes discountPulse': {
+                                '0%, 100%': { boxShadow: `0 0 0 0 ${alpha(tokens.colors.status.error, 0.35)}` },
+                                '50%': { boxShadow: `0 0 0 5px ${alpha(tokens.colors.status.error, 0)}` },
+                              },
+                              animation: 'discountPulse 1.6s ease-out 0.4s infinite',
+                              '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+                            }} />
                           )}
                         </Stack>
                         <Typography
@@ -989,11 +1013,7 @@ export function HomePage({
               <Typography sx={{ color: C.muted, fontSize: 17.5 }}>Les catégories seront bientôt disponibles.</Typography>
             </Paper>
           ) : (
-            <Box
-              sx={{ position: 'relative' }}
-              onMouseEnter={() => autoplayPlugin.current?.stop()}
-              onMouseLeave={() => autoplayPlugin.current?.play()}
-            >
+            <Box sx={{ position: 'relative' }}>
               <Carousel
                 opts={{ align: 'start', loop: true }}
                 plugins={[autoplayPlugin.current]}

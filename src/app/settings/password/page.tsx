@@ -17,6 +17,7 @@ import { PasswordField } from '@/components/ui/PasswordField';
 import { tokens } from '@/theme/tokens';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardPath } from '@/utils/roleRoutes';
 
 export default function PasswordPage() {
     const router = useRouter();
@@ -68,6 +69,11 @@ export default function PasswordPage() {
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
+
+            // Mot de passe changé : on ramène l'utilisateur sur SON tableau de
+            // bord. `setLoading(false)` est fait par le `finally`, sinon le
+            // bouton resterait figé si la navigation est annulée.
+            router.push(getDashboardPath(user?.role));
         } catch (err: any) {
             setError(err.response?.data?.detail || err.response?.data?.message || 'Erreur lors de la modification du mot de passe');
         } finally {
@@ -81,7 +87,7 @@ export default function PasswordPage() {
         setConfirmPassword('');
         setError('');
         setSuccess('');
-        router.push(user?.role === 'superadmin' ? '/dashboards' : user?.role === 'admin' ? '/dashboard' : '/account');
+        router.push(getDashboardPath(user?.role));
     };
 
     const checkPasswordStrength = async (password: string) => {

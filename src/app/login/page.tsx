@@ -6,6 +6,7 @@ import { Button, Alert, Typography, Box, Link as MuiLink } from '@mui/material';
 import NextLink from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
+import { getDashboardPath } from '@/utils/roleRoutes';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { StaticTextField } from '@/components/ui/StaticTextField';
 import { PasswordField } from '@/components/ui/PasswordField';
@@ -54,14 +55,7 @@ function LoginForm() {
                 } else if (redirectTo) {
                     router.push(redirectTo);
                 } else {
-                    const user = result.user;
-                    if (user?.role === 'superadmin') {
-                        router.push('/dashboards');
-                    } else if (user?.role === 'admin') {
-                        router.push('/dashboard');
-                    } else {
-                        router.push('/account');
-                    }
+                    router.push(getDashboardPath(result.user?.role));
                 }
             } else {
                 setError(result.error || 'Email ou mot de passe incorrect');

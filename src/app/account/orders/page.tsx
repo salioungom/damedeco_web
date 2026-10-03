@@ -7,6 +7,8 @@ import {
     Typography,
     Paper,
     Card,
+    Breadcrumbs,
+    Link as MuiLink,
     Button,
     Chip,
     IconButton,
@@ -473,6 +475,20 @@ function OrdersContent() {
 
     return (
         <Container maxWidth="xl" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 } }}>
+            <Breadcrumbs sx={{ mb: 2 }}>
+                <MuiLink
+                    component={Link}
+                    href="/account"
+                    variant="body1"
+                    underline="hover"
+                    color="inherit"
+                    sx={{ fontWeight: 500 }}
+                >
+                    Mon Compte
+                </MuiLink>
+                <Typography color="text.primary">Mes commandes</Typography>
+            </Breadcrumbs>
+
             <Box sx={{ mb: { xs: 2, sm: 4 } }}>
                 <Typography variant="h3" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                     Mes commandes

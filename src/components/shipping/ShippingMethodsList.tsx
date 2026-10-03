@@ -14,10 +14,6 @@ export default function ShippingMethodsList() {
   const [showForm, setShowForm] = useState(false);
   const [editingMethod, setEditingMethod] = useState<ShippingMethod | null>(null);
 
-  useEffect(() => {
-    loadMethods();
-  }, []);
-
   const loadMethods = async () => {
     setLoading(true);
     setError(null);
@@ -31,6 +27,10 @@ export default function ShippingMethodsList() {
     
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadMethods();
+  }, []);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette méthode ?')) return;

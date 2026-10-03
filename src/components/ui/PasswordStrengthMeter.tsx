@@ -34,6 +34,32 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
 
+  const calculateStrength = (pwd: string): PasswordStrength => {
+    let score = 0;
+    const suggestions: string[] = [];
+
+    if (pwd.length >= 8) score += 1;
+    else suggestions.push('Ajoutez au moins 8 caractères');
+
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 1;
+    else suggestions.push('Mélangez majuscules et minuscules');
+
+    if (/\d/.test(pwd)) score += 1;
+    else suggestions.push('Ajoutez des chiffres');
+
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) score += 1;
+    else suggestions.push('Ajoutez des caractères spéciaux');
+
+    if (pwd.length >= 12) score += 1;
+
+    return {
+      score: Math.min(score, 4),
+      feedback: {
+        suggestions,
+      },
+    };
+  };
+
   useEffect(() => {
     if (!password) {
       setStrength(null);
@@ -69,32 +95,6 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
     const timeoutId = setTimeout(checkStrength, 300);
     return () => clearTimeout(timeoutId);
   }, [password, onStrengthCheck]);
-
-  const calculateStrength = (pwd: string): PasswordStrength => {
-    let score = 0;
-    const suggestions: string[] = [];
-
-    if (pwd.length >= 8) score += 1;
-    else suggestions.push('Ajoutez au moins 8 caractères');
-
-    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 1;
-    else suggestions.push('Mélangez majuscules et minuscules');
-
-    if (/\d/.test(pwd)) score += 1;
-    else suggestions.push('Ajoutez des chiffres');
-
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) score += 1;
-    else suggestions.push('Ajoutez des caractères spéciaux');
-
-    if (pwd.length >= 12) score += 1;
-
-    return {
-      score: Math.min(score, 4),
-      feedback: {
-        suggestions,
-      },
-    };
-  };
 
   const getStrengthColor = (score: number) => {
     if (score <= 1) return theme.palette.error.main;

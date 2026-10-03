@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Add, ArrowBack } from '@mui/icons-material';
 import { RequireRole } from '@/components/RequireRole';
-import { Address, AddressService } from '@/services/address.service';
+import { Address, AddressService, parseErrorMessage } from '@/services/address.service';
 import { AddressCard } from '@/components/AddressCard';
 import { AddressFormModal } from '@/components/AddressFormModal';
 
@@ -28,31 +28,29 @@ function AddressesPageContent() {
   const [showModal, setShowModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
-  useEffect(() => {
-    loadAddresses();
-  }, []);
-
   const loadAddresses = async () => {
     try {
       setLoading(true);
       const response = await AddressService.getUserAddresses(0, 100);
       setAddresses(response.items);
       setError(null);
-    } catch (err) {
-      console.error('Erreur chargement adresses:', err);
-      setError('Impossible de charger vos adresses. Veuillez réessayer.');
+    } catch (err: unknown) {
+      setError(parseErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadAddresses();
+  }, []);
+
   const handleSetDefault = async (id: number) => {
     try {
       await AddressService.setDefaultAddress(id);
       await loadAddresses();
-    } catch (err) {
-      console.error('Erreur définition par défaut:', err);
-      setError('Impossible de définir cette adresse par défaut.');
+    } catch (err: unknown) {
+      setError(parseErrorMessage(err));
     }
   };
 
@@ -61,9 +59,8 @@ function AddressesPageContent() {
       try {
         await AddressService.deleteAddress(id);
         await loadAddresses();
-      } catch (err) {
-        console.error('Erreur suppression:', err);
-        setError('Impossible de supprimer cette adresse.');
+      } catch (err: unknown) {
+        setError(parseErrorMessage(err));
       }
     }
   };

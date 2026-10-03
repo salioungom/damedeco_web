@@ -167,6 +167,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                         >
                           <ClientOnly>
                             <IconButton
+                              aria-label="Diminuer la quantité"
                               size="small"
                               onClick={() => handleQuantityChange(item, -1)}
                               disabled={item.quantity <= 1}
@@ -180,9 +181,9 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                           </Typography>
                           <ClientOnly>
                             <IconButton
+                              aria-label="Augmenter la quantité"
                               size="small"
                               onClick={() => handleQuantityChange(item, 1)}
-                              disabled={item.quantity >= (item.product.inventory_quantity || 99)}
                               sx={{ width: { xs: 32, sm: 36, md: 40 }, height: { xs: 32, sm: 36, md: 40 }, borderRadius: 0 }}
                             >
                               <Add fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />

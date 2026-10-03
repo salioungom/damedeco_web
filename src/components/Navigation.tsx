@@ -45,7 +45,6 @@ import {
   HomeOutlined,
   InfoOutlined,
   EmailOutlined,
-  KeyboardArrowDown,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
 import { BrandMark } from './ui/BrandMark';
@@ -56,6 +55,14 @@ export const NAVBAR_HEIGHT = { xs: 64, sm: 68, md: 74 };
 
 const ACTION_SIZE = { xs: 38, sm: 40, md: 42 };
 const ICON_SIZE = { xs: 21, sm: 22.5, md: 24 };
+
+function getUserInitials(fullName?: string, email?: string): string {
+  const nameParts = fullName?.trim().split(/\s+/).filter(Boolean) ?? [];
+  if (nameParts.length > 1) {
+    return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toLocaleUpperCase('fr');
+  }
+  return (nameParts[0]?.[0] || email?.trim()[0] || 'U').toLocaleUpperCase('fr');
+}
 
 type NavItem = { label: string; path: string; icon: React.ReactNode };
 
@@ -522,7 +529,7 @@ export function Navigation() {
         {user ? (
           <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
             <Avatar src={user.avatar} sx={{ width: { xs: 44, sm: 48, md: 52.5 }, height: { xs: 44, sm: 48, md: 52.5 }, bgcolor: 'primary.main' }}>
-              {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+              {getUserInitials(user.full_name, user.email)}
             </Avatar>
             <Box>
               <Typography fontWeight={600} fontSize={{ xs: 15, sm: 17.5 }}>
@@ -616,12 +623,10 @@ export function Navigation() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: { xs: 0.25, sm: 0.5, md: 0.75 },
-        width: user && !isMobile ? 'auto' : typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
         minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
         height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-        pl: user && !isMobile ? { xs: 0.5, sm: 0.75 } : 0,
-        pr: user && !isMobile ? { xs: 0.5, sm: 0.75, md: 1.25 } : 0,
+        p: 0,
         border: '1px solid',
         borderColor: profileMenuOpen ? theme.palette.primary.main : 'divider',
         borderRadius: 1,
@@ -638,27 +643,12 @@ export function Navigation() {
       {authLoading ? (
         <Avatar sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'action.hover' }} />
       ) : user ? (
-        <>
-              <Avatar sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'primary.main', fontSize: { xs: 12, sm: 13, md: 15 }, fontWeight: 700 }}>
-            {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-          </Avatar>
-          {!isMobile && (
-            <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 16.25 }, fontWeight: 600, color: 'text.primary', maxWidth: { xs: 60, sm: 90, md: 110 } }} noWrap>
-              {user.full_name?.split(' ')[0] || 'Compte'}
-            </Typography>
-          )}
-          {(!isMobile || user) && (
-            <KeyboardArrowDown
-              sx={{
-                fontSize: { xs: 16, sm: 18, md: 22.5 },
-                color: 'text.disabled',
-                transition: 'transform 0.2s ease',
-                transform: profileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                flexShrink: 0,
-              }}
-            />
-          )}
-        </>
+        <Avatar
+          src={user.avatar}
+          sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'primary.main', fontSize: { xs: 12, sm: 13, md: 15 }, fontWeight: 700 }}
+        >
+          {getUserInitials(user.full_name, user.email)}
+        </Avatar>
       ) : (
         <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE }, color: 'text.secondary' }} />
       )}
@@ -881,7 +871,7 @@ export function Navigation() {
                     flexShrink: 0,
                   }}
                 >
-                  {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  {getUserInitials(user.full_name, user.email)}
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography

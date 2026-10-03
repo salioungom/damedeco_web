@@ -26,6 +26,8 @@ export const colors = {
     alt: '#EDE6DA',
     /** Sections inversées (footer, bandeaux devis) — encre */
     inverse: '#14213D',
+    /** Footer — encre éclaircie (bleu nuit) pour alléger les sections sombres */
+    inverseFooter: '#2A466F',
   },
 
   /* ─────────────────────────────── Texte ───────────────────────────────── */

@@ -41,7 +41,16 @@ const fieldSx = {
   },
 };
 
-export default function ShippingSettingsForm() {
+export interface ShippingSettingsFormProps {
+  /**
+   * Appelé après une sauvegarde RÉUSSIE. Le dashboard s'en sert pour
+   * ramener l'utilisateur sur l'onglet « Vue d'ensemble ».
+   * Non appelé en cas d'erreur, ni pendant le rechargement post-sauvegarde.
+   */
+  onSaved?: () => void;
+}
+
+export default function ShippingSettingsForm({ onSaved }: ShippingSettingsFormProps = {}) {
   const [settings, setSettings] = useState<ShippingSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -80,7 +89,11 @@ export default function ShippingSettingsForm() {
       if (result.error) {
         setError(result.error.message || 'Erreur lors de la sauvegarde');
       } else {
+        // On recharge AVANT de notifier : le panneau est monté à cet instant,
+        // sinon `loadSettings` écrirait dans un composant déjà démonté par le
+        // changement d'onglet.
         await loadSettings();
+        onSaved?.();
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erreur inattendue';

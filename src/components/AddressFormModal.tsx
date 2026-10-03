@@ -20,7 +20,7 @@ import {
   Alert,
   FormHelperText,
 } from '@mui/material';
-import { Address, CreateAddressData, UpdateAddressData, AddressService } from '@/services/address.service';
+import { Address, CreateAddressData, AddressService, parseErrorMessage } from '@/services/address.service';
 import { validatePhone, formatPhoneInput, detectCountry, getOperators } from '@/utils/phoneValidation';
 
 interface AddressFormModalProps {
@@ -95,19 +95,18 @@ export function AddressFormModal({ address, open, onClose, onSuccess }: AddressF
 
     try {
       if (address) {
-        await AddressService.updateAddress(address.id, formData as UpdateAddressData);
+        await AddressService.updateAddress(address.id, formData);
       } else {
         await AddressService.createAddress(formData);
       }
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Erreur sauvegarde adresse:', err);
-      // Check if it's a phone validation error from backend
-      if (err instanceof Error && err.message.includes('phone')) {
-        setPhoneError(err.message);
+      const message = parseErrorMessage(err);
+      if (message.toLowerCase().includes('phone') || message.toLowerCase().includes('téléphone')) {
+        setPhoneError(message);
       } else {
-        setError('Impossible de sauvegarder l\'adresse. Veuillez réessayer.');
+        setError(message);
       }
     } finally {
       setLoading(false);

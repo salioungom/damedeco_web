@@ -53,6 +53,37 @@ interface RegisterData {
 // Création du contexte
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Vérifie l'expiration d'un JWT. Déclaré à portée module (hors du corps du
+ * composant) : cette lecture d'horloge est une opération d'environnement, pas
+ * du render. Un token illisible est considéré comme non expiré.
+ */
+function isTokenExpired(token: string): boolean {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return Date.now() > payload.exp * 1000;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Redirection dure vers /login, hors des pages déjà authentifiées.
+ * La redirection est volontairement conservée en navigation complète : elle
+ * purge l'état mémoire du provider et le jeton, ce qu'un `router.push` ne fait
+ * pas. Portée module pour la même raison que `isTokenExpired`.
+ */
+function redirectToLogin(): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+    const { pathname } = window.location;
+    if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
+        return;
+    }
+    window.location.href = '/login';
+}
+
 // Provider principal
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<AuthState>({
@@ -140,26 +171,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            if (Date.now() > payload.exp * 1000) {
-                clearStoredTokens();
-                updateAuthState({
-                    user: null,
-                    accessToken: null,
-                    isAuthenticated: false,
-                    requires2FA: false,
-                    roles: [],
-                    status: 'unauthenticated',
-                });
-                setLoading(false);
-                if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
-                    window.location.href = '/login';
-                }
-                return;
-            }
-        } catch (e) {
-            // Token is not JWT, proceeding anyway
+        if (isTokenExpired(token)) {
+            clearStoredTokens();
+            updateAuthState({
+                user: null,
+                accessToken: null,
+                isAuthenticated: false,
+                requires2FA: false,
+                roles: [],
+                status: 'unauthenticated',
+            });
+            setLoading(false);
+            redirectToLogin();
+            return;
         }
         
         try {

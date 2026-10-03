@@ -13,36 +13,28 @@ import {
 
     Stack,
 } from '@mui/material';
-import apiClient from '@/lib/api-client';
-import { AddressService, type Address } from '@/services/address.service';
+import { AddressService, parseErrorMessage, type Address, type ProfileAddressPayload } from '@/services/address.service';
+import { UserService, type CurrentUserProfile, type ProfileIdentityForm } from '@/services/user.service';
+import { validatePhone } from '@/utils/phoneValidation';
+import { getDashboardPath } from '@/utils/roleRoutes';
 import { SettingsTabs } from '@/components/ui/SettingsTabs';
 import { StaticTextField } from '@/components/ui/StaticTextField';
 import { tokens } from '@/theme/tokens';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface UserProfile {
-    id: number;
-    name?: string;
-    full_name?: string;
-    username: string;
-    email: string;
-    phone?: string;
-    role: string;
-    avatar?: string;
-    created_at: string;
-}
-
 export default function ProfilePage() {
     const router = useRouter();
     const { user } = useAuth();
-    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const isSuperAdmin = user?.role === 'superadmin';
+    const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [addressError, setAddressError] = useState('');
     const [success, setSuccess] = useState('');
     const [formData, setFormData] = useState({
-        full_name: '',
+        fullName: '',
         username: '',
         email: '',
         phone: '',
@@ -50,33 +42,27 @@ export default function ProfilePage() {
     const [address, setAddress] = useState('');
     const [savedAddress, setSavedAddress] = useState<Address | null>(null);
 
-    const parseErrorMessage = useCallback((err: any): string => {
-        const detail = err.response?.data?.detail;
-        if (typeof detail === 'string') return detail;
-        if (Array.isArray(detail)) return detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
-        return err.response?.data?.message || err.message || 'Une erreur est survenue';
-    }, []);
-
     const fetchProfile = useCallback(async () => {
         try {
-            const response = await apiClient.get('/api/v1/users/me');
-            const data = response.data;
+            const data = await UserService.getCurrentProfile();
             setProfile(data);
             setFormData({
-                full_name: data.full_name || '',
+                fullName: data.full_name || '',
                 username: data.username || '',
                 email: data.email || '',
                 phone: data.phone || '',
             });
-            const addr = await AddressService.getDefaultAddress();
-            setSavedAddress(addr);
-            setAddress(addr?.address_line_1 || '');
-        } catch (err: any) {
+            if (!isSuperAdmin) {
+                const addr = await AddressService.getDefaultAddress();
+                setSavedAddress(addr);
+                setAddress(addr?.address_line_1 || '');
+            }
+        } catch (err: unknown) {
             setError(parseErrorMessage(err));
         } finally {
             setLoading(false);
         }
-    }, [parseErrorMessage]);
+    }, [isSuperAdmin]);
 
     useEffect(() => {
         fetchProfile();
@@ -86,45 +72,92 @@ export default function ProfilePage() {
         e.preventDefault();
         setSaving(true);
         setError('');
+        setAddressError('');
         setSuccess('');
+
+        const phoneError = validatePhone(formData.phone?.trim() || '');
+        if (phoneError) {
+            setError(`Numéro invalide : ${phoneError}`);
+            setSaving(false);
+            return;
+        }
+
+        let derivedFirstName = '';
+        let derivedLastName = '';
+        if (!isSuperAdmin) {
+            // Delivery and invoice labels require distinct first and last names.
+            const nameParts = formData.fullName.trim().split(/\s+/).filter(Boolean);
+            derivedFirstName = savedAddress?.first_name || nameParts[0] || '';
+            derivedLastName = savedAddress?.last_name || nameParts.slice(1).join(' ');
+            if (!derivedFirstName || !derivedLastName) {
+                setAddressError('Le nom doit contenir au moins 2 mots (prénom et nom)');
+                setSaving(false);
+                return;
+            }
+        }
+
         try {
-            const response = await apiClient.patch('/api/v1/users/me', formData);
-            setProfile(response.data);
-            setSuccess('Profil mis à jour avec succès !');
+            const identityPayload: ProfileIdentityForm = {
+                fullName: formData.fullName.trim(),
+                username: formData.username.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
+            };
+
+            if (isSuperAdmin) {
+                const updatedProfile = await UserService.updateProfile(identityPayload);
+                setProfile(updatedProfile);
+                router.push(getDashboardPath(user?.role));
+                return;
+            }
 
             const trimmedAddress = address.trim();
-            if (trimmedAddress) {
-                try {
-                    if (savedAddress) {
-                        await AddressService.updateAddress(savedAddress.id, {
-                            address_type: savedAddress.address_type,
-                            address_line_1: trimmedAddress,
-                            address_line_2: savedAddress.address_line_2,
-                            city: savedAddress.city,
-                            state: savedAddress.state,
-                            first_name: savedAddress.first_name,
-                            last_name: savedAddress.last_name,
-                            phone: savedAddress.phone,
-                            delivery_instructions: savedAddress.delivery_instructions,
-                            is_default: savedAddress.is_default,
-                        });
-                    } else {
-                        const names = (profile?.full_name || profile?.name || '').trim().split(/\s+/);
-                        await AddressService.createAddress({
-                            address_type: 'billing',
-                            address_line_1: trimmedAddress,
-                            city: 'Dakar',
-                            first_name: names[0] || profile?.username || '',
-                            last_name: names.slice(1).join(' ') || '',
-                            phone: profile?.phone || '',
-                            is_default: true,
-                        });
-                    }
-                } catch (addrErr: any) {
-                    setError(`Profil enregistré, mais l'adresse n'a pas pu être sauvegardée : ${addrErr.message || 'erreur inconnue'}`);
-                }
+            const addressPayload: ProfileAddressPayload = {
+                addressType: 'billing',
+                addressLine1: trimmedAddress || savedAddress?.address_line_1 || '',
+                addressLine2: savedAddress?.address_line_2,
+                city: savedAddress?.city || 'Dakar',
+                state: savedAddress?.state,
+                firstName: derivedFirstName,
+                lastName: derivedLastName,
+                phone: formData.phone.trim(),
+                deliveryInstructions: savedAddress?.delivery_instructions,
+                isDefault: true,
+            };
+
+            // UN SEUL submit orchestrant DEUX appels (identité + adresse).
+            // `user_id`/`user.name` jamais envoyés : résolus via JWT côté backend.
+            const [identityResult, addressResult] = await Promise.allSettled([
+                UserService.updateProfile(identityPayload),
+                AddressService.saveProfileAddress(savedAddress, addressPayload),
+            ]);
+
+            const failures: string[] = [];
+
+            if (identityResult.status === 'fulfilled') {
+                setProfile(identityResult.value);
+            } else {
+                failures.push(`Profil : ${parseErrorMessage(identityResult.reason)}`);
             }
-        } catch (err: any) {
+
+            if (addressResult.status === 'fulfilled') {
+                setSavedAddress(addressResult.value);
+            } else {
+                failures.push(`Adresse : ${parseErrorMessage(addressResult.reason)}`);
+            }
+
+            if (failures.length > 0) {
+                // Échec partiel : on reste sur la page pour afficher le message
+                // et permettre un nouvel essai. Rediriger ici masquerait l'erreur.
+                setError(failures.join(' — '));
+            } else {
+                // Tout est persisté : on ramène l'utilisateur sur SON tableau
+                // de bord plutôt que de le laisser sur un formulaire vide.
+                // Le `finally` relâche déjà `saving`.
+                router.push(getDashboardPath(user?.role));
+                return;
+            }
+        } catch (err: unknown) {
             setError(parseErrorMessage(err));
         } finally {
             setSaving(false);
@@ -137,15 +170,16 @@ export default function ProfilePage() {
 
     const handleCancel = () => {
         setFormData({
-            full_name: profile?.full_name || '',
+            fullName: profile?.full_name || '',
             username: profile?.username || '',
             email: profile?.email || '',
             phone: profile?.phone || '',
         });
         setAddress(savedAddress?.address_line_1 || '');
         setError('');
+        setAddressError('');
         setSuccess('');
-        router.push(user?.role === 'superadmin' ? '/dashboards' : user?.role === 'admin' ? '/dashboard' : '/account');
+        router.push(getDashboardPath(user?.role));
     };
 
     if (loading) {
@@ -210,19 +244,14 @@ export default function ProfilePage() {
                             src={profile?.avatar}
                             sx={{ width: 64, height: 64, bgcolor: 'primary.main', fontSize: 26, fontWeight: 600 }}
                         >
-                            {(profile?.full_name || profile?.name || profile?.username || 'U').charAt(0)}
+                            {(profile?.full_name || profile?.username || 'U').charAt(0)}
                         </Avatar>
                         <Box sx={{ flex: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                {profile?.full_name || profile?.name || profile?.username}
+                                {profile?.full_name || profile?.username}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 {profile?.email}
-                            </Typography>
-                        </Box>
-                        <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-                            <Typography variant="caption" color="text.secondary" display="block">
-                                Membre depuis le {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('fr-FR') : 'N/A'}
                             </Typography>
                         </Box>
                     </Box>
@@ -233,37 +262,46 @@ export default function ProfilePage() {
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <StaticTextField
                                     label="Nom complet"
-                                    name="full_name"
-                                    value={formData.full_name}
-                                    onChange={handleChange('full_name')}
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleChange('fullName')}
                                     required
                                 />
                             </Grid>
+                            {!isSuperAdmin && (
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <StaticTextField
+                                        label="Nom d'utilisateur"
+                                        name="username"
+                                        value={formData.username}
+                                        onChange={handleChange('username')}
+                                        required
+                                    />
+                                </Grid>
+                            )}
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <StaticTextField
-                                    label="Nom d'utilisateur"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleChange('username')}
-                                    required
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <StaticTextField
-                                    label="Numéro de téléphone"
+                                    label="Numéro de téléphone (+221 / +220)"
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange('phone')}
                                 />
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <StaticTextField
-                                    label="Adresse"
-                                    name="address"
-                                    value={address}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
-                                />
-                            </Grid>
+                            {!isSuperAdmin && (
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <StaticTextField
+                                        label="Adresse"
+                                        name="address"
+                                        value={address}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                            setAddress(e.target.value);
+                                            if (addressError) setAddressError('');
+                                        }}
+                                        error={!!addressError}
+                                        helperText={addressError || ' '}
+                                    />
+                                </Grid>
+                            )}
                             <Grid size={{ xs: 12 }}>
                                 <StaticTextField
                                     label="Adresse email"
