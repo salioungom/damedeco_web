@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Category } from '@/lib/types';
 import { safeApiCall } from '@/lib/error-handler';
+import { getImageUrl } from '@/lib/imageUtils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''; // Utiliser le proxy Next.js
 
@@ -34,7 +35,7 @@ export const homeService = {
         id: apiCategory.id.toString(),
         name: apiCategory.name,
         icon: '🏠', // Icône par défaut
-        image: apiCategory.cover_image_url || '/placeholder-image.jpg'
+        image: getImageUrl(apiCategory.cover_image_url) || '/placeholder-image.jpg'
       }));
     });
   },

@@ -18,13 +18,13 @@ function ProfileContent() {
 
                 <Box sx={{ mt: 4 }}>
                     <Grid container spacing={3}>
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography variant="h6" gutterBottom>
                                 Informations personnelles
                             </Typography>
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Nom"
@@ -34,7 +34,7 @@ function ProfileContent() {
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Email"
@@ -44,7 +44,7 @@ function ProfileContent() {
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Rôle"
@@ -54,7 +54,7 @@ function ProfileContent() {
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="ID"
@@ -64,7 +64,7 @@ function ProfileContent() {
                             />
                         </Grid>
 
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Box sx={{ display: 'flex', gap: 2 }}>
                                 {!editing ? (
                                     <Button

@@ -5,43 +5,57 @@ export const validatePhone = (phone: string): string | null => {
     return "Le numéro de téléphone est requis";
   }
 
-  // Nettoyer le numéro
-  const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  // Tout nettoyer : garder uniquement les chiffres
+  const digits = phone.replace(/\D/g, '');
 
-  // Vérifier l'indicatif
-  if (!cleaned.startsWith('+221') && !cleaned.startsWith('+220')) {
-    return "Le numéro doit être sénégalais (+221) ou gambien (+220)";
+  if (digits.length === 0) {
+    return "Le numéro de téléphone est requis";
+  }
+
+  let countryPrefix: string;
+  let localNumber: string;
+
+  if (digits.startsWith('221')) {
+    countryPrefix = '221';
+    localNumber = digits.substring(3);
+  } else if (digits.startsWith('220')) {
+    countryPrefix = '220';
+    localNumber = digits.substring(3);
+  } else if (digits.length === 9) {
+    // Pas d'indicatif → défaut Sénégal
+    countryPrefix = '221';
+    localNumber = digits;
+  } else if (digits.length === 7) {
+    // Pas d'indicatif → Gambie
+    countryPrefix = '220';
+    localNumber = digits;
+  } else {
+    return "Format invalide. Utilisez +221XXXXXXXXX (Sénégal) ou +220XXXXXXX (Gambie)";
   }
 
   // Validation Sénégal
-  if (cleaned.startsWith('+221')) {
-    if (cleaned.length !== 14) {
+  if (countryPrefix === '221') {
+    if (localNumber.length !== 9) {
       return "Format invalide: +221 suivi de 9 chiffres";
     }
-
-    const operatorPrefix = cleaned.substring(4, 6);
     const validSenegalOperators = ['77', '78', '76', '70', '75', '33', '30'];
-
-    if (!validSenegalOperators.includes(operatorPrefix)) {
+    if (!validSenegalOperators.includes(localNumber.substring(0, 2))) {
       return `Opérateur invalide. Valides: ${validSenegalOperators.join(', ')}`;
     }
   }
 
   // Validation Gambie
-  if (cleaned.startsWith('+220')) {
-    if (cleaned.length !== 12) {
+  if (countryPrefix === '220') {
+    if (localNumber.length !== 7) {
       return "Format invalide: +220 suivi de 7 chiffres";
     }
-
-    const operatorPrefix = cleaned.substring(4, 6);
     const validGambiaOperators = ['30', '39', '99', '77', '88', '55', '22'];
-
-    if (!validGambiaOperators.includes(operatorPrefix)) {
+    if (!validGambiaOperators.includes(localNumber.substring(0, 2))) {
       return `Opérateur invalide. Valides: ${validGambiaOperators.join(', ')}`;
     }
   }
 
-  return null; // Validation OK
+  return null;
 };
 
 export const formatPhoneInput = (value: string): string => {
@@ -64,9 +78,11 @@ export const formatPhoneInput = (value: string): string => {
 };
 
 export const detectCountry = (phone: string): 'SN' | 'GM' | null => {
-  const cleaned = phone.replace(/[\s\-\(\)]/g, '');
-  if (cleaned.startsWith('+221')) return 'SN';
-  if (cleaned.startsWith('+220')) return 'GM';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('221')) return 'SN';
+  if (digits.startsWith('220')) return 'GM';
+  if (digits.length === 9) return 'SN';
+  if (digits.length === 7) return 'GM';
   return null;
 };
 

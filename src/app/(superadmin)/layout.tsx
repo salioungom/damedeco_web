@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'SuperAdmin - Dame Sarr',
+  title: 'SuperAdmin - DameDéco',
   description: 'Panneau SuperAdmin',
 };
 

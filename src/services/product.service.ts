@@ -373,11 +373,11 @@ export const productService = {
     // Récupérer les images de la galerie pour un produit
     async getProductImages(productId: string): Promise<ProductImage[]> {
         try {
-            const response = await axios.get<{ items: ProductImage[] }>(
+            const response = await axios.get<{ images: ProductImage[] }>(
                 `${API_BASE_URL}/api/v1/products/${productId}/images`,
                 getAuthHeader()
             );
-            return response.data.items || [];
+            return response.data.images || [];
         } catch (error) {
             console.error('Failed to fetch product images:', error);
             return []; // Return empty array on error

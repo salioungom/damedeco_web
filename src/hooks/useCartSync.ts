@@ -1,57 +1,48 @@
-/**
- * @file /hooks/useCartSync.ts
- * @description Hook pour gérer la synchronisation du panier (invité ↔ utilisateur)
- * @version 1.0.0
- * @author DameDéco Team
- */
-
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from '@/store/useStore';
 import { cartService } from '@/services/cart.service';
+import { cartLog, cartError } from '@/lib/cart-logger';
 
 export function useCartSync() {
-  const { user, loadCart } = useStore();
+    const user = useStore((s) => s.user);
+    const loadCart = useStore((s) => s.loadCart);
+    const prevUserRef = useRef(user);
 
-  useEffect(() => {
-    const syncCart = async () => {
-      if (typeof window === 'undefined') return;
+    useEffect(() => {
+        const prevUser = prevUserRef.current;
+        prevUserRef.current = user;
 
-      const guestSession = sessionStorage.getItem('guest_session');
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+        const syncCart = async () => {
+            if (typeof window === 'undefined') return;
 
-      // Si l'utilisateur se connecte et a une session invité
-      if (user && token && guestSession) {
-        try {
-          console.log('🔄 Fusion du panier invité avec le panier utilisateur...');
-          await cartService.mergeGuestCart(guestSession);
-          
-          // Nettoyer la session invité
-          cartService.clearGuestSession();
-          
-          // Recharger le panier
-          await loadCart();
-          
-          console.log('✅ Fusion du panier réussie');
-        } catch (error) {
-          console.error('❌ Erreur lors de la fusion du panier:', error);
-        }
-      }
-      
-      // Si l'utilisateur se déconnecte, créer une nouvelle session invité
-      if (!user && !guestSession) {
-        cartService.createGuestSession();
-      }
+            const justLoggedIn = !prevUser && user;
+            if (!justLoggedIn) return;
+
+            const guestSessionId = localStorage.getItem('guest_session_id');
+            if (!guestSessionId) return;
+
+            try {
+                const { data, error } = await cartService.mergeGuestCart(guestSessionId);
+                if (!error && data?.success) {
+                    useStore.setState({ sessionId: '' });
+                    localStorage.removeItem('guest_session_id');
+                    cartLog('Merge guest cart successful', `${data.merged_items} item(s) merged`);
+                    await loadCart();
+                    await useStore.getState().initGuestSession();
+                } else {
+                    cartError('Merge guest cart failed', String(error || data?.message));
+                }
+            } catch (error) {
+                cartError('Merge guest cart exception', String(error));
+            }
+        };
+
+        syncCart();
+    }, [user, loadCart]);
+
+    const forceSync = async () => {
+        await loadCart();
     };
 
-    syncCart();
-  }, [user, loadCart]);
-
-  // Fonction pour forcer la synchronisation manuelle
-  const forceSync = async () => {
-    await loadCart();
-  };
-
-  return {
-    forceSync
-  };
+    return { forceSync };
 }

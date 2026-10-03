@@ -1,449 +1,365 @@
 'use client';
 
-import React from 'react';
-import { useStore } from '@/store/useStore';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
     Container,
     Typography,
-    Paper,
     Box,
     Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
     IconButton,
-    TextField,
-    Grid,
-    Divider,
     Alert,
-    CircularProgress,
-    Snackbar,
+    useTheme,
+    alpha,
+    Chip,
+    Skeleton,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { useState, ChangeEvent } from 'react';
-import OrderService, { PAYMENT_METHODS } from '@/services/order.service';
+import {
+    Delete as DeleteIcon,
+    Add as AddIcon,
+    Remove as RemoveIcon,
+    ShoppingBagOutlined,
+    ArrowForward,
+    KeyboardArrowLeft,
+} from '@mui/icons-material';
+import { useStore } from '@/store/useStore';
+import { useCartWithProducts } from '@/hooks/useCartWithProducts';
+import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 
 export default function CartPage() {
-    const { cart, removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError } = useStore();
+    const theme = useTheme();
     const router = useRouter();
-    const [showCheckout, setShowCheckout] = useState(false);
-    const [orderPlaced, setOrderPlaced] = useState(false);
+    const removeFromCart = useStore((s) => s.removeFromCart);
+    const updateQuantity = useStore((s) => s.updateQuantity);
+    const clearCart = useStore((s) => s.clearCart);
+    const loadCart = useStore((s) => s.loadCart);
+    const cartLoading = useStore((s) => s.cartLoading);
+    const cartError = useStore((s) => s.cartError);
+    const { cart: cartWithProducts, loading: productsLoading } = useCartWithProducts();
+    const brandBlue = theme.palette.primary.main;
 
-    // Charger le panier au montage
-    React.useEffect(() => {
+    useEffect(() => {
         loadCart();
     }, [loadCart]);
 
-    // Formulaire de livraison
-    const [shippingInfo, setShippingInfo] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        country: 'Sénégal',
-        paymentMethod: PAYMENT_METHODS.PAYDUNYA
-    });
+    const subtotal = useMemo(() =>
+        (cartWithProducts || []).reduce((sum, item) => {
+            const price = item.product
+                ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
+                : (Number(item.unit_price) || 0);
+            return sum + price * item.quantity;
+        }, 0),
+    [cartWithProducts]);
 
-    // États pour la gestion des commandes
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+    const itemCount = cartWithProducts?.length ?? 0;
 
-    const total = (cart || []).reduce((sum, item) => {
-        const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
-        return sum + (price || 0) * item.quantity;
-    }, 0);
+    const handleCheckout = () => router.push('/checkout');
 
-    const handleCheckout = () => {
-        setShowCheckout(true);
-    };
+    const isLoading = cartLoading || productsLoading;
 
-    const handlePlaceOrder = async () => {
-        // Validation simple
-        if (!shippingInfo.name || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city) {
-            setError('Veuillez remplir tous les champs obligatoires');
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError(null);
-        setSuccess(null);
-
-        try {
-            // Préparer les données de commande
-            const orderData = {
-                items: cart.map(item => ({
-                    product_id: item.product.id,
-                    quantity: item.quantity,
-                    unit_price: item.priceType === 'wholesale' 
-                        ? item.product.wholesale_price || 0 
-                        : item.product.price || 0
-                })),
-                shipping_address: {
-                    street: shippingInfo.address,
-                    city: shippingInfo.city,
-                    country: shippingInfo.country,
-                    phone: shippingInfo.phone
-                },
-                currency: 'XOF',
-                payment_method: shippingInfo.paymentMethod,
-                order_type: 'standard'
-            };
-
-            // Créer la commande via l'API
-            const order = await OrderService.createOrderFromCart(
-                cart,
-                orderData.shipping_address,
-                orderData.payment_method,
-                orderData.currency
-            );
-
-            setSuccess(`Commande ${order.order_number} créée avec succès!`);
-            
-            // Vider le panier et rediriger
-            clearCart();
-            setOrderPlaced(true);
-
-            setTimeout(() => {
-                router.push('/account/orders');
-            }, 3000);
-
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de la création de la commande');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    if (orderPlaced) {
+    if (isLoading) {
         return (
-            <Container maxWidth="md" sx={{ mt: 8, mb: 4 }}>
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="h4" color="success.main" gutterBottom>
-                        ✅ Commande passée avec succès !
-                    </Typography>
-                    <Typography variant="body1" sx={{ mb: 3 }}>
-                        Merci pour votre achat. Vous allez être redirigé vers l'accueil...
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        onClick={() => router.push('/')}
-                    >
-                        Retour à l'accueil
-                    </Button>
-                </Paper>
-            </Container>
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                <Container maxWidth="lg" sx={{ pt: { xs: 10, sm: 11, md: 14 }, pb: 8 }}>
+                    <Skeleton variant="rounded" width={{ xs: 160, sm: 200, md: 240 }} height={{ xs: 32, md: 40 }} sx={{ mb: 1.5, borderRadius: 2 }} />
+                    <Skeleton variant="rounded" width={{ xs: 120, md: 160 }} height={{ xs: 20, md: 24 }} sx={{ mb: { xs: 3, md: 5 }, borderRadius: 2 }} />
+                    {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} variant="rounded" height={{ xs: 85, sm: 90, md: 100 }} sx={{ mb: 1.5, borderRadius: 3 }} />
+                    ))}
+                </Container>
+            </Box>
         );
     }
 
-    if (!Array.isArray(cart) || cart.length === 0) {
+    if (itemCount === 0) {
         return (
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="h5" gutterBottom>
-                        Votre panier est vide
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        onClick={() => router.push('/shop')}
-                        sx={{ mt: 2 }}
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                <Container maxWidth="lg" sx={{ pt: { xs: 10, sm: 11, md: 14 }, pb: 8 }}>
+                    <Box
+                        sx={{
+                            textAlign: 'center',
+                            py: { xs: 6, sm: 8, md: 14 },
+                            px: { xs: 2, sm: 3, md: 4 },
+                            borderRadius: 4,
+                            background: `linear-gradient(135deg, ${alpha(brandBlue, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`,
+                            border: `1px solid ${alpha(brandBlue, 0.12)}`,
+                        }}
                     >
-                        Continuer vos achats
-                    </Button>
-                </Paper>
-            </Container>
+                        <Box
+                            sx={{
+                                width: { xs: 72, sm: 86, md: 100 },
+                                height: { xs: 72, sm: 86, md: 100 },
+                                borderRadius: '50%',
+                                mx: 'auto',
+                                mb: { xs: 2, sm: 2.5, md: 3 },
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: `linear-gradient(135deg, ${alpha(brandBlue, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
+                                border: `2px solid ${alpha(brandBlue, 0.18)}`,
+                            }}
+                        >
+                            <ShoppingBagOutlined sx={{ fontSize: { xs: 32, sm: 38, md: 44 }, color: brandBlue }} />
+                        </Box>
+                        <Typography variant="h4" fontWeight={700} sx={{ mb: 1.5, fontSize: { xs: 20, sm: 24, md: 28 } }}>
+                            Votre panier est vide
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 440, mx: 'auto', mb: { xs: 3, sm: 3.5, md: 4 }, lineHeight: 1.7, fontSize: { xs: 14, sm: 15, md: 16 } }}>
+                            Parcourez notre catalogue et ajoutez vos articles préférés à votre panier.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            component={Link}
+                            href="/shop"
+                            size="large"
+                            endIcon={<ArrowForward />}
+                            sx={{
+                                borderRadius: 3,
+                                px: { xs: 3.5, sm: 4.5, md: 5 },
+                                py: { xs: 1.25, sm: 1.4, md: 1.5 },
+                                fontWeight: 600,
+                                fontSize: { xs: 14, sm: 15, md: 16 },
+                                boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                            }}
+                        >
+                            Découvrir nos produits
+                        </Button>
+                    </Box>
+                </Container>
+            </Box>
         );
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Typography variant="h4" gutterBottom>
-                {showCheckout ? 'Finaliser la commande' : 'Mon Panier'}
-            </Typography>
-
-            {!showCheckout ? (
-                // Vue Panier
-                <Paper sx={{ mt: 3 }}>
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Produit</TableCell>
-                                    <TableCell>Prix</TableCell>
-                                    <TableCell>Quantité</TableCell>
-                                    <TableCell>Total</TableCell>
-                                    <TableCell>Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {Array.isArray(cart) && cart.map((item, index) => {
-                                    const price = item.priceType === 'wholesale'
-                                        ? item.product.wholesale_price
-                                        : item.product.price;
-                                    const itemTotal = (price || 0) * item.quantity;
-
-                                    return (
-                                        <TableRow key={`${item.product.id}-${index}`}>
-                                            <TableCell>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                    <img
-                                                        src={item.product.cover_image_url || ''}
-                                                        alt={item.product.name}
-                                                        style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
-                                                    />
-                                                    <Box>
-                                                        <Typography variant="body1">{item.product.name}</Typography>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            {item.priceType === 'wholesale' ? 'Prix gros' : 'Prix détail'}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell>{(price || 0).toFixed(2)} €</TableCell>
-                                            <TableCell>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => updateQuantity(item.product.id, Math.max(1, item.quantity - 1))}
-                                                    >
-                                                        <RemoveIcon />
-                                                    </IconButton>
-                                                    <Typography>{item.quantity}</Typography>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                                    >
-                                                        <AddIcon />
-                                                    </IconButton>
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell>{itemTotal.toFixed(2)} €</TableCell>
-                                            <TableCell>
-                                                <IconButton
-                                                    color="error"
-                                                    onClick={() => removeFromCart(item.product.id)}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-
-                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            onClick={clearCart}
-                        >
-                            Vider le panier
-                        </Button>
-                        <Box sx={{ textAlign: 'right' }}>
-                            <Typography variant="h5" gutterBottom>
-                                Total: {total.toFixed(2)} €
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            <Box
+                sx={{
+                    background: `linear-gradient(135deg, ${alpha(brandBlue, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`,
+                    borderBottom: `1px solid ${alpha(brandBlue, 0.1)}`,
+                    pt: { xs: 10, sm: 11, md: 13, lg: 14 },
+                    pb: { xs: 3, sm: 3.5, md: 4, lg: 5 },
+                }}
+            >
+                <Container maxWidth="lg">
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2 } }}>
+                        <Box>
+                            <Typography
+                                variant="h3"
+                                fontWeight={800}
+                                sx={{ fontSize: { xs: 24, sm: 26, md: 32, lg: 36 }, letterSpacing: '-0.02em' }}
+                            >
+                                Mon Panier
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Typography variant="body1" color="text.secondary" sx={{ mt: { xs: 0.35, sm: 0.4, md: 0.5 }, fontSize: { xs: 13.5, sm: 14, md: 15 } }}>
+                                {itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier
+                            </Typography>
+                        </Box>
+                        <Box
+                            sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: { xs: 0.75, sm: 1 },
+                                px: { xs: 2, sm: 2.5, md: 3 },
+                                py: { xs: 1, sm: 1.15, md: 1.25 },
+                                borderRadius: { xs: 2.5, sm: 2.75, md: 3 },
+                                background: `linear-gradient(135deg, ${alpha(brandBlue, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
+                                border: `1px solid ${alpha(brandBlue, 0.18)}`,
+                            }}
+                        >
+                            <ShoppingBagOutlined sx={{ fontSize: { xs: 18, sm: 19, md: 20 }, color: brandBlue }} />
+                            <Typography fontWeight={700} fontSize={{ xs: 16, sm: 17, md: 18 }} color={brandBlue}>
+                                {itemCount}
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Container>
+            </Box>
+
+            <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 3.5, md: 4, lg: 5 } }}>
+                {cartError && (
+                    <Alert severity="error" variant="outlined" sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 13, sm: 14, md: 15 }, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{cartError}</Alert>
+                )}
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
+                    {cartWithProducts.map((item) => {
+                        const price = item.product
+                            ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
+                            : (Number(item.unit_price) || 0);
+                        const itemTotal = price * item.quantity;
+
+                        return (
+                            <Box
+                                key={item.id}
+                                sx={{
+                                    display: 'flex',
+                                    gap: { xs: 1.5, sm: 2, md: 3 },
+                                    p: { xs: 1.25, sm: 1.75, md: 2.5 },
+                                    borderRadius: { xs: 2.5, sm: 2.75, md: 3 },
+                                    bgcolor: 'background.paper',
+                                    border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                                    transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                                    '&:hover': {
+                                        borderColor: alpha(brandBlue, 0.2),
+                                        boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.06)}`,
+                                    },
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: { xs: 65, sm: 72, md: 100 },
+                                        height: { xs: 65, sm: 72, md: 100 },
+                                        borderRadius: { xs: 1.5, sm: 1.75, md: 2 },
+                                        overflow: 'hidden',
+                                        bgcolor: 'action.hover',
+                                        flexShrink: 0,
+                                        border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                                    }}
+                                >
+                                    {item.product && (
+                                        <Box
+                                            component="img"
+                                            src={getImageUrl(item.product.cover_image_url)}
+                                            alt={item.product.name}
+                                            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    )}
+                                </Box>
+
+                                <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                    <Box>
+                                        <Typography variant="subtitle1" fontWeight={600} sx={{ fontSize: { xs: 14, sm: 15, md: 16 }, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                            {item.product?.name || `Produit #${item.product_id}`}
+                                        </Typography>
+                                        <Chip
+                                            label={item.price_type === 'wholesale' ? 'Prix gros' : 'Prix détail'}
+                                            size="small"
+                                            sx={{
+                                                mt: { xs: 0.35, sm: 0.4, md: 0.5 },
+                                                height: { xs: 18, sm: 19, md: 20 },
+                                                fontSize: { xs: 9, sm: 9.5, md: 10 },
+                                                fontWeight: 600,
+                                                bgcolor: alpha(brandBlue, 0.1),
+                                                color: brandBlue,
+                                                border: 'none',
+                                            }}
+                                        />
+                                    </Box>
+
+                                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: { xs: 0.75, sm: 1 }, mt: { xs: 0.75, sm: 1 } }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.35, sm: 0.5 } }}>
+                                            <Typography variant="body2" fontWeight={700} color="primary" sx={{ mr: { xs: 0.5, sm: 0.75, md: 1 }, fontSize: { xs: 13, sm: 14, md: 15 } }}>
+                                                {formatFcfa(price)}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: { xs: 1.25, sm: 1.35, md: 1.5 } }}>
+                                                <IconButton
+                                                    size="small"
+                                                    sx={{ borderRadius: { xs: 1.25, sm: 1.35, md: 1.5 }, p: { xs: 0.35, sm: 0.4, md: 0.5 } }}
+                                                    onClick={() => updateQuantity(item.product_id.toString(), Math.max(1, item.quantity - 1))}
+                                                >
+                                                    <RemoveIcon fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
+                                                </IconButton>
+                                                <Typography variant="body2" sx={{ width: { xs: 24, sm: 26, md: 28 }, textAlign: 'center', fontWeight: 600, fontSize: { xs: 13, sm: 14, md: 15 } }}>
+                                                    {item.quantity}
+                                                </Typography>
+                                                <IconButton
+                                                    size="small"
+                                                    sx={{ borderRadius: { xs: 1.25, sm: 1.35, md: 1.5 }, p: { xs: 0.35, sm: 0.4, md: 0.5 } }}
+                                                    onClick={() => updateQuantity(item.product_id.toString(), item.quantity + 1)}
+                                                >
+                                                    <AddIcon fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
+                                                </IconButton>
+                                            </Box>
+                                        </Box>
+
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' }, gap: { xs: 1, sm: 1.25, md: 1.5 } }}>
+                                            <Typography variant="subtitle2" fontWeight={700} sx={{ fontSize: { xs: 14, sm: 14, md: 15 } }}>
+                                                {formatFcfa(itemTotal)}
+                                            </Typography>
+                                            <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={() => removeFromCart(item.product_id.toString())}
+                                                sx={{
+                                                    bgcolor: alpha(theme.palette.error.main, 0.08),
+                                                    '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.15) },
+                                                    p: { xs: 0.5, sm: 0.6, md: 0.75 },
+                                                }}
+                                            >
+                                                <DeleteIcon fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
+                                            </IconButton>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        );
+                    })}
+                </Box>
+
+                <Box
+                    sx={{
+                        mt: { xs: 3, sm: 3.5, md: 4 },
+                        p: { xs: 2, sm: 2.5, md: 4 },
+                        borderRadius: { xs: 2.5, sm: 2.75, md: 3 },
+                        bgcolor: 'background.paper',
+                        border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                    }}
+                >
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', md: 'flex-end' }, gap: { xs: 2, sm: 2.25, md: 2 } }}>
+                        <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={() => clearCart()}
+                                startIcon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
+                                sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, fontWeight: 500, width: { xs: '100%', md: 'auto' }, whiteSpace: 'nowrap', fontSize: { xs: 13, sm: 15, md: 16 } }}
+                            >
+                                Vider le panier
+                            </Button>
+                        </Box>
+                        <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: { xs: 1.5, sm: 1.75, md: 2 } }}>
+                                <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
+                                    Sous-total
+                                </Typography>
+                                <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: 22, sm: 28, md: 32 } }}>
+                                    {formatFcfa(subtotal)}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', gap: { xs: 1, sm: 1.25, md: 1.5 }, flexWrap: { xs: 'wrap', lg: 'nowrap' }, width: '100%' }}>
                                 <Button
                                     variant="outlined"
                                     onClick={() => router.push('/shop')}
+                                    startIcon={<KeyboardArrowLeft sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
+                                    sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, fontWeight: 500, fontSize: { xs: 13, sm: 15, md: 16 }, width: { xs: '100%', lg: 'auto' }, whiteSpace: 'nowrap' }}
                                 >
-                                    Continuer vos achats
+                                    Continuer mes achats
                                 </Button>
                                 <Button
                                     variant="contained"
+                                    size="large"
                                     onClick={handleCheckout}
+                                    endIcon={<ArrowForward sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
+                                    sx={{
+                                        borderRadius: { xs: 2, sm: 2.25, md: 2.5 },
+                                        px: { xs: 3, sm: 3.5, md: 4 },
+                                        py: { xs: 1.15, sm: 1.25, md: 1.35 },
+                                        fontWeight: 600,
+                                        fontSize: { xs: 13, sm: 15, md: 16 },
+                                        boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                        width: { xs: '100%', lg: 'auto' },
+                                        whiteSpace: 'nowrap',
+                                    }}
                                 >
                                     Passer la commande
                                 </Button>
                             </Box>
                         </Box>
                     </Box>
-                </Paper>
-            ) : (
-                // Vue Checkout
-                <Grid container spacing={4}>
-                    <Grid item xs={12} md={8}>
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h6" gutterBottom>
-                                Informations de livraison
-                            </Typography>
-
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Nom complet"
-                                        value={shippingInfo.name}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Email"
-                                        type="email"
-                                        value={shippingInfo.email}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, email: e.target.value })}
-                                        margin="normal"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Téléphone"
-                                        value={shippingInfo.phone}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Ville"
-                                        value={shippingInfo.city}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Pays"
-                                        value={shippingInfo.country}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, country: e.target.value })}
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        fullWidth
-                                        label="Adresse complète"
-                                        multiline
-                                        rows={2}
-                                        value={shippingInfo.address}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                            </Grid>
-
-                            <Divider sx={{ my: 3 }} />
-
-                            <Typography variant="h6" gutterBottom>
-                                Méthode de paiement
-                            </Typography>
-
-                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                                {[
-                                    { value: PAYMENT_METHODS.PAYDUNYA, label: 'PayDunya' },
-                                    { value: PAYMENT_METHODS.WAVE, label: 'Wave' },
-                                    { value: PAYMENT_METHODS.ORANGE_MONEY, label: 'Orange Money' },
-                                    { value: PAYMENT_METHODS.CASH, label: 'Espèces' }
-                                ].map((method) => (
-                                    <Button
-                                        key={method.value}
-                                        variant={shippingInfo.paymentMethod === method.value ? 'contained' : 'outlined'}
-                                        onClick={() => setShippingInfo({ ...shippingInfo, paymentMethod: method.value as any })}
-                                    >
-                                        {method.label}
-                                    </Button>
-                                ))}
-                            </Box>
-                        </Paper>
-                    </Grid>
-
-                    <Grid item xs={12} md={4}>
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h6" gutterBottom>
-                                Récapitulatif
-                            </Typography>
-
-                            {Array.isArray(cart) && cart.map((item, index) => {
-                                const price = item.priceType === 'wholesale'
-                                    ? item.product.wholesale_price
-                                    : item.product.price;
-                                const itemTotal = (price || 0) * item.quantity;
-
-                                return (
-                                    <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                        <Typography variant="body2">
-                                            {item.product.name} x{item.quantity}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            {itemTotal.toFixed(2)} €
-                                        </Typography>
-                                    </Box>
-                                );
-                            })}
-
-                            <Divider sx={{ my: 2 }} />
-
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                                <Typography variant="h6">Total:</Typography>
-                                <Typography variant="h6" color="primary">
-                                    {total.toFixed(2)} €
-                                </Typography>
-                            </Box>
-
-                            <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => setShowCheckout(false)}
-                                >
-                                    Retour au panier
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    size="large"
-                                    onClick={handlePlaceOrder}
-                                    disabled={isSubmitting}
-                                    startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
-                                >
-                                    {isSubmitting ? 'Création en cours...' : 'Confirmer la commande'}
-                                </Button>
-                            </Box>
-                        </Paper>
-                    </Grid>
-                </Grid>
-            )}
-        {/* Messages d'erreur et de succès */}
-        <Snackbar
-            open={!!error}
-            autoHideDuration={6000}
-            onClose={() => setError(null)}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-            <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-                {error}
-            </Alert>
-        </Snackbar>
-
-        <Snackbar
-            open={!!success}
-            autoHideDuration={6000}
-            onClose={() => setSuccess(null)}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-            <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
-                {success}
-            </Alert>
-        </Snackbar>
-        </Container>
+                </Box>
+            </Container>
+        </Box>
     );
 }

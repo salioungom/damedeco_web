@@ -23,7 +23,6 @@ export function getAuthToken(): string | null {
     
     return token;
   } catch (error) {
-    console.warn('⚠️ Erreur récupération token:', error);
     return null;
   }
 }

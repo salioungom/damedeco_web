@@ -3,18 +3,7 @@ export interface Category {
     name: string;
     icon: string;
     image: string;
-}
-
-export interface Review {
-    id: string;
-    productId: string;
-    customerName: string;
-    customerEmail?: string;
-    rating: number; // 1-5
-    comment: string;
-    date: string;
-    verified?: boolean; // Si le client a acheté le produit
-    helpful?: number; // Nombre de "utile"
+    product_count?: number;
 }
 
 import { Product as ApiProduct } from '@/types/product';
@@ -23,17 +12,35 @@ export type Product = ApiProduct;
 
 export interface Order {
     id: number;
+    order_id?: number | string;
     order_number: string;
+    /**
+     * Machine d'état Order (backend) : pending → processing → shipped → delivered,
+     * avec branche d'annulation depuis pending/processing/shipped → cancelled.
+     * `confirmed` est LEGACY uniquement (anciennes commandes, à ne plus générer).
+     * `refunded` est conservé pour compatibilité (aucun workflow de remboursement créé).
+     */
     status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
-    payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+    /**
+     * État agrégé du paiement (géré par le backend).
+     * `pending` = commande nouvellement créée / intent non transmis à PayTech.
+     * Une commande `status = pending` + `payment_status = paid` est UNE COMMANDE PAYÉE.
+     */
+    payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded' | 'cancelled';
     total_amount: string;
+    shipping_amount?: number | string;
     currency: string;
-    shipping_address: {
-        street: string;
-        city: string;
-        country: string;
-        phone: string;
+    shipping_address?: {
+        first_name?: string;
+        last_name?: string;
+        full_name?: string;
+        email?: string;
+        phone?: string;
+        city?: string;
+        address?: string;
+        instructions?: string;
     };
+    mode?: 'home_delivery' | 'store_pickup';
     items: OrderItem[];
     created_at: string;
     items_count?: number;
@@ -49,6 +56,13 @@ export interface OrderItem {
         id: number;
         name: string;
         sku: string;
+        cover_image_url?: string;
+        images?: Array<{
+            id: number;
+            image_url: string;
+            alt_text?: string;
+            is_cover: boolean;
+        }>;
     };
 }
 

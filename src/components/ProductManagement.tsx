@@ -50,20 +50,40 @@ import { productService } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 import { Product, ProductStatus, CreateProductData } from '../types/product';
 import { ProductImage } from './ProductImage';
+import { BRAND_BLUE } from '@/theme';
+import { formatFcfa } from '@/lib/format';
 
-// Styles personnalisés
-const StyledCard = styled(Card)(({ theme }: any) => ({
+const BRAND = {
+  primary: BRAND_BLUE,
+  dark: '#042C53',
+  white: '#FFFFFF',
+  light: '#E6F1FB',
+  surface: '#F5F9FE',
+  border: '#D4E8F7',
+  muted: '#5F6B7A',
+} as const;
+
+const primaryBtnSx = {
+  bgcolor: BRAND.primary,
+  borderRadius: '12.5px',
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  boxShadow: 'none',
+  '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
+};
+
+const StyledCard = styled(Card)(() => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  transition: 'all 0.3s ease-in-out',
-  cursor: 'pointer',
+  borderRadius: '20px',
+  border: `1px solid ${BRAND.border}`,
+  overflow: 'hidden',
+  transition: 'box-shadow 0.25s ease, transform 0.25s ease',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-    '& .product-image-overlay': {
-      opacity: 1,
-    }
+    transform: 'translateY(-3px)',
+    boxShadow: `0 12px 28px ${alpha(BRAND.primary, 0.12)}`,
+    '& .product-image-overlay': { opacity: 1 },
   },
 }));
 
@@ -543,48 +563,76 @@ export function ProductManagement() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        justifyContent: 'space-between',
-        alignItems: { md: 'center' },
-        mb: 4,
-        gap: 2
-      }}>
+    <Box sx={{ width: '100%' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2.5,
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '20px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.light,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box>
-          <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
-            Gestion des Produits
+          <Typography sx={{ fontSize: { xs: 25, sm: 30 }, fontWeight: 700, color: BRAND.dark }}>
+            Gestion des produits
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Catalogue de {total} produits
+          <Typography sx={{ fontSize: 18, color: BRAND.muted, mt: 0.5 }}>
+            Catalogue de {total} produit{total !== 1 ? 's' : ''}
           </Typography>
         </Box>
         <Button
           variant="contained"
           startIcon={<Plus />}
           onClick={openAddDialog}
-          sx={{ px: 3, py: 1 }}
+          sx={{ ...primaryBtnSx, px: 2.5, py: 1.1 }}
         >
-          Nouveau Produit
+          Nouveau produit
         </Button>
-      </Box>
+      </Paper>
 
-      <Card sx={{ mb: 4, p: 2 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2.5,
+          borderRadius: '20px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.white,
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <FilterIcon sx={{ color: BRAND.primary, fontSize: 25 }} />
+            <Typography sx={{ fontSize: 19, fontWeight: 700, color: BRAND.dark }}>
+              Filtres et recherche
+            </Typography>
+          </Stack>
+        </Box>
+        <Box sx={{ p: 2.5 }}>
+        <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               placeholder="Rechercher un produit..."
               value={filters.search || ''}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('search', e.target.value)}
-              InputProps={{
-                startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
+              slotProps={{
+                input: {
+                  startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+                },
               }}
               size="small"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12.5px', bgcolor: BRAND.surface } }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>Catégorie</InputLabel>
               <MuiSelect
@@ -599,7 +647,7 @@ export function ProductManagement() {
               </MuiSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>Statut</InputLabel>
               <MuiSelect
@@ -615,35 +663,45 @@ export function ProductManagement() {
               </MuiSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
               fullWidth
               onClick={fetchProducts}
+              sx={{
+                borderRadius: '12.5px',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: BRAND.border,
+                color: BRAND.dark,
+                py: 1,
+                '&:hover': { borderColor: BRAND.primary, bgcolor: alpha(BRAND.primary, 0.04) },
+              }}
             >
               Actualiser
             </Button>
           </Grid>
         </Grid>
-      </Card>
+        </Box>
+      </Paper>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" py={8}>
-          <CircularProgress />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress sx={{ color: BRAND.primary }} />
         </Box>
       ) : error ? (
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="error" variant="outlined" sx={{ animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{error}</Alert>
       ) : !Array.isArray(products) || products.length === 0 ? (
-        <Box textAlign="center" py={8}>
-          <Package sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">Aucun produit trouvé</Typography>
-        </Box>
+        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '20px', border: `1px solid ${BRAND.border}` }}>
+          <Package sx={{ fontSize: 70, color: BRAND.border, mb: 1 }} />
+          <Typography sx={{ fontSize: 20, fontWeight: 600, color: BRAND.muted }}>Aucun produit trouvé</Typography>
+        </Paper>
       ) : (
         <>
-          <Grid container spacing={3}>
+          <Grid container spacing={2.5}>
             {products.map((product) => (
-              <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
                 <StyledCard>
                   <Box sx={{ position: 'relative', pt: '100%', bgcolor: 'action.hover' }}>
                     <ProductImage
@@ -660,7 +718,7 @@ export function ProductManagement() {
                     />
                     <ProductImageOverlay className="product-image-overlay">
                       <Typography variant="h6" color="white" fontWeight="bold">
-                        {product.price.toLocaleString()} XOF
+                        {formatFcfa(product.price)}
                       </Typography>
                     </ProductImageOverlay>
                     <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -683,35 +741,35 @@ export function ProductManagement() {
                     <Typography variant="subtitle1" fontWeight={600} noWrap title={product.name}>
                       {product.name}
                     </Typography>
-                    <Box display="flex" alignItems="center" gap={1} mt={1}>
-                      <Typography variant="h6" color="primary">
-                        {product.price.toLocaleString()} XOF
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                      <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 700 }}>
+                        {formatFcfa(product.price)}
                       </Typography>
                       {product.original_price && product.original_price > product.price && (
                         <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.disabled' }}>
-                          {product.original_price.toLocaleString()} XOF
+                          {formatFcfa(product.original_price)}
                         </Typography>
                       )}
                     </Box>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                       <Typography variant="caption" color="text.secondary">
                         Stock: {product.inventory_quantity}
                       </Typography>
                       {product.wholesale_price && (
                         <Typography variant="caption" color="success.main">
-                          Grossiste: {product.wholesale_price.toLocaleString()} XOF
+                          Grossiste: {formatFcfa(product.wholesale_price)}
                         </Typography>
                       )}
                     </Box>
                   </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0 }}>
-                    <IconButton size="small" onClick={() => openViewDialog(product)}>
+                  <CardActions sx={{ p: 1.5, pt: 0, borderTop: `1px solid ${BRAND.border}`, justifyContent: 'flex-end', gap: 0.5 }}>
+                    <IconButton size="small" onClick={() => openViewDialog(product)} sx={{ color: BRAND.muted, '&:hover': { bgcolor: alpha(BRAND.primary, 0.08), color: BRAND.primary } }}>
                       <Eye fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" color="primary" onClick={() => openEditDialog(product)}>
+                    <IconButton size="small" onClick={() => openEditDialog(product)} sx={{ color: BRAND.primary, '&:hover': { bgcolor: alpha(BRAND.primary, 0.1) } }}>
                       <Edit fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" color="error" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }}>
+                    <IconButton size="small" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }} sx={{ color: '#DC2626', '&:hover': { bgcolor: alpha('#DC2626', 0.08) } }}>
                       <Trash2 fontSize="small" />
                     </IconButton>
                   </CardActions>
@@ -720,12 +778,18 @@ export function ProductManagement() {
             ))}
           </Grid>
 
-          <Box mt={4} display="flex" justifyContent="center">
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
             <Pagination
               count={Math.ceil(total / limit)}
               page={page}
               onChange={handlePageChange}
-              color="primary"
+              sx={{
+                '& .MuiPaginationItem-root.Mui-selected': {
+                  bgcolor: BRAND.primary,
+                  color: BRAND.white,
+                  '&:hover': { bgcolor: BRAND.dark },
+                },
+              }}
             />
           </Box>
         </>
@@ -736,45 +800,81 @@ export function ProductManagement() {
         onClose={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 4, boxShadow: theme.shadows[20] }
+        scroll="paper"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '25px',
+              overflow: 'hidden',
+              border: `1px solid ${BRAND.border}`,
+              boxShadow: `0 24px 64px ${alpha(BRAND.dark, 0.2)}`,
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          },
         }}
       >
-        <DialogTitle sx={{
-          fontWeight: 800,
-          pb: 2,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5,
-          borderBottom: `1px solid ${theme.palette.divider}`
-        }}>
-          <Box sx={{
-            p: 1,
-            borderRadius: 1.5,
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-            color: 'primary.main',
-            display: 'flex'
-          }}>
-            {isAddDialogOpen ? <Plus /> : <Edit />}
-          </Box>
-          {isAddDialogOpen ? 'Nouveau Produit' : 'Modifier le Produit'}
-        </DialogTitle>
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            bgcolor: BRAND.dark,
+            color: BRAND.white,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+          }}
+        >
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Box
+              sx={{
+                width: 55,
+                height: 55,
+                borderRadius: '15px',
+                bgcolor: alpha(BRAND.white, 0.12),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {isAddDialogOpen ? <Plus /> : <Edit />}
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>
+                {isAddDialogOpen ? 'Nouveau produit' : 'Modifier le produit'}
+              </Typography>
+              <Typography sx={{ fontSize: 16, color: alpha(BRAND.white, 0.72) }}>
+                {isAddDialogOpen ? 'Ajoutez une référence à votre catalogue' : formData.name || 'Mettre à jour les informations'}
+              </Typography>
+            </Box>
+          </Stack>
+          <IconButton
+            onClick={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
+            aria-label="Fermer"
+            size="small"
+            sx={{ color: alpha(BRAND.white, 0.85), '&:hover': { bgcolor: alpha(BRAND.white, 0.1) } }}
+          >
+            <X fontSize="small" />
+          </IconButton>
+        </Box>
 
-        <DialogContent sx={{ p: 4, bgcolor: 'background.default' }}>
+        <DialogContent sx={{ p: { xs: 2.5, md: 4 }, bgcolor: BRAND.surface, flex: 1, overflowY: 'auto' }}>
           <Grid container spacing={4}>
             {/* SECTION: INFORMATIONS GÉNÉRALES */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.primary.main, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Package sx={{ color: 'primary.main', fontSize: 20 }} />
+                  <Package sx={{ color: 'primary.main', fontSize: 25 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -789,7 +889,7 @@ export function ProductManagement() {
             </Grid>
 
             {/* Ligne 1: Nom & Catégorie */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Nom du produit"
@@ -808,7 +908,7 @@ export function ProductManagement() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth required>
                 <InputLabel>Catégorie</InputLabel>
                 <MuiSelect
@@ -825,7 +925,7 @@ export function ProductManagement() {
             </Grid>
 
             {/* Ligne 2: SKU & Slug */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="SKU"
@@ -835,7 +935,7 @@ export function ProductManagement() {
                 sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Slug (URL)"
@@ -847,18 +947,7 @@ export function ProductManagement() {
             </Grid>
 
             {/* Ligne 3: Stock & Pièces */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Stock initial"
-                value={formData.inventory_quantity || 0}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, inventory_quantity: Number(e.target.value) })}
-                required
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 type="number"
@@ -870,7 +959,7 @@ export function ProductManagement() {
             </Grid>
 
             {/* Ligne 4: Statut & Meta Title */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Paper
                 variant="outlined"
                 sx={{
@@ -911,7 +1000,7 @@ export function ProductManagement() {
                 />
               </Paper>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Titre Meta (SEO)"
@@ -923,7 +1012,7 @@ export function ProductManagement() {
             </Grid>
 
             {/* Ligne 5: Short Description */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Description courte"
@@ -935,7 +1024,7 @@ export function ProductManagement() {
             </Grid>
 
             {/* Ligne 6: Description détaillée */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 multiline
@@ -949,18 +1038,18 @@ export function ProductManagement() {
             </Grid>
 
             {/* SECTION: TARIFICATION */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, mt: 2 }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.success.main, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Typography sx={{ color: 'success.main', fontSize: 20, fontWeight: 700 }}>XOF</Typography>
+                  <Typography sx={{ color: 'success.main', fontSize: 25, fontWeight: 700 }}>FCFA</Typography>
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -974,7 +1063,7 @@ export function ProductManagement() {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card
                 variant="outlined"
                 sx={{
@@ -986,21 +1075,23 @@ export function ProductManagement() {
                 }}
               >
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
                       label="Prix Public"
                       value={formData.price || 0}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: Number(e.target.value) })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="success.main">XOF</Typography></InputAdornment>
+                      slotProps={{
+                        input: {
+                          endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="success.main">FCFA</Typography></InputAdornment>,
+                        },
                       }}
                       required
                       sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -1008,21 +1099,10 @@ export function ProductManagement() {
                       placeholder="Ancien prix"
                       value={formData.original_price || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, original_price: Number(e.target.value) })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">XOF</Typography></InputAdornment>
-                      }}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Prix Grossiste (Cost Price)"
-                      value={formData.wholesale_price || ''}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, wholesale_price: Number(e.target.value) })}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">XOF</Typography></InputAdornment>
+                      slotProps={{
+                        input: {
+                          endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">FCFA</Typography></InputAdornment>,
+                        },
                       }}
                       sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
                     />
@@ -1032,18 +1112,18 @@ export function ProductManagement() {
             </Grid>
 
             {/* SECTION: MÉDIAS */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, mt: 2 }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.info.main, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <ImageIcon sx={{ color: 'info.main', fontSize: 20 }} />
+                  <ImageIcon sx={{ color: 'info.main', fontSize: 25 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -1057,14 +1137,14 @@ export function ProductManagement() {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: 'text.secondary' }}>
                 Image de couverture *
               </Typography>
               <Paper
                 variant="outlined"
                 sx={{
-                  height: 200,
+                  height: 250,
                   borderRadius: 2.5,
                   borderStyle: 'dashed',
                   borderWidth: 2,
@@ -1140,7 +1220,7 @@ export function ProductManagement() {
                       '&:hover': { color: 'primary.main' }
                     }}
                   >
-                    <Upload sx={{ fontSize: 40, opacity: 0.6 }} />
+                    <Upload sx={{ fontSize: 50, opacity: 0.6 }} />
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="body2" fontWeight={600}>Cliquer pour uploader</Typography>
                       <Typography variant="caption" color="text.disabled">PNG, JPG jusqu'à 5MB</Typography>
@@ -1151,14 +1231,14 @@ export function ProductManagement() {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: 'text.secondary' }}>
                 Galerie (Optionnel)
               </Typography>
               <Paper
                 variant="outlined"
                 sx={{
-                  height: 200,
+                  height: 250,
                   borderRadius: 2.5,
                   borderStyle: 'dashed',
                   borderWidth: 2,
@@ -1171,13 +1251,13 @@ export function ProductManagement() {
                   }
                 }}
               >
-                <Box display="flex" flexWrap="wrap" gap={1.5}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                   <Button
                     component="label"
                     variant="outlined"
                     sx={{
-                      width: 70,
-                      height: 70,
+                      width: 88,
+                      height: 88,
                       borderRadius: 2,
                       borderStyle: 'dashed',
                       borderWidth: 2,
@@ -1190,15 +1270,15 @@ export function ProductManagement() {
                       }
                     }}
                   >
-                    <Plus sx={{ fontSize: 24, opacity: 0.6 }} />
+                    <Plus sx={{ fontSize: 30, opacity: 0.6 }} />
                     <input type="file" hidden multiple accept="image/*" onChange={(e: any) => handleFileSelect(e, 'gallery')} />
                   </Button>
                   {[...(selectedProduct?.images && Array.isArray(selectedProduct.images) ? selectedProduct.images : []), ...galleryPreviews.map((p, i) => ({ id: `new-${i}`, image_url: p, isNew: true }))].map((img: any, idx) => (
                     <Box
                       key={img.id}
                       sx={{
-                        width: 70,
-                        height: 70,
+                        width: 88,
+                        height: 88,
                         borderRadius: 2,
                         overflow: 'hidden',
                         position: 'relative',
@@ -1246,7 +1326,7 @@ export function ProductManagement() {
                           }
                         }}
                       >
-                        <Trash2 sx={{ fontSize: 14 }} />
+                        <Trash2 sx={{ fontSize: 18 }} />
                       </IconButton>
                       {!img.isNew && (
                         <IconButton
@@ -1262,7 +1342,7 @@ export function ProductManagement() {
                             '&:hover': { bgcolor: 'primary.main' }
                           }}
                         >
-                          <Upload sx={{ fontSize: 14 }} />
+                          <Upload sx={{ fontSize: 18 }} />
                           <input type="file" hidden accept="image/*" onChange={async (e: any) => {
                             if (e.target.files && e.target.files[0] && selectedProduct) {
                               const file = e.target.files[0];
@@ -1317,28 +1397,35 @@ export function ProductManagement() {
           </Grid>
         </DialogContent>
 
-        <DialogActions sx={{ p: 4, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2.5,
+            bgcolor: BRAND.white,
+            borderTop: `1px solid ${BRAND.border}`,
+            flexShrink: 0,
+            gap: 1,
+          }}
+        >
           <Button
             onClick={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
-            sx={{ borderRadius: 2, px: 3, fontWeight: 600 }}
+            sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted, borderRadius: '12.5px' }}
           >
-            Fermer
+            Annuler
           </Button>
           <Button
             variant="contained"
             onClick={isAddDialogOpen ? handleCreateProduct : handleUpdateProduct}
             disabled={isSubmitting}
-            sx={{
-              borderRadius: 2,
-              px: 6,
-              py: 1.2,
-              fontWeight: 700,
-              boxShadow: theme.shadows[4],
-              textTransform: 'none',
-              fontSize: '1rem'
-            }}
+            sx={{ ...primaryBtnSx, px: 4, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
           >
-            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (isAddDialogOpen ? 'Publier le produit' : 'Enregistrer')}
+            {isSubmitting ? (
+              <CircularProgress size={22} color="inherit" />
+            ) : isAddDialogOpen ? (
+              'Publier le produit'
+            ) : (
+              'Enregistrer les modifications'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1353,7 +1440,7 @@ export function ProductManagement() {
         <DialogContent dividers>
           {selectedProduct && (
             <Grid container spacing={3}>
-              <Grid item xs={12} md={5}>
+              <Grid size={{ xs: 12, md: 5 }}>
                 <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
                   <img
                     src={selectedProduct.cover_image_url || undefined}
@@ -1364,14 +1451,14 @@ export function ProductManagement() {
                 {selectedProduct?.images && Array.isArray(selectedProduct.images) && selectedProduct.images.length > 0 && (
                   <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {selectedProduct.images.map((img, i) => (
-                      <Paper key={i} variant="outlined" sx={{ width: 60, height: 60, borderRadius: 1.5, overflow: 'hidden' }}>
+                      <Paper key={i} variant="outlined" sx={{ width: 75, height: 75, borderRadius: 1.5, overflow: 'hidden' }}>
                         <ProductImage src={img.image_url} alt={`Gallery ${i}`} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </Paper>
                     ))}
                   </Box>
                 )}
               </Grid>
-              <Grid item xs={12} md={7}>
+              <Grid size={{ xs: 12, md: 7 }}>
                 <Stack spacing={2.5}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Description courte</Typography>
@@ -1379,11 +1466,11 @@ export function ProductManagement() {
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Prix Public</Typography>
-                      <Typography variant="h6" color="primary.main" fontWeight={800}>{selectedProduct.price.toLocaleString()} XOF</Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight={800}>{formatFcfa(selectedProduct.price)}</Typography>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Catégorie</Typography>
                       <Typography variant="body1" fontWeight={600}>{selectedProduct.category_name || 'Sans catégorie'}</Typography>
                     </Grid>
@@ -1392,19 +1479,19 @@ export function ProductManagement() {
                   <Divider />
 
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>SKU</Typography>
                       <Typography variant="body2" sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 1, borderRadius: 0.5 }}>{selectedProduct.sku}</Typography>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>URL (Slug)</Typography>
                       <Typography variant="body2">{selectedProduct.slug}</Typography>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Stock / Pièces</Typography>
                       <Typography variant="body2">{selectedProduct.inventory_quantity} en stock ({selectedProduct.pieces} pcs)</Typography>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>SEO Title</Typography>
                       <Typography variant="body2" noWrap>{selectedProduct.meta_title || '-'}</Typography>
                     </Grid>

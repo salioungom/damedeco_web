@@ -1,394 +1,154 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-    Box,
-    TextField,
-    Button,
-    Alert,
-    Typography,
-    Container,
-    Link as MuiLink,
-    IconButton,
-    InputAdornment,
-    Divider,
-    alpha,
-    useTheme,
-} from '@mui/material';
-import {
-    Visibility,
-    VisibilityOff,
-    Login as LoginIcon,
-    PersonAdd,
-    ArrowBack,
-} from '@mui/icons-material';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button, Alert, Typography, Box, Link as MuiLink } from '@mui/material';
 import NextLink from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClientOnly } from '@/components/ClientOnly';
+import { sanitizeRedirect } from '@/lib/sanitize-redirect';
+import { getDashboardPath } from '@/utils/roleRoutes';
+import { AuthShell } from '@/components/ui/AuthShell';
+import { StaticTextField } from '@/components/ui/StaticTextField';
+import { PasswordField } from '@/components/ui/PasswordField';
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
-    const theme = useTheme();
+    const searchParams = useSearchParams();
     const { login } = useAuth();
+    const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+
+    const registerHref = redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register';
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError('');
+        setFieldErrors({});
+
+        const errors: { email?: string; password?: string } = {};
+
+        if (!email.trim()) {
+            errors.email = 'L\'adresse email est obligatoire';
+        }
+
+        if (!password) {
+            errors.password = 'Le mot de passe est obligatoire';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
+
         setLoading(true);
 
         try {
-            console.log('Login - Tentative de connexion avec:', email);
-            
-            // Utiliser le contexte d'authentification
-            const result = await login(email, password);
-            
-            console.log('Login - Résultat de la connexion:', result);
-            
+            const result = await login(email.trim(), password);
+
             if (result.success) {
-                console.log('Login - Connexion réussie, vérification du token stocké...');
-                console.log('Login - localStorage après connexion:', Object.keys(localStorage));
-                
-                // Vérifier que le token est bien stocké
-                const storedToken = localStorage.getItem('accessToken');
-                console.log('Login - Token stocké:', storedToken ? '✅ Présent' : '❌ Absent');
-                
-                // Attendre un peu que le AuthContext se synchronise
-                setTimeout(() => {
-                    console.log('Login - Redirection vers la page appropriée...');
-                    
-                    // Redirection basée sur le rôle
-                    const user = result.user;
-                    console.log('Login - Utilisateur:', user);
-                    
-                    if (user?.role === 'superadmin') {
-                        console.log('Login - Redirection vers /dashboards');
-                        router.push('/dashboards');
-                    } else if (user?.role === 'admin') {
-                        console.log('Login - Redirection vers /dashboard');
-                        router.push('/dashboard');
-                    } else {
-                        console.log('Login - Redirection vers /account');
-                        router.push('/account');
-                    }
-                    router.refresh();
-                }, 200); // 200ms de délai pour la synchronisation
+                if (result.mustChangePassword) {
+                    router.push('/change-password');
+                } else if (redirectTo) {
+                    router.push(redirectTo);
+                } else {
+                    router.push(getDashboardPath(result.user?.role));
+                }
             } else {
-                setError(result.error || 'Erreur de connexion');
+                setError(result.error || 'Email ou mot de passe incorrect');
             }
-        } catch (err: any) {
-            console.error('Erreur login:', err);
-            setError(err.message || 'Erreur de connexion');
+        } catch {
+            setError('Erreur de connexion. Veuillez réessayer.');
         } finally {
             setLoading(false);
         }
     }
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                display: 'flex',
-                position: 'relative',
-                overflow: 'hidden',
-                background: `linear-gradient(135deg, 
-                    ${theme.palette.primary.dark} 0%, 
-                    ${theme.palette.primary.main} 50%, 
-                    ${theme.palette.secondary.main} 100%)`,
-            }}
+        <AuthShell
+            eyebrow="Maison · Dakar"
+            title="Bon retour."
+            paragraph="Retrouvez votre espace, vos favoris et le suivi de vos commandes. Une sélection déco pensée pour le Sénégal."
+            note="Paiement à la livraison · Wave · Orange Money · Carte bancaire"
         >
-            {/* Animated Background Elements */}
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: '-10%',
-                    right: '-10%',
-                    width: '40%',
-                    height: '40%',
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${alpha(theme.palette.secondary.light, 0.3)}, transparent)`,
-                    animation: 'float 6s ease-in-out infinite',
-                    '@keyframes float': {
-                        '0%, 100%': { transform: 'translateY(0) translateX(0)' },
-                        '50%': { transform: 'translateY(-20px) translateX(20px)' },
-                    },
-                }}
-            />
-            <Box
-                sx={{
-                    position: 'absolute',
-                    bottom: '-10%',
-                    left: '-10%',
-                    width: '50%',
-                    height: '50%',
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${alpha(theme.palette.primary.light, 0.3)}, transparent)`,
-                    animation: 'float 8s ease-in-out infinite',
-                    animationDelay: '1s',
-                }}
-            />
+            {error && (
+                <Alert severity="error" variant="outlined" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
+            )}
 
-            {/* Back to Home Button */}
-            <IconButton
-                component={NextLink}
-                href="/"
-                sx={{
-                    position: 'absolute',
-                    top: 24,
-                    left: 24,
-                    color: 'white',
-                    bgcolor: alpha('#fff', 0.1),
-                    backdropFilter: 'blur(10px)',
-                    '&:hover': {
-                        bgcolor: alpha('#fff', 0.2),
-                        transform: 'translateX(-4px)',
-                    },
-                    transition: 'all 0.3s',
-                    zIndex: 10,
-                }}
-            >
-                <ArrowBack />
-            </IconButton>
-
-            <Container component="main" maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
-                <Box
-                    sx={{
-                        minHeight: '100vh',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        py: 4,
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+                <StaticTextField
+                    id="email"
+                    name="email"
+                    label="Adresse email"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    required
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setEmail(e.target.value);
+                        if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' }));
                     }}
-                >
-                    {/* Login Card with Glassmorphism */}
-                    <ClientOnly>
-                        <Box
-                            sx={{
-                                width: '100%',
-                                p: { xs: 3, sm: 5 },
-                                borderRadius: 4,
-                                background: alpha('#fff', 0.95),
-                                backdropFilter: 'blur(20px)',
-                                boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2)`,
-                                border: `1px solid ${alpha('#fff', 0.3)}`,
-                                animation: 'slideUp 0.6s ease-out',
-                                '@keyframes slideUp': {
-                                    from: {
-                                        opacity: 0,
-                                        transform: 'translateY(30px)',
-                                    },
-                                    to: {
-                                        opacity: 1,
-                                        transform: 'translateY(0)',
-                                    },
-                                },
-                            }}
-                        >
-                            {/* Logo/Title */}
-                            <Box sx={{ textAlign: 'center', mb: 4 }}>
-                                <Typography
-                                    variant="h3"
-                                    sx={{
-                                        fontWeight: 800,
-                                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                        WebkitBackgroundClip: 'text',
-                                        WebkitTextFillColor: 'transparent',
-                                        mb: 1,
-                                    }}
-                                >
-                                    Dame Sarr
-                                </Typography>
-                                <Typography variant="h6" color="text.secondary" fontWeight={500}>
-                                    Bienvenue de retour
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                    Connectez-vous pour continuer
-                                </Typography>
-                            </Box>
+                    error={!!fieldErrors.email}
+                    helperText={fieldErrors.email}
+                    sx={{ mb: 3 }}
+                />
 
-                            {error && (
-                                <Alert
-                                    severity="error"
-                                    sx={{
-                                        mb: 3,
-                                        borderRadius: 2,
-                                        animation: 'shake 0.5s',
-                                        '@keyframes shake': {
-                                            '0%, 100%': { transform: 'translateX(0)' },
-                                            '25%': { transform: 'translateX(-10px)' },
-                                            '75%': { transform: 'translateX(10px)' },
-                                        },
-                                    }}
-                                >
-                                    {error}
-                                </Alert>
-                            )}
+                <PasswordField
+                    id="password"
+                    name="password"
+                    label="Mot de passe"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' }));
+                    }}
+                    error={!!fieldErrors.password}
+                    helperText={fieldErrors.password}
+                    sx={{ mb: 1 }}
+                />
 
-                            <Box component="form" onSubmit={handleSubmit} noValidate>
-                                <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                id="email"
-                                label="Adresse Email ou Téléphone"
-                                name="email"
-                                autoComplete="email"
-                                autoFocus
-                                value={email}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                                sx={{
-                                    mb: 2,
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: 2,
-                                        transition: 'all 0.3s',
-                                        '&:hover': {
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
-                                        },
-                                        '&.Mui-focused': {
-                                            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
-                                        },
-                                    },
-                                }}
-                            />
-                            <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                name="password"
-                                label="Mot de passe"
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                autoComplete="current-password"
-                                value={password}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                edge="end"
-                                                sx={{
-                                                    color: theme.palette.text.secondary,
-                                                    '&:hover': {
-                                                        color: theme.palette.primary.main,
-                                                    },
-                                                }}
-                                            >
-                                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                }}
-                                sx={{
-                                    mb: 3,
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: 2,
-                                        transition: 'all 0.3s',
-                                        '&:hover': {
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
-                                        },
-                                        '&.Mui-focused': {
-                                            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
-                                        },
-                                    },
-                                }}
-                            />
-
-                            <Box sx={{ mb: 2, textAlign: 'right' }}>
-                                <MuiLink
-                                    component={NextLink}
-                                    href="/forgot-password"
-                                    sx={{
-                                        color: theme.palette.primary.main,
-                                        textDecoration: 'none',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 500,
-                                        '&:hover': {
-                                            textDecoration: 'underline',
-                                            color: theme.palette.primary.dark,
-                                        },
-                                    }}
-                                >
-                                    Mot de passe oublié ?
-                                </MuiLink>
-                            </Box>
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                disabled={loading}
-                                startIcon={<LoginIcon />}
-                                sx={{
-                                    py: 1.5,
-                                    borderRadius: 2,
-                                    fontSize: '1.1rem',
-                                    fontWeight: 600,
-                                    textTransform: 'none',
-                                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                                    boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-                                    transition: 'all 0.3s',
-                                    '&:hover': {
-                                        background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: `0 6px 24px ${alpha(theme.palette.primary.main, 0.5)}`,
-                                    },
-                                    '&:active': {
-                                        transform: 'translateY(0)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        background: theme.palette.action.disabledBackground,
-                                    },
-                                }}
-                            >
-                                {loading ? 'Connexion en cours...' : 'Se connecter'}
-                            </Button>
-                        </Box>
-
-                        <Divider sx={{ my: 3 }}>
-                            <Typography variant="body2" color="text.secondary">
-                                ou
-                            </Typography>
-                        </Divider>
-
-                        <Button
-                            component={NextLink}
-                            href="/register"
-                            fullWidth
-                            variant="outlined"
-                            startIcon={<PersonAdd />}
-                            sx={{
-                                py: 1.5,
-                                borderRadius: 2,
-                                borderWidth: 2,
-                                fontWeight: 600,
-                                textTransform: 'none',
-                                borderColor: theme.palette.primary.main,
-                                color: theme.palette.primary.main,
-                                transition: 'all 0.3s',
-                                '&:hover': {
-                                    borderWidth: 2,
-                                    borderColor: theme.palette.primary.dark,
-                                    bgcolor: alpha(theme.palette.primary.main, 0.08),
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
-                                },
-                            }}
-                        >
-                            Créer un compte
-                        </Button>
-                        </Box>
-                    </ClientOnly>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                    <MuiLink component={NextLink} href="/forgot-password" sx={{ fontSize: 14, fontWeight: 500 }}>
+                        Mot de passe oublié&nbsp;?
+                    </MuiLink>
                 </Box>
-            </Container>
-        </Box>
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={loading}
+                    sx={{ height: 48 }}
+                >
+                    {loading ? 'Connexion…' : 'Se connecter'}
+                </Button>
+
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Pas encore de compte&nbsp;?
+                    </Typography>
+                    <MuiLink component={NextLink} href={registerHref} sx={{ fontSize: 14, fontWeight: 600 }}>
+                        Créer un compte
+                    </MuiLink>
+                </Box>
+            </Box>
+        </AuthShell>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginForm />
+        </Suspense>
     );
 }

@@ -13,14 +13,14 @@ export function getImageUrl(imageUrl?: string): string {
     return '/placeholder-image.jpg';
   }
 
-  // Si l'URL est déjà absolue (commence par http:// ou https://)
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
     return imageUrl;
   }
 
-  // Si l'URL est relative, on ajoute l'URL de base de l'API
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  return `${baseUrl}${imageUrl}`;
+  const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  if (cleanPath.startsWith('/media/')) return `${baseUrl}${cleanPath}`;
+  return `${baseUrl}/media${cleanPath}`;
 }
 
 /**

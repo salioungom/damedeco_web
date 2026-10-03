@@ -60,11 +60,11 @@ export const categoryService = {
   // Récupérer les catégories actives
   async getActiveCategories(): Promise<{ data: Category[] | null; error: any }> {
     return safeApiCall(async () => {
-      const response = await axios.get<Category[]>(
+      const response = await axios.get<any>(
         `${API_BASE_URL}/api/v1/categories/active`,
         getAuthHeader()
       );
-      return response.data;
+      return response.data.items || response.data || [];
     });
   },
 

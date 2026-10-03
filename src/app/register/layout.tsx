@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Inscription - Dame Sarr',
-    description: 'Créez votre compte Dame Sarr',
+    title: 'Inscription - DameDéco',
+    description: 'Créez votre compte DameDéco',
 };
 
 export default function RegisterLayout({

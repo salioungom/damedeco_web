@@ -10,6 +10,7 @@ interface ProductImageProps {
   height?: number | string;
   style?: React.CSSProperties;
   className?: string;
+  priority?: boolean;
 }
 
 // Simple SVG placeholder component
@@ -44,7 +45,8 @@ export function ProductImage({
   width = 300,
   height = 300,
   style,
-  className
+  className,
+  priority = false
 }: ProductImageProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,6 +95,9 @@ export function ProductImage({
       className={className}
       src={src}
       alt={alt}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      fetchPriority={priority ? 'high' : 'auto'}
       onError={handleError}
       onLoad={handleLoad}
       style={{

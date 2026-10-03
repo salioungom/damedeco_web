@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, type ChangeEvent } from 'react';
 import {
   Box,
-  Container,
   Typography,
   Button,
   TextField,
@@ -22,7 +21,7 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Pagination,
+  TablePagination,
   InputAdornment,
   Alert,
   Snackbar,
@@ -59,8 +58,160 @@ import {
   Sort as SortIcon,
   FilterList as FilterIcon,
   Refresh as RefreshIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { categoryService, type Category } from '@/services/category.service';
+import { BRAND_BLUE } from '@/theme';
+
+const BRAND = {
+  primary: BRAND_BLUE,
+  dark: '#042C53',
+  white: '#FFFFFF',
+  light: '#E6F1FB',
+  surface: '#F5F9FE',
+  border: '#D4E8F7',
+  muted: '#5F6B7A',
+} as const;
+
+const primaryBtnSx = {
+  bgcolor: BRAND.primary,
+  borderRadius: '13px',
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  boxShadow: 'none',
+  '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
+};
+
+const dialogPaperProps = {
+  sx: {
+    borderRadius: '25px',
+    overflow: 'hidden',
+    border: `1px solid ${BRAND.border}`,
+    boxShadow: `0 24px 64px ${alpha(BRAND.dark, 0.2)}`,
+    maxHeight: '92vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+  },
+};
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': { borderRadius: '13px', bgcolor: BRAND.white },
+};
+
+function CategoryDialogHeader({
+  icon,
+  title,
+  subtitle,
+  onClose,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  onClose: () => void;
+}) {
+  return (
+    <Box
+      sx={{
+        px: 3,
+        py: 2.5,
+        bgcolor: BRAND.dark,
+        color: BRAND.white,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 2,
+      }}
+    >
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+        <Box
+          sx={{
+            width: 55,
+            height: 55,
+            borderRadius: '15px',
+            bgcolor: alpha(BRAND.white, 0.12),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {icon}
+        </Box>
+        <Box>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>{title}</Typography>
+          <Typography sx={{ fontSize: 16, color: alpha(BRAND.white, 0.72), mt: 0.25 }}>{subtitle}</Typography>
+        </Box>
+      </Stack>
+      <IconButton onClick={onClose} aria-label="Fermer" size="small" sx={{ color: alpha(BRAND.white, 0.8), '&:hover': { bgcolor: alpha(BRAND.white, 0.1) } }}>
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+}
+
+function CategoryImageUpload({
+  previewUrl,
+  selectedImage,
+  onSelect,
+  existingLabel,
+}: {
+  previewUrl: string | null;
+  selectedImage: File | null;
+  onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  existingLabel?: string;
+}) {
+  return (
+    <Box
+      sx={{
+        p: 2.5,
+        borderRadius: '18px',
+        border: `1px dashed ${alpha(BRAND.primary, 0.35)}`,
+        bgcolor: BRAND.surface,
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: 'center',
+        gap: 2.5,
+      }}
+    >
+      <Box
+        sx={{
+          width: 150,
+          height: 150,
+          borderRadius: '18px',
+          overflow: 'hidden',
+          flexShrink: 0,
+          bgcolor: BRAND.white,
+          border: `1px solid ${BRAND.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {previewUrl ? (
+          <Box component="img" src={previewUrl} alt="Aperçu" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <ImageIcon sx={{ fontSize: 50, color: alpha(BRAND.muted, 0.4) }} />
+        )}
+      </Box>
+      <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 18, color: BRAND.dark, mb: 0.5 }}>
+          Image de couverture
+        </Typography>
+        <Typography sx={{ fontSize: 15, color: BRAND.muted, mb: 1.5 }}>
+          {existingLabel || 'JPG ou PNG · recommandé 800×600 px'}
+        </Typography>
+        <Button component="label" variant="outlined" startIcon={<UploadIcon />} size="small" sx={{ ...primaryBtnSx, borderColor: BRAND.border, color: BRAND.primary, bgcolor: BRAND.white }}>
+          Choisir une image
+          <input type="file" hidden accept="image/*" onChange={onSelect} />
+        </Button>
+        {selectedImage && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 1, color: BRAND.muted }}>
+            {selectedImage.name}
+          </Typography>
+        )}
+      </Box>
+    </Box>
+  );
+}
 
 interface CategoriesState {
   categories: Category[];
@@ -192,7 +343,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         return;
       }
 
-      if (selectedImage) {
+      if (selectedImage && newCategory.id) {
         await categoryService.uploadCategoryImage(newCategory.id, selectedImage);
       }
 
@@ -218,6 +369,9 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
 
     try {
       const updatedCategory = await categoryService.updateCategory(selectedCategory.id, formData);
+      if (selectedImage) {
+        await categoryService.uploadCategoryImage(selectedCategory.id, selectedImage);
+      }
       setSnackbar({
         open: true,
         message: 'Catégorie mise à jour avec succès',
@@ -361,6 +515,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       is_active: category.is_active,
       sort_order: category.sort_order,
     });
+    setSelectedImage(null);
+    setPreviewUrl(category.cover_image_url || null);
     setEditDialogOpen(true);
   };
 
@@ -385,57 +541,50 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
     }
   };
 
-  const totalPages = Math.ceil(state.pagination.total / state.pagination.limit);
-
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header Section */}
-      <Box
+    <Box sx={{ width: '100%' }}>
+      <Paper
+        elevation={0}
         sx={{
-          mb: 4,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
-          borderRadius: 3,
-          p: 3,
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          mb: 2.5,
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '20px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.light,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box>
-            <Typography variant="h3" component="h1" fontWeight={800} color="primary.main" mb={1}>
-              Gestion des catégories
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Gérez votre catalogue de catégories de produits
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              resetFormData();
-              setCreateDialogOpen(true);
-            }}
-            sx={{
-              px: 4,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
-              '&:hover': {
-                boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-              }
-            }}
-          >
-            Nouvelle catégorie
-          </Button>
+        <Box>
+          <Typography sx={{ fontSize: { xs: 25, sm: 30 }, fontWeight: 700, color: BRAND.dark, lineHeight: 1.2 }}>
+            Gestion des catégories
+          </Typography>
+          <Typography sx={{ fontSize: 18, color: BRAND.muted, mt: 0.5 }}>
+            Gérez votre catalogue de catégories de produits
+          </Typography>
         </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => {
+            resetFormData();
+            setCreateDialogOpen(true);
+          }}
+          sx={{ ...primaryBtnSx, px: 2.5, py: 1.1 }}
+        >
+          Nouvelle catégorie
+        </Button>
+      </Paper>
+      <Box sx={{ display: showStats ? 'block' : 'none', mb: 2.5 }}>
 
         {/* Stats Cards - Conditionally rendered */}
         {showStats && (
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`, color: 'white' }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card sx={{ bgcolor: BRAND.primary, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.pagination.total}
@@ -446,8 +595,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`, color: 'white' }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card sx={{ bgcolor: '#0D7A4A', color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.is_active).length}
@@ -458,8 +607,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`, color: 'white' }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card sx={{ bgcolor: BRAND.muted, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => !c.is_active).length}
@@ -470,8 +619,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.info.main} 0%, ${theme.palette.info.dark} 100%)`, color: 'white' }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card sx={{ bgcolor: BRAND.dark, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.cover_image_url).length}
@@ -487,36 +636,40 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       </Box>
 
       {state.error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" variant="outlined" sx={{ mb: 2.5, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
           {state.error}
         </Alert>
       )}
 
-      {/* Filters Section */}
-      <Card
+      <Paper
+        elevation={0}
         sx={{
-          mb: 3,
-          borderRadius: 3,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          mb: 2.5,
+          borderRadius: '20px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.white,
+          overflow: 'hidden',
         }}
       >
-        <CardContent sx={{ p: 3 }}>
-          <Box display="flex" alignItems="center" gap={2} mb={2}>
-            <FilterIcon color="action" />
-            <Typography variant="h6" fontWeight={600}>
+        <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <FilterIcon sx={{ color: BRAND.primary, fontSize: 25 }} />
+            <Typography sx={{ fontSize: 19, fontWeight: 700, color: BRAND.dark }}>
               Filtres et recherche
             </Typography>
-            <Box flexGrow={1} />
+            <Box sx={{ flexGrow: 1 }} />
             <IconButton
               onClick={() => setState(prev => ({ ...prev, filters: { search: '', is_active: null }, pagination: { ...prev.pagination, skip: 0 } }))}
               title="Réinitialiser les filtres"
+              sx={{ color: BRAND.primary, '&:hover': { bgcolor: alpha(BRAND.primary, 0.08) } }}
             >
               <RefreshIcon />
             </IconButton>
           </Box>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+        </Box>
+        <Box sx={{ p: 2.5 }}>
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 placeholder="Rechercher par nom, slug ou description..."
@@ -526,27 +679,25 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   filters: { ...prev.filters, search: e.target.value },
                   pagination: { ...prev.pagination, skip: 0 },
                 }))}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    borderRadius: 2,
-                    backgroundColor: alpha(theme.palette.background.paper, 0.8),
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'background.paper',
-                      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    sx: {
+                      borderRadius: '13px',
+                      bgcolor: BRAND.surface,
+                      '&.Mui-focused': {
+                        boxShadow: `0 0 0 2px ${alpha(BRAND.primary, 0.15)}`,
+                      },
                     },
                   },
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -571,58 +722,74 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 sx={{ ml: 0 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <Stack direction="row" spacing={1}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
                 <Button
-                  variant={state.filters.is_active === null ? "contained" : "outlined"}
+                  variant={state.filters.is_active === null ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
                     ...prev,
                     filters: { ...prev.filters, is_active: null },
                     pagination: { ...prev.pagination, skip: 0 },
                   }))}
                   size="small"
-                  sx={{ borderRadius: 2 }}
+                  sx={{
+                    ...(state.filters.is_active === null
+                      ? primaryBtnSx
+                      : { borderColor: BRAND.border, color: BRAND.dark, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }),
+                  }}
                 >
                   Toutes
                 </Button>
                 <Button
-                  variant={state.filters.is_active === true ? "contained" : "outlined"}
+                  variant={state.filters.is_active === true ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
                     ...prev,
                     filters: { ...prev.filters, is_active: true },
                     pagination: { ...prev.pagination, skip: 0 },
                   }))}
-                  color="success"
                   size="small"
-                  sx={{ borderRadius: 2 }}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    ...(state.filters.is_active === true
+                      ? { bgcolor: '#0D7A4A', boxShadow: 'none', '&:hover': { bgcolor: '#0a6240' } }
+                      : { borderColor: BRAND.border, color: BRAND.dark }),
+                  }}
                 >
                   Actives
                 </Button>
                 <Button
-                  variant={state.filters.is_active === false ? "contained" : "outlined"}
+                  variant={state.filters.is_active === false ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
                     ...prev,
                     filters: { ...prev.filters, is_active: false },
                     pagination: { ...prev.pagination, skip: 0 },
                   }))}
-                  color="error"
                   size="small"
-                  sx={{ borderRadius: 2 }}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    ...(state.filters.is_active === false
+                      ? { bgcolor: '#DC2626', boxShadow: 'none', '&:hover': { bgcolor: '#b91c1c' } }
+                      : { borderColor: BRAND.border, color: BRAND.dark }),
+                  }}
                 >
                   Inactives
                 </Button>
               </Stack>
             </Grid>
           </Grid>
-        </CardContent>
-      </Card>
+        </Box>
+      </Paper>
 
-      {/* Table Section */}
-      <Card
+      <Paper
+        elevation={0}
         sx={{
-          borderRadius: 3,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          borderRadius: '20px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.white,
           overflow: 'hidden',
         }}
       >
@@ -631,10 +798,26 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <LinearProgress />
           </Box>
         )}
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 750 }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow
+                sx={{
+                  '& th': {
+                    bgcolor: BRAND.dark,
+                    color: BRAND.white,
+                    fontWeight: 600,
+                    fontSize: 15,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    py: 1.75,
+                    borderBottom: 'none',
+                  },
+                  '& .MuiTypography-root': { color: BRAND.white, fontSize: 15 },
+                  '& .MuiSvgIcon-root': { color: alpha(BRAND.white, 0.85) },
+                  '& th > div > div': { bgcolor: alpha(BRAND.white, 0.12) },
+                }}
+              >
                 <TableCell sx={{
                   backgroundColor: alpha(theme.palette.primary.main, 0.08),
                   fontWeight: 700,
@@ -648,7 +831,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -679,7 +862,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -710,7 +893,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -741,7 +924,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -773,7 +956,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   zIndex: 1,
                   textAlign: 'right',
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5} justifyContent="flex-end">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'flex-end' }}>
                     <Typography variant="subtitle2" fontWeight={700}>
                       Actions
                     </Typography>
@@ -808,7 +991,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <Box>
-                      <CategoryIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                      <CategoryIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
                       <Typography variant="h6" color="text.secondary" mb={1}>
                         Aucune catégorie trouvée
                       </Typography>
@@ -852,8 +1035,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                           alt={category.name}
                           variant="rounded"
                           sx={{
-                            width: 56,
-                            height: 56,
+                            width: 70,
+                            height: 70,
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                             border: category.cover_image_url ? 'none' : `2px dashed ${alpha(theme.palette.divider, 0.5)}`,
                           }}
@@ -907,7 +1090,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Box display="flex" gap={0.5} justifyContent="flex-end">
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                         <Tooltip title="Modifier" arrow>
                           <IconButton
                             size="small"
@@ -953,7 +1136,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                               type="file"
                               accept="image/*"
                               hidden
-                              onChange={(e) => handleImageUpload(e, category)}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleImageUpload(e, category)}
                             />
                             <UploadIcon fontSize="small" />
                           </IconButton>
@@ -996,192 +1179,139 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             </TableBody>
           </Table>
         </TableContainer>
-      </Card>
-
-      {totalPages > 1 && (
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Pagination
-            count={totalPages}
-            page={Math.floor(state.pagination.skip / state.pagination.limit) + 1}
-            onChange={(event: React.ChangeEvent<unknown>, page: number) => setState(prev => ({
+        {state.pagination.total > 0 && (
+          <TablePagination
+            component="div"
+            count={state.pagination.total}
+            page={Math.floor(state.pagination.skip / state.pagination.limit)}
+            onPageChange={(_e: React.MouseEvent<HTMLButtonElement> | null, p: number) => setState(prev => ({
               ...prev,
-              pagination: {
-                ...prev.pagination,
-                skip: (page - 1) * prev.pagination.limit,
-              },
+              pagination: { ...prev.pagination, skip: p * prev.pagination.limit },
             }))}
+            rowsPerPage={state.pagination.limit}
+            onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => setState(prev => ({
+              ...prev,
+              pagination: { ...prev.pagination, limit: Number(e.target.value), skip: 0 },
+            }))}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Lignes par page"
+            labelDisplayedRows={({ from, to, count }: { from: number; to: number; count: number }) => `${from}–${to} sur ${count}`}
+            sx={{
+              borderTop: `1px solid ${BRAND.border}`,
+              '& .MuiTablePagination-toolbar': { minHeight: 52 },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                color: BRAND.muted,
+                fontSize: 15,
+              },
+              '& .MuiIconButton-root': { color: BRAND.primary },
+            }}
           />
-        </Box>
-      )}
+        )}
+      </Paper>
 
-      {/* Formulaire de création */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Créer une nouvelle catégorie</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                <Box
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    borderRadius: 2,
-                    border: `2px dashed ${alpha(theme.palette.primary.main, 0.4)}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    mb: 2,
-                    position: 'relative',
-                    bgcolor: alpha(theme.palette.primary.main, 0.04),
-                  }}
-                >
-                  {previewUrl ? (
-                    <Box
-                      component="img"
-                      src={previewUrl}
-                      alt="Preview"
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <ImageIcon sx={{ fontSize: 40, color: alpha(theme.palette.text.secondary, 0.4) }} />
-                  )}
-                </Box>
-                <Button
-                  component="label"
-                  variant="outlined"
-                  startIcon={<UploadIcon />}
-                  size="small"
-                >
-                  Sélectionner une image
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageSelect}
+      {/* Création catégorie */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => { setCreateDialogOpen(false); resetFormData(); }}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: dialogPaperProps }}
+      >
+        <CategoryDialogHeader
+          icon={<AddIcon sx={{ color: BRAND.white }} />}
+          title="Nouvelle catégorie"
+          subtitle="Ajoutez un univers à votre catalogue"
+          onClose={() => { setCreateDialogOpen(false); resetFormData(); }}
+        />
+        <DialogContent sx={{ p: 3, bgcolor: BRAND.surface, overflowY: 'auto' }}>
+          <Stack spacing={2.5}>
+            <CategoryImageUpload previewUrl={previewUrl} selectedImage={selectedImage} onSelect={handleImageSelect} />
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, slug: e.target.value }))} helperText="Vide = généré auto" sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
+                  <FormControlLabel
+                    control={<Switch checked={formData.is_active} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
+                    label={<Typography sx={{ fontWeight: 600, fontSize: 18 }}>Visible sur la boutique</Typography>}
                   />
-                </Button>
-                {selectedImage && (
-                  <Typography variant="caption" color="text.secondary" mt={1}>
-                    {selectedImage.name}
-                  </Typography>
-                )}
-              </Box>
+                </Paper>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nom *"
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Slug"
-                value={formData.slug}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                helperText="Laisser vide pour générer automatiquement"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ordre de tri"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.is_active}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
-                  />
-                }
-                label="Catégorie active"
-              />
-            </Grid>
-          </Grid>
+          </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Annuler</Button>
-          <Button onClick={handleCreateCategory} variant="contained" disabled={!formData.name.trim()}>
-            Créer
+        <DialogActions sx={{ px: 3, py: 2.5, bgcolor: BRAND.white, borderTop: `1px solid ${BRAND.border}`, gap: 1 }}>
+          <Button onClick={() => { setCreateDialogOpen(false); resetFormData(); }} sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted }}>
+            Annuler
+          </Button>
+          <Button onClick={handleCreateCategory} variant="contained" disabled={!formData.name.trim()} sx={{ ...primaryBtnSx, px: 3 }}>
+            Créer la catégorie
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Formulaire d'édition */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Modifier la catégorie</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nom *"
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Slug"
-                value={formData.slug}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ordre de tri"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.is_active}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+      {/* Édition catégorie */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: dialogPaperProps }}
+      >
+        <CategoryDialogHeader
+          icon={<EditIcon sx={{ color: BRAND.white }} />}
+          title="Modifier la catégorie"
+          subtitle={selectedCategory?.name || 'Mettre à jour les informations'}
+          onClose={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }}
+        />
+        <DialogContent sx={{ p: 3, bgcolor: BRAND.surface, overflowY: 'auto' }}>
+          <Stack spacing={2.5}>
+            <CategoryImageUpload
+              previewUrl={previewUrl}
+              selectedImage={selectedImage}
+              onSelect={handleImageSelect}
+              existingLabel={selectedCategory?.cover_image_url ? 'Remplacez l’image actuelle si besoin' : undefined}
+            />
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, slug: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
+                  <FormControlLabel
+                    control={<Switch checked={formData.is_active} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
+                    label={<Typography sx={{ fontWeight: 600, fontSize: 18 }}>Visible sur la boutique</Typography>}
                   />
-                }
-                label="Catégorie active"
-              />
+                </Paper>
+              </Grid>
             </Grid>
-          </Grid>
+          </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Annuler</Button>
-          <Button onClick={handleUpdateCategory} variant="contained" disabled={!formData.name.trim()}>
-            Mettre à jour
+        <DialogActions sx={{ px: 3, py: 2.5, bgcolor: BRAND.white, borderTop: `1px solid ${BRAND.border}`, gap: 1 }}>
+          <Button onClick={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }} sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted }}>
+            Annuler
+          </Button>
+          <Button onClick={handleUpdateCategory} variant="contained" disabled={!formData.name.trim()} sx={{ ...primaryBtnSx, px: 3 }}>
+            Enregistrer
           </Button>
         </DialogActions>
       </Dialog>
@@ -1221,6 +1351,6 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 }

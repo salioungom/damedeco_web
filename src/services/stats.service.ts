@@ -6,6 +6,7 @@
  */
 
 import { api } from '@/lib/api';
+import { formatFcfa } from '@/lib/format';
 import { OrderResponse } from './order.service';
 
 // Types pour les statistiques
@@ -64,7 +65,8 @@ export class StatsService {
       // Calculer les statistiques
       const totalOrders = orders.length;
       const totalSpent = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
-      const pendingOrders = orders.filter(order => order.status === 'pending').length;
+      const activeStatuses = ['pending', 'processing', 'shipped'];
+      const pendingOrders = orders.filter(order => activeStatuses.includes(order.status)).length;
 
       // Récupérer le nombre de favoris (avec fallback si l'API n'existe pas)
       let totalFavorites = 0;
@@ -81,7 +83,12 @@ export class StatsService {
         const productImages = order.items?.map((item: any) => {
           const product = item.product;
           if (!product) return null;
-          return product.cover_image_url || (product.images && product.images[0]?.image_url) || null;
+          const rawUrl = product.cover_image_url || (product.images && product.images[0]?.image_url) || null;
+          if (!rawUrl) return null;
+          if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+          const cleanPath = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+          if (cleanPath.startsWith('/media/')) return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${cleanPath}`;
+          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/media${cleanPath}`;
         }).filter(Boolean).slice(0, 4) || [];
         
         return {
@@ -131,7 +138,8 @@ export class StatsService {
 
       const totalOrders = orders.length;
       const totalSpent = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
-      const pendingOrders = orders.filter(order => order.status === 'pending').length;
+      const activeStatuses = ['pending', 'processing', 'shipped'];
+      const pendingOrders = orders.filter(order => activeStatuses.includes(order.status)).length;
 
       // Transformer les commandes récentes pour correspondre au format du guide
       const formattedRecentOrders: RecentOrder[] = recentOrders.map(order => ({
@@ -160,15 +168,12 @@ export class StatsService {
   }
 
   /**
-   * Formater le montant pour l'affichage
+   * Formater le montant pour l'affichage.
+   * Formatage centralisé dans /lib/format.ts (0 décimale, suffixe « FCFA ») :
+   * l'implémentation XOF est supprimée au profit de l'utilitaire unique.
    */
-  static formatAmount(amount: number, currency: string = 'XOF'): string {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  static formatAmount(amount: number, currency: string = 'FCFA'): string {
+    return formatFcfa(amount);
   }
 
   /**

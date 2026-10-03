@@ -1,6 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { styled as muiStyled, alpha, type Theme as MuiTheme } from '@mui/material/styles';
+import React, { useCallback, useState, useMemo } from 'react';
+import { styled as muiStyled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Card,
@@ -13,25 +12,20 @@ import {
   Chip,
   Tooltip,
   useTheme as useMuiTheme,
-  Skeleton
+  Skeleton,
 } from '@mui/material';
 import {
   ShoppingCart,
   Visibility,
-  WhatsApp,
   Favorite,
   FavoriteBorder,
-  Info as InfoIcon
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { Product } from '../types/product';
-import { orderViaWhatsApp } from '../lib/whatsapp';
+import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 
-// Styles personnalisés
-interface StyledCardProps {
-  elevationHover?: number;
-  isMobile?: boolean;
-  elevation?: number;
-}
+// ─── Styled components ───────────────────────────────────────────────────────
 
 const StyledCard = muiStyled(Card, {
   shouldForwardProp: (prop: string) => !['elevationHover', 'isMobile'].includes(prop),
@@ -48,10 +42,6 @@ const StyledCard = muiStyled(Card, {
   '&:hover': {
     transform: isMobile ? 'none' : 'translateY(-4px)',
     boxShadow: theme.shadows[elevationHover],
-    '& .product-actions': {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
   },
   '&:focus-visible': {
     outline: `2px solid ${theme.palette.primary.main}`,
@@ -59,46 +49,81 @@ const StyledCard = muiStyled(Card, {
   },
 }));
 
-interface ProductImageWrapperProps {
-  isLoading?: boolean;
-}
-
-const ProductImageWrapper = muiStyled(Box, {
-  shouldForwardProp: (prop: string) => prop !== 'isloading',
-})(({ theme, isloading = false }: any) => ({
+/**
+ * IMAGE ZONE — zone améliorée
+ * Ratio 4/3 (75%) qui s'adapte bien aux images produit.
+ * Fond neutre légèrement teinté pour faire ressortir le produit.
+ */
+const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
   position: 'relative',
-  paddingTop: '100%', // ratio 1/1
+  width: '100%',
+  paddingTop: '74%',  // mobile : image plus compacte
+  [theme.breakpoints.up('sm')]: {
+    paddingTop: '100%', // sm et + : ratio 1:1 confortable
+  },
   overflow: 'hidden',
-  backgroundColor: theme.palette.mode === 'dark'
-    ? theme.palette.grey[800]
-    : theme.palette.grey[100],
-  ...(isloading && {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }),
+  backgroundColor: theme.palette.grey[900],
+  borderBottom: 'none',
+  borderRadius: '0',
+  // Clip-path pour couper net sans border-radius visible
+  '& img': {
+    transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  },
+  '&:hover img': {
+    transform: 'scale(1.06)',
+  },
 }));
 
-const ProductImage = muiStyled(Box)(({ theme }: any) => ({
+/**
+ * IMAGE INNER — l'image elle-même avec transition zoom au hover
+ */
+const ImageInner = muiStyled(Box)(() => ({
   position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
+  inset: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  padding: 0,               // full-bleed, aucune marge
+  overflow: 'hidden',
 }));
 
-const FavoriteButton = muiStyled(IconButton)(({ theme }: any) => ({
+/**
+ * Skeleton overlay pendant le chargement de l'image
+ */
+const ImageSkeleton = muiStyled(Skeleton)(() => ({
   position: 'absolute',
-  top: theme.spacing(1),
-  right: theme.spacing(1),
-  backgroundColor: alpha(theme.palette.background.paper, 0.8),
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  transform: 'none', // annule le transform par défaut de MUI Skeleton
+  borderRadius: 0,
+}));
+
+const FavoriteButton = muiStyled(IconButton)(({ theme }: { theme: any }) => ({
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  zIndex: 3,
+  width: 45,
+  height: 45,
+  backgroundColor: theme.palette.primary.main,
+  border: `1px solid ${theme.palette.primary.main}`,
+  boxShadow: theme.shadows[2],
+  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
   '&:hover': {
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: theme.palette.primary.main,
+    boxShadow: theme.shadows[4],
+    transform: 'translateY(-1px)',
+  },
+  [theme.breakpoints.down('sm')]: {
+    width: 36,
+    height: 36,
+    top: 8,
+    right: 8,
   },
 }));
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ProductCardProps {
   product: Product;
@@ -111,8 +136,9 @@ interface ProductCardProps {
   elevation?: number;
   showActions?: boolean;
   showFavorite?: boolean;
-  showWhatsApp?: boolean;
-};
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 const ProductCard: React.FC<ProductCardProps> = ({
   product,
@@ -125,66 +151,70 @@ const ProductCard: React.FC<ProductCardProps> = ({
   elevation = 2,
   showActions = true,
   showFavorite = true,
-  showWhatsApp = true,
   ...props
 }) => {
   const theme = useMuiTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
-  const handleAddToCart = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAddToCart(product);
-  }, [onAddToCart, product]);
+  // ── Callbacks ──────────────────────────────────────────────────────────────
 
-  const handleViewDetails = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onViewDetails(product);
-  }, [onViewDetails, product]);
+  const handleAddToCart = useCallback(
+    (e: React.MouseEvent) => { e.stopPropagation(); onAddToCart(product); },
+    [onAddToCart, product],
+  );
 
-  const handleToggleFavorite = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onToggleFavorite) {
-      onToggleFavorite(product.id);
-    }
-  }, [onToggleFavorite, product.id]);
+  const handleViewDetails = useCallback(
+    (e: React.MouseEvent) => { e.stopPropagation(); onViewDetails(product); },
+    [onViewDetails, product],
+  );
 
-  const handleWhatsAppOrder = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const price = userType === 'wholesale' && (product.wholesale_price || product.cost_price)
-    ? Number(product.wholesale_price || product.cost_price)
-    : Number(product.price);
-    orderViaWhatsApp(
-      product.name,
-      price,
-      1, // quantity
-      product.cover_image_url,
-      product.id,
-      product.description
-    );
-  }, [product, userType]);
+  const handleToggleFavorite = useCallback(
+    (e: React.MouseEvent) => { e.stopPropagation(); onToggleFavorite?.(String(product.id)); },
+    [onToggleFavorite, product.id],
+  );
 
-  // Calculer le taux de réduction
+  const handleCardClick = useCallback(
+    (e: React.MouseEvent) => {
+      if ((e.target as HTMLElement).closest('button, a, [role="button"]')) return;
+      handleViewDetails(e);
+    },
+    [handleViewDetails],
+  );
+
+  // ── Computed values ────────────────────────────────────────────────────────
+
   const originalPrice = product.original_price || product.compare_price;
-  const discountPercentage = originalPrice && Number(originalPrice) > Number(product.price)
-    ? Math.round((Number(originalPrice) - Number(product.price)) / Number(originalPrice) * 100)
-    : 0;
 
-  const handleCardClick = useCallback((e: React.MouseEvent) => {
-    // Ne pas déclencher la navigation si on clique sur un bouton
-    if ((e.target as HTMLElement).closest('button, a, [role="button"]')) {
-      return;
-    }
-    handleViewDetails(e);
-  }, [handleViewDetails]);
+  const discountPercentage = useMemo(
+    () =>
+      originalPrice && Number(originalPrice) > Number(product.price)
+        ? Math.round(
+            ((Number(originalPrice) - Number(product.price)) / Number(originalPrice)) * 100,
+          )
+        : 0,
+    [originalPrice, product.price],
+  );
 
-  const isLoading = !product;
+  const displayPrice = useMemo(
+    () =>
+      userType === 'wholesale' && (product.wholesale_price || product.cost_price)
+        ? Number(product.wholesale_price || product.cost_price)
+        : Number(product.price),
+    [userType, product],
+  );
 
-  if (isLoading) {
+  const fmt = (amount: number) => formatFcfa(amount);
+
+  // ── Skeleton state ─────────────────────────────────────────────────────────
+
+  if (!product) {
     return (
       <StyledCard elevation={elevation} isMobile={isMobile}>
-        <ProductImageWrapper isLoading>
-          <Skeleton variant="rectangular" width="100%" height="100%" />
-        </ProductImageWrapper>
+        <ImageZone>
+          <ImageSkeleton variant="rectangular" />
+        </ImageZone>
         <CardContent>
           <Skeleton variant="text" width="80%" height={24} />
           <Skeleton variant="text" width="60%" height={20} />
@@ -194,6 +224,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
     );
   }
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  const hasImage = !!product.cover_image_url && !imageError;
+
   return (
     <StyledCard
       className={`product-card ${className}`}
@@ -201,77 +235,66 @@ const ProductCard: React.FC<ProductCardProps> = ({
       elevationHover={8}
       isMobile={isMobile}
       onClick={handleCardClick}
-      sx={{
-        cursor: 'pointer',
-        '&:focus-visible': {
-          outline: `2px solid ${theme.palette.primary.main}`,
-        }
-      }}
+      sx={{ cursor: 'pointer' }}
       aria-label={`Produit: ${product.name}`}
       {...props}
     >
-      <ProductImageWrapper>
-        <ProductImage>
-          {product.cover_image_url ? (
-            <ImageWithFallback
-              src={product.cover_image_url}
+      {/* ── IMAGE ZONE (seule partie modifiée) ── */}
+      <ImageZone>
+
+        {/* Skeleton visible pendant le chargement */}
+        {imageLoading && hasImage && (
+          <ImageSkeleton
+            variant="rectangular"
+            animation="wave"
+            sx={{ bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
+          />
+        )}
+
+        <ImageInner className="product-image-inner">
+          {hasImage ? (
+            <Box
+              component="img"
+              src={getImageUrl(product.cover_image_url)}
               alt={product.name}
-              width={400}
-              height={400}
-              objectFit="contain"
-              style={{
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setImageLoading(false)}
+              onError={() => { setImageLoading(false); setImageError(true); }}
+              sx={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain',
+                objectFit: 'cover',           // full-bleed — couvre toute la zone
+                objectPosition: 'center top', // cadrage haut-centré (UI screenshots)
+                opacity: imageLoading ? 0 : 1,
+                transition: 'opacity 0.35s ease, transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94)',
+                display: 'block',
+                filter: 'brightness(1.04) contrast(1.03)', // micro-boost netteté/contraste
               }}
             />
           ) : (
+            /* Fallback élégant quand pas d'image */
             <Box
               sx={{
                 width: '100%',
                 height: '100%',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: 'background.default',
+                gap: 1,
+                color: 'text.disabled',
               }}
             >
-              <InfoIcon color="disabled" fontSize="large" />
+              <InfoIcon sx={{ fontSize: 50, opacity: 0.4 }} />
+              <Typography variant="caption" sx={{ opacity: 0.5, fontSize: '0.65rem' }}>
+                Image non disponible
+              </Typography>
             </Box>
           )}
-        </ProductImage>
+        </ImageInner>
 
-        {/* Badges d'état */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 8,
-            left: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
-            alignItems: 'flex-start',
-          }}
-        >
-          {product.inventory_quantity !== undefined && product.inventory_quantity < 20 && (
-            <Chip
-              label="Stock limité"
-              color="error"
-              size="small"
-              sx={{ fontWeight: 'bold' }}
-            />
-          )}
-          {product.original_price && product.original_price > product.price && (
-            <Chip
-              label={`-${discountPercentage}%`}
-              color="error"
-              size="small"
-              sx={{ fontWeight: 'bold' }}
-            />
-          )}
-        </Box>
-
-        {/* Bouton favori avec accessibilité améliorée */}
+        {/* ── Bouton favori ── */}
         {onToggleFavorite && showFavorite && (
           <Tooltip
             title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
@@ -284,19 +307,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
               aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               aria-pressed={isFavorite}
             >
-              {isFavorite ? (
-                <Favorite color="error" />
-              ) : (
-                <FavoriteBorder />
-              )}
+              {isFavorite
+                ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'error.main' }} />
+                : <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'primary.contrastText' }} />
+              }
             </FavoriteButton>
           </Tooltip>
         )}
-      </ProductImageWrapper>
+      </ImageZone>
+      {/* ── FIN IMAGE ZONE ── */}
 
-      <CardContent sx={{ flexGrow: 1, p: 2 }}>
-        {/* Catégorie et Slug */}
-        <Box sx={{ mb: 1 }}>
+      {/* ── TEXTE / PRIX / ACTIONS — INCHANGÉS ── */}
+      <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2.5 } }}>
+        <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
           {product.category_name && (
             <Typography
               variant="caption"
@@ -326,83 +349,73 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </Box>
 
-        {/* Nom du produit */}
         <Typography
           gutterBottom
           variant="subtitle1"
           component="h3"
           sx={{
-            fontWeight: 500,
+            fontWeight: 600,
+            fontSize: { xs: '0.92rem', sm: '1.05rem' },
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            minHeight: '3em',
+            minHeight: { xs: '2.4em', sm: '3em' },
+            mb: { xs: 0.375, sm: 0.75 },
           }}
         >
           {product.name}
         </Typography>
 
-        {/* Prix avec réduction */}
-        <Box sx={{ mt: 'auto' }}>
-          {(product.original_price || product.compare_price) && Number(product.original_price || product.compare_price) > Number(product.price) && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ textDecoration: 'line-through', display: 'inline', mr: 1 }}
-            >
-              {new Intl.NumberFormat('fr-FR', {
-                style: 'currency',
-                currency: 'XOF',
-              }).format(Number(product.original_price || product.compare_price))}
-            </Typography>
-          )}
-          <Typography
-            variant="h6"
-            component="div"
-            color="primary"
-            sx={{ display: 'inline', fontWeight: 'bold' }}
-          >
-            {new Intl.NumberFormat('fr-FR', {
-              style: 'currency',
-              currency: 'XOF',
-            }).format(
-              userType === 'wholesale' && (product.wholesale_price || product.cost_price)
-                ? Number(product.wholesale_price || product.cost_price)
-                : Number(product.price)
-            )}
-            {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
+        <Box sx={{ mt: { xs: 0.25, sm: 'auto' } }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
+            {originalPrice && Number(originalPrice) > Number(product.price) && (
               <Typography
-                component="span"
-                variant="caption"
+                variant="body2"
                 color="text.secondary"
-                sx={{ ml: 1 }}
+                sx={{ textDecoration: 'line-through', mb: 0, fontWeight: 500, fontSize: { xs: '0.78rem', sm: '0.875rem' } }}
               >
-                (gros)
+                {fmt(Number(originalPrice))}
               </Typography>
             )}
-          </Typography>
+            <Typography
+              variant="h6"
+              component="div"
+              color="primary"
+              sx={{
+                fontSize: { xs: '0.95rem', sm: '1.3rem' },
+                fontWeight: 'bold',
+                lineHeight: 1.2,
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
+                minWidth: 0,
+              }}
+            >
+              {fmt(displayPrice)}
+              {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
+                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  (gros)
+                </Typography>
+              )}
+            </Typography>
+          </Box>
 
-          {/* Pourcentage de réduction et économies */}
-          {(product.original_price || product.compare_price) && Number(product.original_price || product.compare_price) > Number(product.price) && userType !== 'wholesale' && (
-            <Box sx={{ mt: 1 }}>
-              <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+          {originalPrice && Number(originalPrice) > Number(product.price) && userType !== 'wholesale' && (
+            <Box sx={{ mt: { xs: 0.375, sm: 1 } }}>
+              <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
                 <Chip
-                  label={`-${Math.round((Number(product.original_price || product.compare_price) - Number(product.price)) / Number(product.original_price || product.compare_price) * 100)}%`}
+                  label={`-${discountPercentage}%`}
                   size="small"
                   sx={{
                     bgcolor: 'error.main',
                     color: 'white',
                     fontWeight: 600,
                     fontSize: '0.7rem',
-                    height: 20,
+                    height: 25,
                   }}
                 />
-                <Typography variant="caption" color="success.main" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                  Économisez {new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'XOF',
-                  }).format(Number(product.original_price || product.compare_price) - Number(product.price))}
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: 'success.main', lineHeight: 1.3 }}>
+                  Économisez {fmt(Number(originalPrice) - Number(product.price))}
                 </Typography>
               </Stack>
             </Box>
@@ -410,7 +423,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           {userType === 'wholesale' && (
             <Typography variant="caption" color="text.secondary" display="block">
-              {product.wholesale_price || product.cost_price ? `Prix spécial pour commandes en gros` : 'Contactez-nous pour les prix de gros'}
+              {product.wholesale_price || product.cost_price
+                ? 'Prix spécial pour commandes en gros'
+                : 'Contactez-nous pour les prix de gros'}
             </Typography>
           )}
         </Box>
@@ -420,65 +435,49 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <CardActions
           className="product-actions"
           sx={{
-            p: 2,
-            pt: 0,
-            opacity: { xs: 1, md: 0.9 },
-            transform: { md: 'translateY(10px)' },
+            p: { xs: 1.5, sm: 2.5 },
+            pt: { xs: 0.5, sm: 0.5 },
+            opacity: 1,
             transition: 'all 0.3s ease-in-out',
-            '&:hover': {
-              opacity: 1,
-            },
-            '& button': {
-              transition: 'all 0.2s ease-in-out',
-            },
-            '& button:hover': {
-              transform: 'scale(1.05)',
-            },
+            '& button': { transition: 'all 0.2s ease-in-out' },
+            '& button:hover': { transform: 'scale(1.05)' },
           }}
         >
-          <Stack direction="row" spacing={1} sx={{ width: '100%' }}>
+          <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ width: '100%' }}>
             <Tooltip title="Ajouter au panier">
               <IconButton
                 color="primary"
-                size="small"
+                size={isMobile ? 'small' : 'medium'}
                 onClick={handleAddToCart}
                 sx={{
-                  bgcolor: 'primary.light',
-                  '&:hover': { bgcolor: 'primary.main', color: 'white' },
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  boxShadow: theme.shadows[2],
+                  '&:hover': {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    boxShadow: theme.shadows[4],
+                  },
                 }}
               >
-                <ShoppingCart />
+                <ShoppingCart fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Tooltip>
-
-            {showWhatsApp && (
-              <Tooltip title="Commander via WhatsApp">
-                <IconButton
-                  color="success"
-                  size="small"
-                  onClick={handleWhatsAppOrder}
-                  sx={{
-                    bgcolor: 'success.light',
-                    '&:hover': { bgcolor: 'success.main', color: 'white' },
-                  }}
-                >
-                  <WhatsApp />
-                </IconButton>
-              </Tooltip>
-            )}
 
             <Box sx={{ flexGrow: 1 }} />
 
             <Tooltip title="Voir les détails">
               <IconButton
-                size="small"
+                size={isMobile ? 'small' : 'medium'}
                 onClick={handleViewDetails}
                 sx={{
                   bgcolor: 'action.hover',
                   '&:hover': { bgcolor: 'action.selected' },
                 }}
               >
-                <Visibility />
+                <Visibility fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Tooltip>
           </Stack>
@@ -488,4 +487,4 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-export default ProductCard;
+export default React.memo(ProductCard);

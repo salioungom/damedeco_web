@@ -16,20 +16,10 @@ export function RequireRole({ children, allowedRoles, redirectTo = '/' }: Requir
     const router = useRouter();
 
     useEffect(() => {
-        console.log('RequireRole - user:', user);
-        console.log('RequireRole - loading:', loading);
-        console.log('RequireRole - allowedRoles:', allowedRoles);
-        
         if (!loading && !user) {
-            // Not authenticated, redirect to login
-            console.log('RequireRole - Not authenticated, redirecting to login');
             router.push('/login');
         } else if (!loading && user && !allowedRoles.includes(user.role)) {
-            // Authenticated but wrong role, redirect to specified path
-            console.log('RequireRole - Wrong role:', user.role, 'allowed:', allowedRoles, 'redirecting to', redirectTo);
             router.push(redirectTo);
-        } else if (!loading && user && allowedRoles.includes(user.role)) {
-            console.log('RequireRole - Access granted for role:', user.role);
         }
     }, [user, loading, router, allowedRoles, redirectTo]);
 

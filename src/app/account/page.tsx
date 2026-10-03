@@ -23,21 +23,18 @@ import {
     useTheme,
 } from '@mui/material';
 import {
-    AccountCircle,
-    FolderOpen,
     ShoppingBag,
-    Settings,
     TrendingUp,
     Pending,
     Star,
     ChevronRight,
     HeadsetMic,
-    Inventory2,
-    LocationOn
+    Inventory2
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsService } from '@/services/stats.service';
+import { formatFcfa } from '@/lib/format';
 
 function AccountPageContent() {
     const router = useRouter();
@@ -48,14 +45,10 @@ function AccountPageContent() {
         totalSpent: 0,
         pendingOrders: 0,
         favoritesCount: 0,
-        currency: 'XOF',
+        currency: 'FCFA',
     });
     const [recentOrders, setRecentOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
 
     const fetchDashboardData = async () => {
         try {
@@ -65,8 +58,8 @@ function AccountPageContent() {
                 totalOrders: userStats.totalOrders,
                 totalSpent: userStats.totalSpent,
                 pendingOrders: userStats.pendingOrders,
-                favoritesCount: userStats.totalFavorites,
-                currency: 'XOF',
+                favoritesCount: userStats.totalFavorites,           
+                currency: 'FCFA',
             });
             setRecentOrders(userStats.recentOrders);
         } catch (error) {
@@ -76,13 +69,22 @@ function AccountPageContent() {
         }
     };
 
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return 'warning';
+            // 'confirmed' est legacy uniquement (anciennes commandes).
+            case 'confirmed': return 'primary';
             case 'processing': return 'info';
             case 'shipped': return 'primary';
             case 'delivered': return 'success';
             case 'cancelled': return 'error';
+            // 'refunded' : compatibilité d'affichage, jamais déclenché par l'UI.
+            case 'refunded': return 'error';
             default: return 'default';
         }
     };
@@ -90,10 +92,12 @@ function AccountPageContent() {
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'pending': return 'En attente';
-            case 'processing': return 'En cours';
+            case 'confirmed': return 'Confirmée';
+            case 'processing': return 'En préparation';
             case 'shipped': return 'Expédiée';
             case 'delivered': return 'Livrée';
             case 'cancelled': return 'Annulée';
+            case 'refunded': return 'Remboursée';
             default: return 'Inconnu';
         }
     };
@@ -109,14 +113,14 @@ function AccountPageContent() {
         },
         {
             title: 'Total Dépensé',
-            value: `${stats.totalSpent.toLocaleString('fr-FR')} FCFA`,
+            value: formatFcfa(stats.totalSpent),
             icon: <TrendingUp sx={{ fontSize: 32 }} />,
             color: theme.palette.success.main,
             bgColor: alpha(theme.palette.success.main, 0.1),
             path: '/account/orders',
         },
         {
-            title: 'En Cours',
+            title: 'En attente',
             value: stats.pendingOrders,
             icon: <Pending sx={{ fontSize: 32 }} />,
             color: theme.palette.warning.main,
@@ -133,41 +137,33 @@ function AccountPageContent() {
         },
     ];
 
-    const quickActions = [
-        { title: 'Mon Profil', icon: <AccountCircle />, path: '/account/profile', color: '#3b82f6' },
-        { title: 'Mes Adresses', icon: <LocationOn />, path: '/account/addresses', color: '#8b5cf6' },
-        { title: 'Mes Commandes', icon: <Inventory2 />, path: '/account/orders', color: '#10b981' },
-        { title: 'Mes Favoris', icon: <FolderOpen />, path: '/favorites', color: '#f43f5e' },
-    ];
 
     if (loading) {
         return (
-            <Container maxWidth="xl" sx={{ mt: 12, mb: 8 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
-                    <LinearProgress sx={{ width: '100%', maxWidth: 400, borderRadius: 2 }} />
+            <Container maxWidth="xl" sx={{ mt: { xs: 4, md: 8 }, mb: 8 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 8, md: 12 } }}>
+                    <LinearProgress sx={{ width: '100%', maxWidth: { xs: 280, md: 400 }, borderRadius: 2 }} />
                 </Box>
             </Container>
         );
     }
 
     return (
-        <Container maxWidth="xl" sx={{ mt: { xs: 4, md: 8 }, mb: 8 }}>
+        <Container maxWidth="xl" sx={{ mt: { xs: 12, md: 16 }, mb: 4 }}>
             {/* Hero Section */}
             <Box
                 sx={{
                     position: 'relative',
                     overflow: 'hidden',
                     borderRadius: 4,
-                    p: { xs: 4, md: 6 },
-                    mb: 5,
-                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.9)} 0%, ${alpha(theme.palette.info.main || '#8b5cf6', 0.8)} 100%)`,
+                    p: { xs: 2.5, sm: 3.5, md: 6 },
+                    mb: { xs: 3, sm: 4, md: 5 },
+                    background: theme.palette.primary.main,
                     color: 'white',
                     boxShadow: '0 20px 40px -15px rgba(0,0,0,0.2)',
                 }}
             >
-                {/* Decorative Elements */}
-                <Box sx={{ position: 'absolute', top: -50, right: -50, width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)' }} />
-                <Box sx={{ position: 'absolute', bottom: -100, left: '15%', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)' }} />
+                
 
                 <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 3, md: 4 } }}>
                     <Avatar
@@ -187,9 +183,9 @@ function AccountPageContent() {
                     </Avatar>
                     <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                         <Typography variant="h3" gutterBottom fontWeight={800} sx={{ textShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: { xs: '2rem', md: '3rem' } }}>
-                            Bonjour, {user?.full_name || user?.email?.split('@')[0] || 'Cher client'} 👋
+                            Bonjour, {user?.full_name || user?.email?.split('@')[0] || 'Cher client'}
                         </Typography>
-                        <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 400, maxWidth: 600 }}>
+                        <Typography variant="body1" sx={{ opacity: 0.9, fontWeight: 400, maxWidth: 600, fontSize: { xs: 14, sm: 15, md: 16 }, lineHeight: 1.6 }}>
                             Bienvenue sur votre espace personnel. Gérez vos commandes, vos favoris et vos paramètres en toute simplicité.
                         </Typography>
                     </Box>
@@ -197,7 +193,7 @@ function AccountPageContent() {
             </Box>
 
             {/* Statistiques / KPIs */}
-            <Grid container spacing={4} sx={{ mb: 6 }}>
+            <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: { xs: 3, sm: 4, md: 6 } }}>
                 {statCards.map((stat, index) => (
                     <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
                         <Card
@@ -220,20 +216,31 @@ function AccountPageContent() {
                                 },
                             }}
                         >
-                            <CardContent sx={{ p: 4 }}>
-                                <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ height: '100%' }}>
+                            <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
+                                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
                                     <Box>
                                         <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ fontSize: '0.75rem', letterSpacing: 1.2 }}>
                                             {stat.title}
                                         </Typography>
-                                        <Typography variant="h4" fontWeight={800} color="text.primary" mt={0.5}>
-                                            {stat.value}
-                                        </Typography>
+                                        {typeof stat.value === 'string' && stat.value.includes('FCFA') ? (
+                                            <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+                                                <Typography variant="h4" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
+                                                    {stat.value.replace(/\s*FCFA$/, '')}
+                                                </Typography>
+                                                <Typography fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
+                                                    FCFA
+                                                </Typography>
+                                            </Box>
+                                        ) : (
+                                            <Typography variant="h4" fontWeight={800} color="text.primary" mt={0.5} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
+                                                {stat.value}
+                                            </Typography>
+                                        )}
                                     </Box>
                                     <Box
                                         className="stat-icon-wrapper"
                                         sx={{
-                                            p: 2,
+                                            p: { xs: 1.5, sm: 1.75, md: 2 },
                                             borderRadius: '50%',
                                             bgcolor: stat.bgColor,
                                             color: stat.color,
@@ -253,15 +260,15 @@ function AccountPageContent() {
                 ))}
             </Grid>
 
-            <Grid container spacing={4}>
+            <Grid container spacing={{ xs: 3, sm: 3.5, md: 4 }}>
                 {/* Commandes Récentes */}
                 <Grid size={{ xs: 12, lg: 8 }}>
-                    <Paper 
-                        elevation={0} 
-                        sx={{ 
-                            p: 0, 
-                            borderRadius: 4, 
-                            border: '1px solid', 
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 0,
+                            borderRadius: 4,
+                            border: '1px solid',
                             borderColor: alpha(theme.palette.divider, 0.4),
                             overflow: 'hidden',
                             height: '100%',
@@ -269,20 +276,20 @@ function AccountPageContent() {
                             flexDirection: 'column'
                         }}
                     >
-                        <Box sx={{ 
-                            p: 3, 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center', 
-                            borderBottom: '1px solid', 
-                            borderColor: 'divider', 
-                            bgcolor: alpha(theme.palette.background.paper, 0.5) 
+                        <Box sx={{
+                            p: { xs: 2, sm: 2.5, md: 3 },
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            bgcolor: alpha(theme.palette.background.paper, 0.5)
                         }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main', width: 40, height: 40 }}>
-                                    <Inventory2 sx={{ fontSize: 20 }} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                                <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 } }}>
+                                    <Inventory2 sx={{ fontSize: { xs: 18, md: 20 } }} />
                                 </Avatar>
-                                <Typography variant="h5" fontWeight={700}>
+                                <Typography variant="h5" fontWeight={700} sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }}>
                                     Commandes Récentes
                                 </Typography>
                             </Box>
@@ -292,7 +299,7 @@ function AccountPageContent() {
                                 size="small"
                                 endIcon={<ChevronRight />}
                                 onClick={() => router.push('/account/orders')}
-                                sx={{ fontWeight: 600, borderRadius: 2, textTransform: 'none' }}
+                                sx={{ fontWeight: 600, borderRadius: 2, textTransform: 'none', fontSize: { xs: 12, sm: 13, md: 14 }, px: { xs: 1.5, sm: 2 } }}
                             >
                                 Voir tout
                             </Button>
@@ -300,17 +307,17 @@ function AccountPageContent() {
 
                         <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: recentOrders.length === 0 ? 'center' : 'flex-start' }}>
                             {recentOrders.length === 0 ? (
-                                <Box sx={{ textAlign: 'center', py: 6 }}>
-                                    <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 3, bgcolor: alpha(theme.palette.text.disabled, 0.05), color: theme.palette.text.secondary }}>
-                                        <ShoppingBag sx={{ fontSize: 50, opacity: 0.5 }} />
+                                <Box sx={{ textAlign: 'center', py: { xs: 4, sm: 5, md: 6 } }}>
+                                    <Avatar sx={{ width: { xs: 72, sm: 86, md: 100 }, height: { xs: 72, sm: 86, md: 100 }, mx: 'auto', mb: { xs: 2, sm: 2.5, md: 3 }, bgcolor: alpha(theme.palette.text.disabled, 0.05), color: theme.palette.text.secondary }}>
+                                        <ShoppingBag sx={{ fontSize: { xs: 36, sm: 43, md: 50 }, opacity: 0.5 }} />
                                     </Avatar>
-                                    <Typography variant="h6" color="text.secondary" fontWeight={600} gutterBottom>
+                                    <Typography variant="h6" color="text.secondary" fontWeight={600} gutterBottom sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }}>
                                         Aucune commande trouvée
                                     </Typography>
-                                    <Typography variant="body1" color="text.disabled" mb={4}>
+                                    <Typography variant="body1" color="text.disabled" mb={{ xs: 2.5, sm: 3, md: 4 }} sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
                                         Votre historique de commandes est vide.
                                     </Typography>
-                                    <Button variant="contained" size="large" disableElevation onClick={() => router.push('/shop')} sx={{ borderRadius: 3, px: 5, fontWeight: 700, textTransform: 'none' }}>
+                                    <Button variant="contained" size="large" disableElevation onClick={() => router.push('/shop')} sx={{ borderRadius: 3, px: { xs: 3.5, sm: 4.5, md: 5 }, py: { xs: 1.25, sm: 1.35, md: 1.5 }, fontWeight: 700, textTransform: 'none', fontSize: { xs: 14, sm: 15, md: 16 } }}>
                                         Commencer à acheter
                                     </Button>
                                 </Box>
@@ -335,10 +342,10 @@ function AccountPageContent() {
                                             }}
                                             onClick={() => router.push(`/account/orders/${order.id}`)}
                                         >
-                                            <CardContent sx={{ py: '16px !important' }}>
-                                                <Grid container alignItems="center" spacing={3} sx={{ mb: { xs: 1, sm: 0} }}>
-                                                    <Grid size={{ xs: 12, sm: 4 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                            <CardContent sx={{ py: { xs: 1.25, sm: 1.5, md: 2 } + ' !important' }}>
+                                <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ alignItems: 'center', mb: { xs: 1, sm: 0 } }}>
+                                    <Grid size={{ xs: 12, sm: 4 }}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             N° Commande
                                                         </Typography>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -370,37 +377,37 @@ function AccountPageContent() {
                                                             )}
                                                         </Box>
                                                     </Grid>
-                                                    <Grid size={{ xs: 6, sm: 3 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                    <Grid size={{ xs: 4, sm: 3 }}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Date
                                                         </Typography>
                                                         <Typography variant="body2" fontWeight={500} color="text.secondary">
                                                             {order.createdAt ? new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Non disponible'}
                                                         </Typography>
                                                     </Grid>
-                                                    <Grid size={{ xs: 6, sm: 3 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                    <Grid size={{ xs: 4, sm: 3 }}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Montant
                                                         </Typography>
                                                         <Typography variant="body1" fontWeight={800} color="text.primary">
-                                                            {order.totalAmount ? StatsService.formatAmount(order.totalAmount, 'XOF') : 'Non disponible'}
+                                                            {order.totalAmount ? StatsService.formatAmount(order.totalAmount, 'FCFA') : 'Non disponible'}
                                                         </Typography>
                                                     </Grid>
-                                                    <Grid size={{ xs: 6, sm: 2 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                    <Grid size={{ xs: 4, sm: 2 }}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Statut
                                                         </Typography>
                                                         <Chip
                                                             label={getStatusLabel(order.status)}
                                                             color={getStatusColor(order.status) as any}
                                                             size="medium"
-                                                            sx={{ 
-                                                                fontWeight: 700, 
+                                                            sx={{
+                                                                fontWeight: 700,
                                                                 borderRadius: 2,
                                                                 height: 32,
                                                                 px: 1,
-                                                                bgcolor: alpha(theme.palette[getStatusColor(order.status) as 'primary'|'success'|'warning'|'error'|'info']?.main || '#999', 0.1),
-                                                                color: theme.palette[getStatusColor(order.status) as 'primary'|'success'|'warning'|'error'|'info']?.main,
+                                                                bgcolor: alpha(theme.palette[getStatusColor(order.status) as 'primary' | 'success' | 'warning' | 'error' | 'info']?.main || '#999', 0.1),
+                                                                color: theme.palette[getStatusColor(order.status) as 'primary' | 'success' | 'warning' | 'error' | 'info']?.main,
                                                                 border: 'none',
                                                             }}
                                                         />
@@ -418,78 +425,12 @@ function AccountPageContent() {
                 {/* Actions Rapides & Aide */}
                 <Grid size={{ xs: 12, lg: 4 }}>
                     <Stack spacing={4} sx={{ height: '100%' }}>
-                        {/* Tuiles d'actions rapides */}
-                        <Paper 
-                            elevation={0} 
-                            sx={{ 
-                                p: 3, 
-                                borderRadius: 4, 
-                                border: '1px solid', 
-                                borderColor: alpha(theme.palette.divider, 0.4),
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1.5 }}>
-                                <Avatar sx={{ width: 32, height: 32, bgcolor: alpha(theme.palette.secondary.main, 0.1), color: 'secondary.main' }}>
-                                    <Settings sx={{ fontSize: 18 }} />
-                                </Avatar>
-                                <Typography variant="h6" fontWeight={700}>
-                                    Gérer mon Cpte
-                                </Typography>
-                            </Box>
-                            
-                            <Grid container spacing={2}>
-                                {quickActions.map((action, index) => (
-                                    <Grid size={{ xs: 6 }} key={index}>
-                                        <Paper
-                                            component={Link}
-                                            href={action.path}
-                                            elevation={0}
-                                            sx={{
-                                                p: 2.5,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: 2,
-                                                height: '100%',
-                                                borderRadius: 3,
-                                                textDecoration: 'none',
-                                                color: 'text.primary',
-                                                bgcolor: alpha(action.color, 0.04),
-                                                border: '1px solid transparent',
-                                                transition: 'all 0.3s ease',
-                                                '&:hover': {
-                                                    bgcolor: alpha(action.color, 0.08),
-                                                    borderColor: alpha(action.color, 0.2),
-                                                    transform: 'translateY(-4px)',
-                                                    boxShadow: `0 8px 24px ${alpha(action.color, 0.12)}`,
-                                                }
-                                            }}
-                                        >
-                                            <Avatar sx={{ 
-                                                bgcolor: action.color, 
-                                                color: 'white', 
-                                                width: 50, 
-                                                height: 50, 
-                                                boxShadow: `0 4px 12px ${alpha(action.color, 0.3)}` 
-                                            }}>
-                                                {action.icon}
-                                            </Avatar>
-                                            <Typography variant="body2" fontWeight={600} textAlign="center">
-                                                {action.title}
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Paper>
-
                         {/* Box D'assistance */}
-                        <Paper 
-                            elevation={0} 
-                            sx={{ 
-                                p: 4, 
-                                borderRadius: 4, 
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: { xs: 3, sm: 3.5, md: 4 },
+                                borderRadius: 4,
                                 flex: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -506,13 +447,13 @@ function AccountPageContent() {
                             {/* Decorative background circle */}
                             <Box sx={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: alpha(theme.palette.info.main, 0.05) }} />
 
-                            <Box sx={{ p: 2, borderRadius: '50%', bgcolor: 'white', mb: 2, color: 'info.main', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', position: 'relative', zIndex: 1 }}>
-                                <HeadsetMic sx={{ fontSize: 40 }} />
+                            <Box sx={{ p: { xs: 1.5, sm: 1.75, md: 2 }, borderRadius: '50%', bgcolor: 'white', mb: { xs: 1.5, sm: 1.75, md: 2 }, color: 'info.main', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', position: 'relative', zIndex: 1 }}>
+                                <HeadsetMic sx={{ fontSize: { xs: 32, sm: 36, md: 40 } }} />
                             </Box>
-                            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ position: 'relative', zIndex: 1 }}>
+                            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ position: 'relative', zIndex: 1, fontSize: { xs: 16, sm: 17, md: 18 } }}>
                                 Besoin d'assistance ?
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 4, position: 'relative', zIndex: 1, maxWidth: 280 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 4, position: 'relative', zIndex: 1, maxWidth: 280 }}>
                                 Notre équipe de support client est disponible pour répondre à vos questions 7j/7.
                             </Typography>
                             <Button
@@ -521,7 +462,7 @@ function AccountPageContent() {
                                 disableElevation
                                 component={Link}
                                 href="/contact"
-                                sx={{ borderRadius: 8, px: 5, py: 1.5, fontWeight: 700, textTransform: 'none', position: 'relative', zIndex: 1 }}
+                                sx={{ borderRadius: 8, px: { xs: 3.5, sm: 4.5, md: 5 }, py: { xs: 1.25, sm: 1.4, md: 1.5 }, fontWeight: 700, textTransform: 'none', position: 'relative', zIndex: 1, fontSize: { xs: 13, sm: 14, md: 15 } }}
                             >
                                 Contacter l'aide
                             </Button>

@@ -7,7 +7,7 @@ import { Providers } from '@/components/Providers';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
-    title: 'Dame Sarr - Import & Commerce',
+    title: 'DameDéco - Import & Commerce',
     description: 'Importation de produits de qualité depuis la Chine',
 };
 

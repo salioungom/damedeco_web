@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,946 +23,1013 @@ import {
   useTheme,
   useMediaQuery,
   Typography,
-  alpha,
-  styled,
   Stack,
   Avatar,
   Chip,
-  ClickAwayListener,
-  Grow,
-  Paper,
-  Popper,
-  MenuList,
+  Menu,
   MenuItem,
+  alpha,
 } from '@mui/material';
 import {
-  ShoppingCart,
-  Person as UserIcon,
+  ShoppingCartOutlined,
+  PersonOutlined,
   Menu as MenuIcon,
   Search as SearchIcon,
   Close as CloseIcon,
-  AdminPanelSettings,
-  Dashboard,
-  Logout,
-  AccountCircle,
-  Favorite,
-  Store,
-  Home,
-  Info,
-  ContactMail,
-  LocalShipping,
+  AdminPanelSettingsOutlined,
+  DashboardOutlined,
+  LogoutOutlined,
+  AccountCircleOutlined,
+  FavoriteBorder,
+  StorefrontOutlined,
+  HomeOutlined,
+  InfoOutlined,
+  EmailOutlined,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
-import { ClientOnly } from './ClientOnly';
+import { BrandMark } from './ui/BrandMark';
+import { tokens } from '@/theme/tokens';
 
+/** Hauteur fixe de la navbar — utilisée pour le padding du layout */
+export const NAVBAR_HEIGHT = { xs: 64, sm: 68, md: 74 };
 
-const StyledAppBar = styled(AppBar)(({ theme }: { theme: any }) => ({
-  background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.98)} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`,
-  backdropFilter: 'blur(25px) saturate(180%)',
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.15)}`,
-  boxShadow: `0 8px 40px ${alpha(theme.palette.common.black, 0.08)}`,
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    boxShadow: `0 12px 50px ${alpha(theme.palette.common.black, 0.12)}`,
-  },
-}));
+const ACTION_SIZE = { xs: 38, sm: 40, md: 42 };
+const ICON_SIZE = { xs: 21, sm: 22.5, md: 24 };
 
-const SearchContainer = styled(Box)(({ theme }: { theme: any }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius * 4,
-  backgroundColor: alpha(theme.palette.background.paper, 0.8),
-  border: `2px solid ${alpha(theme.palette.primary.main, 0.12)}`,
-  backdropFilter: 'blur(10px)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '1px',
-    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.primary.main, 0.3)}, transparent)`,
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
-  },
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.background.paper, 0.95),
-    borderColor: alpha(theme.palette.primary.main, 0.25),
-    transform: 'translateY(-1px)',
-    boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.15)}`,
-    '&::before': {
-      opacity: 1,
-    },
-  },
-  '&:focus-within': {
-    backgroundColor: theme.palette.background.paper,
-    borderColor: theme.palette.primary.main,
-    transform: 'translateY(-2px)',
-    boxShadow: `0 12px 35px ${alpha(theme.palette.primary.main, 0.2)}`,
-    '&::before': {
-      opacity: 1,
-    },
-  },
-}));
+function getUserInitials(fullName?: string, email?: string): string {
+  const nameParts = fullName?.trim().split(/\s+/).filter(Boolean) ?? [];
+  if (nameParts.length > 1) {
+    return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toLocaleUpperCase('fr');
+  }
+  return (nameParts[0]?.[0] || email?.trim()[0] || 'U').toLocaleUpperCase('fr');
+}
 
-const NavButton = styled(Button)(({ theme }: { theme: any }) => ({
-  position: 'relative',
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '0.95rem',
-  padding: '10px 20px',
-  borderRadius: theme.shape.borderRadius * 3,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  letterSpacing: '0.01em',
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: '2px',
-    left: '50%',
-    transform: 'translateX(-50%) scaleX(0)',
-    width: '60%',
-    height: '3px',
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    borderRadius: '2px',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  },
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.2)}`,
-    '&::after': {
-      transform: 'translateX(-50%) scaleX(1)',
-    },
-  },
-  '&.active': {
-    color: theme.palette.primary.main,
-    fontWeight: 700,
-    backgroundColor: alpha(theme.palette.primary.main, 0.15),
-    transform: 'translateY(-1px)',
-    boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.15)}`,
-    '&::after': {
-      transform: 'translateX(-50%) scaleX(1)',
-    },
-  },
-}));
+type NavItem = { label: string; path: string; icon: React.ReactNode };
 
-const StyledIconButton = styled(IconButton)(({ theme }: { theme: any }) => ({
-  borderRadius: theme.shape.borderRadius * 2.5,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 0,
-    height: 0,
-    borderRadius: '50%',
-    background: alpha(theme.palette.primary.main, 0.1),
-    transform: 'translate(-50%, -50%)',
-    transition: 'all 0.4s ease',
-  },
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.12),
-    transform: 'scale(1.08) translateY(-1px)',
-    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
-    '&::before': {
-      width: '100%',
-      height: '100%',
-    },
-  },
-  '&:active': {
-    transform: 'scale(0.95)',
-  },
-}));
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Accueil', path: '/', icon: <HomeOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'Boutique', path: '/shop', icon: <StorefrontOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'À propos', path: '/about', icon: <InfoOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'Contact', path: '/contact', icon: <EmailOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+];
 
-const LogoBox = styled(Box)(({ theme }: { theme: any }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  borderRadius: theme.shape.borderRadius * 2.5,
-  boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
-    borderRadius: 'inherit',
-    opacity: 0,
-    zIndex: -1,
-    transition: 'opacity 0.4s ease',
-  },
-  '&:hover': {
-    transform: 'scale(1.08) rotate(-3deg)',
-    boxShadow: `0 12px 35px ${alpha(theme.palette.primary.main, 0.4)}`,
-    '&::before': {
-      opacity: 1,
+/** Bouton d'action à taille fixe — évite tout décalage au clic / hover */
+const NavActionButton = memo(function NavActionButton({
+  children,
+  onClick,
+  href,
+  ariaLabel,
+  active,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  href?: string;
+  ariaLabel: string;
+  active?: boolean;
+}) {
+  const theme = useTheme();
+
+  const sx = {
+    width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    minHeight: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    p: 0,
+    borderRadius: 1,
+    border: '1px solid',
+    borderColor: 'divider',
+    bgcolor: active ? 'action.selected' : 'transparent',
+    color: active ? theme.palette.text.primary : theme.palette.text.secondary,
+    flexShrink: 0,
+    transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+    '&:hover': {
+      bgcolor: 'action.hover',
+      color: theme.palette.text.primary,
+      borderColor: theme.palette.text.secondary,
     },
-  },
-}));
+    '& .MuiTouchRipple-root': { display: 'none' },
+    '&:active': { transform: 'none' },
+  };
+
+  if (href) {
+    return (
+      <IconButton
+        component={Link}
+        href={href}
+        aria-label={ariaLabel}
+        disableRipple
+        sx={sx}
+      >
+        {children}
+      </IconButton>
+    );
+  }
+
+  return (
+    <IconButton
+      aria-label={ariaLabel}
+      onClick={onClick}
+      disableRipple
+      sx={sx}
+    >
+      {children}
+    </IconButton>
+  );
+});
+
+const Brand = memo(function Brand() {
+  const theme = useTheme();
+  return (
+    <Stack
+      direction="row"
+      spacing={{ xs: 1, sm: 1.25 }}
+      sx={{ alignItems: 'center', flexShrink: 0 }}
+    >
+      <BrandMark />
+      <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+        <Typography
+          sx={{
+            fontSize: { sm: 17, md: 18.75 },
+            fontWeight: 700,
+            color: theme.palette.text.primary,
+            lineHeight: 1.2,
+            letterSpacing: '-0.02em',
+          }}
+        >
+              DameDéco
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: { sm: 11.5, md: 12.5 },
+            color: theme.palette.text.secondary,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            fontWeight: 500,
+          }}
+        >
+          Import & Commerce
+        </Typography>
+      </Box>
+    </Stack>
+  );
+});
+
+const NavLink = memo(function NavLink({
+  item,
+  active,
+}: {
+  item: NavItem;
+  active: boolean;
+}) {
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
+
+  return (
+    <Button
+      component={Link}
+      href={item.path}
+      disableRipple
+      sx={{
+        position: 'relative',
+        borderRadius: 1,
+        px: { xs: 1.25, md: 1.75 },
+        py: { xs: 0.75, md: 1 },
+        fontSize: { xs: 15, md: 17.5 },
+        fontWeight: active ? 600 : 500,
+        textTransform: 'none',
+        color: active ? primary : theme.palette.text.secondary,
+        bgcolor: 'transparent',
+        minWidth: 'auto',
+        flexShrink: 0,
+        transition: 'color 0.15s ease',
+        '&:hover': { bgcolor: 'action.hover', color: theme.palette.text.primary },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: { xs: 3, md: 4 },
+          left: '50%',
+          transform: active ? 'translateX(-50%) scaleX(1)' : 'translateX(-50%) scaleX(0)',
+          width: '60%',
+          height: { xs: 2, md: 2.5 },
+          borderRadius: 1.25,
+          bgcolor: primary,
+          transition: 'transform 0.15s ease',
+        },
+        '& .MuiButton-startIcon': {
+          mr: { xs: 0.5, md: 0.75 },
+          ml: 0,
+          '& svg': { fontSize: { xs: 18, md: 22.5 } },
+        },
+      }}
+      startIcon={item.icon}
+    >
+      {item.label}
+    </Button>
+  );
+});
+
+const SearchField = memo(function SearchField({
+  value,
+  onChange,
+  onSubmit,
+  autoFocus,
+  fullWidth,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  autoFocus?: boolean;
+  fullWidth?: boolean;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Box
+      component="form"
+      onSubmit={onSubmit}
+      sx={{ width: fullWidth ? '100%' : { sm: 200, md: 275, lg: 325 } }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: { xs: 0.75, sm: 1 },
+          height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+          px: { xs: 1, sm: 1.25, md: 1.5 },
+          borderRadius: 1,
+          bgcolor: 'action.hover',
+          border: '1px solid',
+          borderColor: 'divider',
+          transition: 'border-color 0.15s ease',
+          '&:focus-within': {
+            borderColor: theme.palette.primary.main,
+            outline: `2px solid ${tokens.colors.status.focus}`,
+            outlineOffset: '2px',
+          },
+        }}
+      >
+        <SearchIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: theme.palette.text.secondary, flexShrink: 0 }} />
+        <InputBase
+          placeholder="Rechercher un produit…"
+          value={value}
+          autoFocus={autoFocus}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+          sx={{
+            flex: 1,
+            fontSize: { xs: 14, sm: 15, md: 16.25 },
+            fontWeight: 500,
+            color: theme.palette.text.primary,
+            '& input::placeholder': {
+              color: theme.palette.text.disabled,
+              opacity: 1,
+            },
+          }}
+        />
+      </Box>
+    </Box>
+  );
+});
 
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Utiliser AuthContext au lieu de l'état local
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+  const isAdmin = useStore((s) => s.isAdmin);
+  const toggleAdmin = useStore((s) => s.toggleAdmin);
+  const cart = useStore((s) => s.cart);
+  const toggleCart = useStore((s) => s.toggleCart);
+  const favorites = useStore((s) => s.favorites);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const profileAnchorRef = useRef<HTMLButtonElement>(null);
+  const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
 
-  const { isAdmin, toggleAdmin, cart, toggleCart } = useStore();
-  const cartCount = (cart || []).reduce((acc: number, item) => acc + item.quantity, 0);
+  const cartCount = useMemo(
+    () => (cart || []).reduce((acc, item) => acc + item.quantity, 0),
+    [cart],
+  );
 
-  const [scrolled, setScrolled] = useState(false);
+  const favoriteCount = favorites?.length ?? 0;
+
+  const profileMenuOpen = Boolean(profileAnchor);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    setProfileAnchor(null);
+    setSearchOpen(false);
+  }, [pathname]);
+
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        router.push(`/shop?q=${encodeURIComponent(searchQuery.trim())}`);
+        setSearchQuery('');
+        setSearchOpen(false);
+      }
+    },
+    [searchQuery, router],
+  );
+
+  const openProfileMenu = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    setProfileAnchor(e.currentTarget);
   }, []);
 
-  const handleProfileMenuToggle = () => {
-    setProfileMenuOpen((prevOpen: boolean) => !prevOpen);
-  };
+  const closeProfileMenu = useCallback(() => {
+    setProfileAnchor(null);
+  }, []);
 
-  const handleProfileMenuClose = () => {
-    setProfileMenuOpen(false);
-  };
-
-  const handleClickAway = (event: Event | React.SyntheticEvent) => {
-    if (profileAnchorRef.current &&
-      event.target instanceof Node &&
-      !profileAnchorRef.current.contains(event.target)) {
-      setProfileMenuOpen(false);
+  const userMenuItems = useMemo(() => {
+    if (!user) return [];
+    if (user.role === 'superadmin') {
+      return [
+        { label: 'Tableau de bord', icon: <DashboardOutlined fontSize="small" />, path: '/dashboards' },
+        { label: 'Profil', icon: <AccountCircleOutlined fontSize="small" />, path: '/settings/profile' },
+        { label: 'Déconnexion', icon: <LogoutOutlined fontSize="small" />, action: 'logout' as const },
+      ];
     }
-  };
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
+    if (user.role === 'admin') {
+      return [
+        { label: 'Tableau de bord', icon: <DashboardOutlined fontSize="small" />, path: '/dashboard' },
+        { label: 'Profil', icon: <AccountCircleOutlined fontSize="small" />, path: '/settings/profile' },
+        { label: 'Déconnexion', icon: <LogoutOutlined fontSize="small" />, action: 'logout' as const },
+      ];
     }
-  };
-
-  const navItems = [
-    { label: 'Accueil', path: '/', icon: <Home fontSize="small" /> },
-    { label: 'Boutique', path: '/shop', icon: <Store fontSize="small" /> },
-    { label: 'À propos', path: '/about', icon: <Info fontSize="small" /> },
-    { label: 'Contact', path: '/contact', icon: <ContactMail fontSize="small" /> },
-  ];
-
-  const userMenuItems = [
-    // Menu simplifié pour admin/superadmin
-    ...(user?.role === 'superadmin' ? [
-      {
-        label: 'Tableau de bord',
-        icon: <Dashboard fontSize="small" />,
-        path: '/dashboards'  // ✅ Dashboard SuperAdmin
-      },
-      {
-        label: 'Frais de livraison',
-        icon: <LocalShipping fontSize="small" />,
-        path: '/shipping'
-      },
-      {
-        label: 'Déconnexion',
-        icon: <Logout fontSize="small" />,
-        onClick: async () => {
-          setProfileMenuOpen(false);
-          await logout();
-        }
-      },
-    ] : user?.role === 'admin' ? [
-      {
-        label: 'Tableau de bord',
-        icon: <Dashboard fontSize="small" />,
-        path: '/dashboard'  // ✅ Admin security
-      },
-      {
-        label: 'Frais de livraison',
-        icon: <LocalShipping fontSize="small" />,
-        path: '/shipping'
-      },
-      {
-        label: 'Déconnexion',
-        icon: <Logout fontSize="small" />,
-        onClick: async () => {
-          setProfileMenuOpen(false);
-          await logout();
-        }
-      },
-    ] : [
-      // Menu normal pour les clients
-      {
-        label: 'Mon profil',
-        icon: <AccountCircle fontSize="small" />,
-        path: '/account'
-      },
-      {
-        label: 'Mes favoris',
-        icon: <Favorite fontSize="small" />,
-        path: '/favorites'
-      },
-      {
-        label: 'Déconnexion',
-        icon: <Logout fontSize="small" />,
-        onClick: async () => {
-          setProfileMenuOpen(false);
-          await logout();
-        }
-      },
-    ]),
-  ];
+    return [
+      { label: 'Tableau de bord', icon: <DashboardOutlined fontSize="small" />, path: '/account' },
+      { label: 'Profil', icon: <AccountCircleOutlined fontSize="small" />, path: '/settings/profile' },
+      { label: 'Déconnexion', icon: <LogoutOutlined fontSize="small" />, action: 'logout' as const },
+    ];
+  }, [user]);
 
   const drawer = (
-    <Box
-      sx={{
-        width: { xs: '100%', sm: 400 },
-        maxWidth: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: 'background.paper',
-      }}
-    >
-      {/* Drawer Header */}
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <LogoBox
-            sx={{
-              width: 48,
-              height: 48,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.25rem',
-            }}
-          >
-            DS
-          </LogoBox>
-          <Box>
-            <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-              Dame Sarr
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Import & Commerce
-            </Typography>
-          </Box>
-        </Stack>
-        <StyledIconButton onClick={handleDrawerToggle} size="large">
-          <CloseIcon />
-        </StyledIconButton>
+    <Box sx={{ width: { xs: '85%', sm: 320, md: 375 }, maxWidth: 375, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Brand />
+        <NavActionButton ariaLabel="Fermer le menu" onClick={() => setMobileOpen(false)}>
+          <CloseIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
+        </NavActionButton>
       </Box>
 
-      <Divider />
-
-      {/* Search in drawer */}
-      <Box sx={{ p: 3 }}>
-        <form onSubmit={handleSearch}>
-          <SearchContainer sx={{ p: 1.5 }}>
-            <ClientOnly>
-              <InputBase
-                fullWidth
-                placeholder="Rechercher des produits..."
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                startAdornment={
-                  <SearchIcon sx={{ color: 'text.secondary', mr: 1.5 }} />
-                }
-              />
-            </ClientOnly>
-          </SearchContainer>
-        </form>
+      <Box sx={{ px: 2, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <SearchField
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSubmit={handleSearch}
+          fullWidth
+        />
       </Box>
 
-      <Divider />
-
-      {/* Navigation Links */}
-      <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-        <List>
-          {navItems.map((item) => (
-            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                component={Link}
-                href={item.path}
-                selected={pathname === item.path}
-                onClick={() => setMobileOpen(false)}
-                sx={{
-                  borderRadius: 2,
-                  py: 1.5,
-                  '&.Mui-selected': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.12),
-                    color: 'primary.main',
-                    fontWeight: 600,
-                    '& .MuiListItemIcon-root': {
-                      color: 'primary.main',
-                    },
-                  },
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.08),
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontWeight: pathname === item.path ? 600 : 500,
+      <Box sx={{ flex: 1, overflowY: 'auto', py: 1 }}>
+        <List disablePadding>
+          {NAV_ITEMS.map((item) => {
+            const active = pathname === item.path;
+            return (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  href={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  sx={{
+                    mx: { xs: 1, sm: 1.5 },
+                    borderRadius: '12.5px',
+                    py: { xs: 1, sm: 1.25 },
+                    mb: 0.25,
+                    bgcolor: active ? 'action.selected' : 'transparent',
+                    color: active ? 'primary.main' : 'text.secondary',
                   }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                >
+                  <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: { xs: 16, sm: 17.5 },
+                          fontWeight: active ? 600 : 500,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
 
         {isAdmin && (
-          <Box>
-            <Divider sx={{ my: 2 }} />
-            <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => {
-                  toggleAdmin?.();
-                  setMobileOpen(false);
-                }}
-                sx={{
-                  borderRadius: 2,
-                  py: 1.5,
-                  bgcolor: alpha(theme.palette.error.main, 0.08),
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
-                  <AdminPanelSettings />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Mode Admin"
-                  primaryTypographyProps={{
-                    fontWeight: 600,
-                    color: 'error.main',
+          <>
+            <Divider sx={{ mx: 2, my: 1 }} />
+            <List disablePadding>
+              <ListItem disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    toggleAdmin?.();
+                    setMobileOpen(false);
                   }}
-                />
-              </ListItemButton>
-            </ListItem>
-          </Box>
+                  sx={{ mx: 1.5, borderRadius: '12.5px' }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36, color: 'error.main' }}>
+                    <AdminPanelSettingsOutlined fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Mode Admin"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 600,
+                          color: 'error.main',
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          </>
         )}
-      </Box>
 
-      {/* User Section */}
-      <Divider />
-      {user ? (
-        <Box sx={{ p: 3, bgcolor: alpha(theme.palette.primary.main, 0.03) }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar
-              src={user.avatar}
-              alt={user.full_name}
+        <Divider sx={{ mx: 2, my: 0.5 }} />
+        <List disablePadding>
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href="/favorites"
+              onClick={() => setMobileOpen(false)}
               sx={{
-                width: 56,
-                height: 56,
-                border: `2px solid ${theme.palette.primary.main}`,
+                mx: { xs: 1, sm: 1.5 },
+                borderRadius: '12.5px',
+                py: { xs: 0.85, sm: 1 },
+                mb: 0.25,
+                color: 'text.secondary',
               }}
             >
-              {user.full_name?.charAt(0)}
+              <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
+                <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Mes favoris"
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: { xs: 15, sm: 16.5 },
+                      fontWeight: 500,
+                    },
+                  },
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href={user ? '/account' : '/login'}
+              onClick={() => setMobileOpen(false)}
+              sx={{
+                mx: { xs: 1, sm: 1.5 },
+                borderRadius: '12.5px',
+                py: { xs: 0.85, sm: 1 },
+                mb: 0.25,
+                color: 'text.secondary',
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
+                <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={user ? 'Mon compte' : 'Suivre ma commande'}
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: { xs: 15, sm: 16.5 },
+                      fontWeight: 500,
+                    },
+                  },
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+
+      <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
+        {user ? (
+          <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
+            <Avatar src={user.avatar} sx={{ width: { xs: 44, sm: 48, md: 52.5 }, height: { xs: 44, sm: 48, md: 52.5 }, bgcolor: 'primary.main' }}>
+              {getUserInitials(user.full_name, user.email)}
             </Avatar>
             <Box>
-              <Typography variant="subtitle1" fontWeight={600}>
-                {user.full_name}
+              <Typography fontWeight={600} fontSize={{ xs: 15, sm: 17.5 }}>
+                {user.full_name || user.email}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography fontSize={{ xs: 13, sm: 15 }} color="text.secondary">
                 {user.email}
               </Typography>
             </Box>
           </Stack>
-        </Box>
+        ) : (
+          <Stack spacing={1}>
+            <Box sx={{ textAlign: 'center', mb: 0.5 }}>
+              <Box
+                sx={{
+                  width: { xs: 48, sm: 55 },
+                  height: { xs: 48, sm: 55 },
+                  borderRadius: 2,
+                  bgcolor: 'primary.main',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 1,
+                  color: 'primary.contrastText',
+                }}
+              >
+                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 27.5 } }} />
+              </Box>
+              <Typography fontSize={{ xs: 15, sm: 17.5 }} fontWeight={700} color="text.primary">
+                Bienvenue !
+              </Typography>
+              <Typography fontSize={{ xs: 13, sm: 15 }} color="text.secondary" sx={{ mt: 0.5 }}>
+                Suivez vos commandes et vos favoris
+              </Typography>
+            </Box>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              component={Link}
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              disableElevation
+              sx={{
+                py: { xs: 1, sm: 1.2 },
+                fontWeight: 700,
+                fontSize: { xs: 15, sm: 17.5 },
+                textTransform: 'none',
+              }}
+            >
+              Se connecter
+            </Button>
+            <Button
+              fullWidth
+              variant="text"
+              component={Link}
+              href="/register"
+              onClick={() => setMobileOpen(false)}
+              sx={{
+                py: { xs: 0.9, sm: 1 },
+                borderRadius: '12.5px',
+                fontWeight: 600,
+                fontSize: { xs: 14, sm: 16.25 },
+                textTransform: 'none',
+                color: theme.palette.primary.main,
+                justifyContent: 'center',
+                textAlign: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              Pas encore de compte ?{' '}
+              <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+                Créer
+              </Box>
+            </Button>
+          </Stack>
+        )}
+      </Box>
+    </Box>
+  );
+
+  const profileTrigger = (
+    <Box
+      component="button"
+      type="button"
+      onClick={openProfileMenu}
+      aria-label="Mon compte"
+      aria-expanded={profileMenuOpen}
+      aria-haspopup="true"
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        p: 0,
+        border: '1px solid',
+        borderColor: profileMenuOpen ? theme.palette.primary.main : 'divider',
+        borderRadius: 1,
+        bgcolor: profileMenuOpen ? 'action.selected' : 'transparent',
+        cursor: 'pointer',
+        flexShrink: 0,
+        transition: 'background-color 0.15s ease, border-color 0.15s ease',
+        '&:hover': {
+          bgcolor: 'action.hover',
+          borderColor: theme.palette.text.secondary,
+        },
+      }}
+    >
+      {authLoading ? (
+        <Avatar sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'action.hover' }} />
+      ) : user ? (
+        <Avatar
+          src={user.avatar}
+          sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'primary.main', fontSize: { xs: 12, sm: 13, md: 15 }, fontWeight: 700 }}
+        >
+          {getUserInitials(user.full_name, user.email)}
+        </Avatar>
       ) : (
-        <Box sx={{ p: 2 }}>
-          <Button
-            fullWidth
-            variant="contained"
-            component={Link}
-            href="/login"
-            onClick={() => setMobileOpen(false)}
-            sx={{ mb: 1, py: 1 }}
-          >
-            Se connecter
-          </Button>
-          <Button
-            fullWidth
-            variant="outlined"
-            component={Link}
-            href="/register"
-            onClick={() => setMobileOpen(false)}
-            sx={{ py: 1 }}
-          >
-            Créer un compte
-          </Button>
-        </Box>
+        <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE }, color: 'text.secondary' }} />
       )}
     </Box>
   );
 
   return (
-    <StyledAppBar
-      position="fixed"
-      elevation={scrolled ? 2 : 0}
-      sx={{
-        transform: scrolled ? 'translateY(0)' : 'translateY(0)',
-        py: scrolled ? 0.5 : 1.5,
-        zIndex: theme.zIndex.appBar,
-      }}
-    >
-      <Container maxWidth="xl">
-        <Toolbar
-          disableGutters
-          sx={{
-            minHeight: { xs: 56, sm: 64, md: 72 },
-            gap: { xs: 0.5, sm: 1, md: 3 },
-            justifyContent: 'space-between',
-          }}
-        >
-          {/* Left Section: Logo & Mobile Menu */}
-          <Stack direction="row" spacing={1} alignItems="center">
-            {/* Mobile Menu Button */}
-            <StyledIconButton
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ display: { md: 'none' } }}
-              size="small"
-            >
-              <MenuIcon />
-            </StyledIconButton>
-
-            {/* Logo */}
-            <Button
-              component={Link}
-              href="/"
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                textTransform: 'none',
-                color: 'text.primary',
-                p: { xs: 0.5, sm: 1 },
-                borderRadius: 2,
-                minWidth: 'auto',
-                '&:hover': {
-                  bgcolor: 'transparent',
-                },
-              }}
-            >
-              <LogoBox
-                sx={{
-                  width: { xs: 32, sm: 40, md: 48 },
-                  height: { xs: 32, sm: 40, md: 48 },
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mr: { xs: 1, sm: 1.5, md: 2 },
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
-                }}
-              >
-                DS
-              </LogoBox>
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography
-                  variant="h6"
-                  fontWeight={800}
-                  lineHeight={1.2}
-                  sx={{
-                    fontSize: { sm: '1.1rem', md: '1.25rem' },
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  Dame Sarr
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  fontWeight={500}
-                  sx={{ display: { sm: 'none', md: 'block' } }}
-                >
-                  Import & Commerce
-                </Typography>
-              </Box>
-            </Button>
-          </Stack>
-
-          {/* Center Section: Navigation */}
-          <Stack
-            direction="row"
-            spacing={0.5}
+    <>
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
+          justifyContent: 'center',
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          transition: 'background-color 0.15s ease',
+          zIndex: theme.zIndex.appBar,
+        }}
+      >
+        <Container maxWidth="xl" sx={{ height: '100%', px: { xs: 1.5, sm: 2, md: 3 } }}>
+          <Toolbar
+            disableGutters
             sx={{
-              display: { xs: 'none', md: 'flex' },
-              flexGrow: 1,
-              justifyContent: 'center',
-              ml: 4,
+              height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
+              minHeight: `${typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT.md : NAVBAR_HEIGHT}px !important`,
+              justifyContent: 'space-between',
+              gap: { xs: 1.5, sm: 1.5, md: 2 },
             }}
           >
-            {navItems.map((item) => (
-              <NavButton
-                key={item.path}
+            {/* Gauche */}
+            <Stack direction="row" spacing={{ xs: 1, sm: 1 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
+              <Box sx={{ display: { lg: 'none' } }}>
+                <NavActionButton
+                  ariaLabel="Ouvrir le menu"
+                  onClick={() => setMobileOpen(true)}
+                  active={mobileOpen}
+                >
+                  <MenuIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
+                </NavActionButton>
+              </Box>
+              <Button
                 component={Link}
-                href={item.path}
-                startIcon={item.icon}
-                className={pathname === item.path ? 'active' : ''}
-                sx={{
-                  color: pathname === item.path ? 'primary.main' : 'text.primary',
-                  fontSize: { md: '0.9rem', lg: '0.95rem' },
-                  px: { md: 1.5, lg: 2 },
-                }}
+                href="/"
+                disableRipple
+                sx={{ p: 0, minWidth: 'auto', textTransform: 'none', '&:hover': { bgcolor: 'transparent' } }}
               >
-                {item.label}
-              </NavButton>
-            ))}
-          </Stack>
+                <Brand />
+              </Button>
+            </Stack>
 
-          {/* Right Section: Search & Actions */}
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            {/* Search - Desktop */}
-            <Box
-              sx={{
-                display: { xs: 'none', md: 'block' },
-                width: { md: 250, lg: 300 },
-                mr: { md: 1, lg: 2 },
-              }}
+            {/* Centre — desktop */}
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{ display: { xs: 'none', lg: 'flex' }, flex: 1, alignItems: 'center', justifyContent: 'center' }}
             >
-              <form onSubmit={handleSearch}>
-                <SearchContainer sx={{ p: { md: 0.75, lg: 1 } }}>
-                  <SearchIcon
-                    sx={{
-                      position: 'absolute',
-                      left: { md: 10, lg: 12 },
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: 'text.secondary',
-                      fontSize: { md: 18, lg: 20 },
-                    }}
-                  />
-                  <ClientOnly>
-                    <InputBase
-                      placeholder="Rechercher..."
-                      value={searchQuery}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                      sx={{
-                        width: '100%',
-                        pl: { md: 4, lg: 5 },
-                        pr: 2,
-                        fontSize: { md: '0.8rem', lg: '0.875rem' },
-                      }}
-                    />
-                  </ClientOnly>
-                </SearchContainer>
-              </form>
-            </Box>
+              {NAV_ITEMS.map((item) => (
+                <NavLink key={item.path} item={item} active={pathname === item.path} />
+              ))}
+            </Stack>
 
-            {/* Search - Mobile/Tablet */}
-            {isMobile && (
-              <StyledIconButton
-                onClick={() => setSearchOpen(!searchOpen)}
-                size="small"
-                sx={{ display: { md: 'none' } }}
-              >
-                <SearchIcon fontSize="small" />
-              </StyledIconButton>
-            )}
-
-            {/* Cart */}
-            <StyledIconButton onClick={() => toggleCart()} size="small">
-              <Badge
-                badgeContent={cartCount}
-                color="error"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    fontSize: { xs: '0.6rem', sm: '0.7rem' },
-                    height: { xs: 16, sm: 18 },
-                    minWidth: { xs: 16, sm: 18 },
-                  },
-                }}
-              >
-                <ShoppingCart sx={{ fontSize: { xs: 20, sm: 24 } }} />
-              </Badge>
-            </StyledIconButton>
-
-            {/* User Menu */}
-            <StyledIconButton
-              ref={profileAnchorRef}
-              onClick={handleProfileMenuToggle}
-              size="small"
-              sx={{ position: 'relative' }}
+            {/* Droite — slots fixes */}
+            <Stack
+              direction="row"
+              spacing={{ xs: 1, sm: 0.75 }}
+              sx={{ flexShrink: 0, minWidth: { xs: 'auto', sm: 'auto', md: 280 }, alignItems: 'center' }}
             >
-              {user ? (
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <SearchField
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  onSubmit={handleSearch}
+                />
+              </Box>
+
+              <Box sx={{ display: { md: 'none' } }}>
+                <NavActionButton
+                  ariaLabel="Rechercher"
+                  onClick={() => setSearchOpen((p) => !p)}
+                  active={searchOpen}
+                >
+                  <SearchIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
+                </NavActionButton>
+              </Box>
+
+              <Box
+                sx={{
+                  width: '1px',
+                  height: { xs: 24, sm: 28, md: 30 },
+                  bgcolor: 'divider',
+                  mx: { xs: 0.15, sm: 0.25 },
+                  display: { xs: 'none', sm: 'block' },
+                }}
+              />
+
+              <NavActionButton ariaLabel="Mes favoris" href="/favorites" active={pathname === '/favorites'}>
                 <Badge
+                  badgeContent={favoriteCount > 0 ? favoriteCount : undefined}
+                  color="primary"
                   overlap="circular"
-                  variant="dot"
-                  color="success"
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   sx={{
                     '& .MuiBadge-badge': {
-                      width: { xs: 8, sm: 10 },
-                      height: { xs: 8, sm: 10 },
-                      minWidth: { xs: 8, sm: 10 },
+                      fontSize: { xs: 11, sm: 12.5 },
+                      fontWeight: 700,
+                      height: { xs: 18, sm: 22.5 },
+                      minWidth: { xs: 18, sm: 22.5 },
+                      top: { xs: 4, sm: 5 },
+                      right: { xs: 4, sm: 5 },
+                      border: '2px solid',
+                      borderColor: 'background.paper',
                     },
                   }}
                 >
-                  <Avatar
-                    sx={{
-                      width: { xs: 28, sm: 32 },
-                      height: { xs: 28, sm: 32 },
-                      bgcolor: 'primary.main',
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      fontWeight: 600,
-                    }}
-                  >
-                    {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                  </Avatar>
+                  <FavoriteBorder sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
                 </Badge>
-              ) : (
-                <AccountCircle sx={{ fontSize: { xs: 24, sm: 28 } }} />
-              )}
-            </StyledIconButton>
-          </Stack>
-        </Toolbar>
-      </Container>
+              </NavActionButton>
 
-      {/* Mobile Search Bar */}
-      {searchOpen && isMobile && (
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            borderBottom: 1,
-            borderColor: 'divider',
-            py: 2,
-            px: 2,
-          }}
-        >
-          <form onSubmit={handleSearch}>
-            <SearchContainer sx={{ p: 1 }}>
-              <SearchIcon
-                sx={{
-                  position: 'absolute',
-                  left: 12,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'text.secondary',
-                  fontSize: 20,
-                }}
-              />
-              <ClientOnly>
-                <InputBase
-                  fullWidth
-                  placeholder="Rechercher des produits..."
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+              <NavActionButton ariaLabel="Panier" onClick={() => toggleCart()} active={false}>
+                <Badge
+                  badgeContent={cartCount > 0 ? cartCount : undefined}
+                  color="primary"
+                  overlap="circular"
                   sx={{
-                    pl: 5,
-                    pr: 2,
-                    fontSize: '0.875rem',
-                  }}
-                  autoFocus
-                />
-              </ClientOnly>
-            </SearchContainer>
-          </form>
-        </Box>
-      )}
-
-      {/* User Menu Popper */}
-      <ClickAwayListener onClickAway={handleClickAway}>
-        <Popper
-          open={profileMenuOpen}
-          anchorEl={profileAnchorRef.current}
-          role={undefined}
-          placement="bottom-end"
-          transition
-          disablePortal
-          sx={{ zIndex: theme.zIndex.modal }}
-        >
-          {({ TransitionProps }: { TransitionProps: any }) => (
-              <Grow {...TransitionProps}>
-                <Paper
-                  elevation={8}
-                  sx={{
-                    minWidth: 260,
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    mt: 1.5,
-                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    '& .MuiBadge-badge': {
+                      fontSize: { xs: 11, sm: 12.5 },
+                      fontWeight: 700,
+                      height: { xs: 18, sm: 22.5 },
+                      minWidth: { xs: 18, sm: 22.5 },
+                      top: { xs: 4, sm: 5 },
+                      right: { xs: 4, sm: 5 },
+                      border: '2px solid',
+                      borderColor: 'background.paper',
+                    },
                   }}
                 >
-                  <ClickAwayListener onClickAway={handleClickAway}>
-                    <MenuList sx={{ p: 1 }}>
-                      {user ? (
-                        [
-                          <Box key="user-info" sx={{ 
-                            px: 2, 
-                            py: 2.5, 
-                            mb: 1,
-                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
-                            borderRadius: 2,
-                            border: '1px solid rgba(99, 102, 241, 0.1)'
-                          }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                              <Avatar
-                                sx={{
-                                  width: 40,
-                                  height: 40,
-                                  bgcolor: 'primary.main',
-                                  fontSize: '1rem',
-                                  fontWeight: 600,
-                                  mr: 2,
-                                  border: '2px solid',
-                                  borderColor: 'primary.light'
-                                }}
-                              >
-                                {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                              </Avatar>
-                              <Box sx={{ flex: 1 }}>
-                                <Typography variant="subtitle1" fontWeight={700} color="primary.main" sx={{ lineHeight: 1.2 }}>
-                                  {user.full_name || 'Utilisateur'}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', mt: 0.2 }}>
-                                  {user.email}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            {user.role && (
-                              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                <Chip 
-                                  size="small" 
-                                  label={
-                                    user.role === 'superadmin' ? '👑 SuperAdmin' : 
-                                    user.role === 'admin' ? '⚙️ Admin' : 
-                                    user.role === 'client' ? '👤 Client' :
-                                    user.role
-                                  }
-                                  color="primary" 
-                                  variant="filled"
-                                  sx={{ 
-                                    fontWeight: 600,
-                                    fontSize: '0.7rem',
-                                    height: 24,
-                                    borderRadius: 1
-                                  }}
-                                />
-                              </Box>
-                            )}
-                          </Box>,
-                          <Divider key="divider" sx={{ mb: 1 }} />,
-                          ...userMenuItems.map((item, index) => (
-                            <MenuItem
-                              key={`menu-item-${index}`}
-                              onClick={() => {
-                                if (item.onClick) {
-                                  item.onClick();
-                                } else if (item.path) {
-                                  router.push(item.path);
-                                }
-                                setProfileMenuOpen(false);
-                              }}
-                              sx={{
-                                borderRadius: 1.5,
-                                py: 1.2,
-                                mb: 0.3,
-                                '&:hover': {
-                                  bgcolor: alpha(theme.palette.primary.main, 0.08),
-                                },
-                              }}
-                            >
-                              <ListItemIcon sx={{ minWidth: 36 }}>
-                                {item.icon}
-                              </ListItemIcon>
-                              <ListItemText 
-                                primary={item.label}
-                                primaryTypographyProps={{
-                                  fontSize: '0.875rem',
-                                  fontWeight: 500
-                                }}
-                              />
-                            </MenuItem>
-                          ))
-                        ]
-                      ) : (
-                        <Box sx={{ p: 1.5, textAlign: 'center' }}>
-                          <Typography variant="body2" color="text.secondary" mb={1.5}>
-                            Connectez-vous pour accéder à votre compte
-                          </Typography>
-                          <Button
-                            fullWidth
-                            variant="contained"
-                            component={Link}
-                            href="/login"
-                            onClick={() => setProfileMenuOpen(false)}
-                            startIcon={<AccountCircle />}
-                            sx={{ mb: 1, py: 0.75 }}
-                          >
-                            Se connecter
-                          </Button>
-                          <Button
-                            fullWidth
-                            variant="outlined"
-                            component={Link}
-                            href="/register"
-                            onClick={() => setProfileMenuOpen(false)}
-                            startIcon={<UserIcon />}
-                            sx={{ py: 0.75 }}
-                          >
-                            Créer un compte
-                          </Button>
-                        </Box>
-                      )}
-                    </MenuList>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
-      </ClickAwayListener>
+                  <ShoppingCartOutlined sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
+                </Badge>
+              </NavActionButton>
 
-      {/* Mobile Drawer */}
+              {profileTrigger}
+            </Stack>
+          </Toolbar>
+        </Container>
+
+        {/* Recherche mobile — overlay sans changer la hauteur de la barre */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            px: { xs: 1.5, sm: 2 },
+            py: { xs: 1, sm: 1.5 },
+            bgcolor: 'background.paper',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            opacity: searchOpen ? 1 : 0,
+            visibility: searchOpen ? 'visible' : 'hidden',
+            pointerEvents: searchOpen ? 'auto' : 'none',
+            transition: 'opacity 0.15s ease, visibility 0.15s ease',
+            display: { md: 'none' },
+          }}
+        >
+          <SearchField
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSubmit={handleSearch}
+            autoFocus={searchOpen}
+            fullWidth
+          />
+        </Box>
+      </AppBar>
+
+      {/* Menu profil — portal MUI, pas de Popper dans l'AppBar */}
+      <Menu
+        anchorEl={profileAnchor}
+        open={profileMenuOpen}
+        onClose={closeProfileMenu}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: {
+            elevation: 0,
+            sx: {
+              mt: 1,
+              minWidth: { xs: 248, sm: 264, md: 280 },
+              maxWidth: { xs: '85vw', sm: 'auto' },
+              borderRadius: { xs: '14px', sm: '17.5px' },
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: `0 12px 40px ${alpha(theme.palette.common.black, 0.12)}`,
+              overflow: 'hidden',
+            },
+          },
+          list: {
+            sx: { py: { xs: 0.5, sm: 0.6 } },
+          },
+        }}
+        disableScrollLock
+      >
+        {user && (
+          <Box component="li" sx={{ listStyle: 'none', p: 0 }}>
+            <Box
+              sx={{
+                px: { xs: 1.25, sm: 1.5, md: 1.5 },
+                py: { xs: 1, sm: 1.1, md: 1.25 },
+                bgcolor: tokens.colors.surfaces.alt,
+              }}
+            >
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.1 }} sx={{ alignItems: 'center' }}>
+                <Avatar
+                  sx={{
+                    width: { xs: 32, sm: 36, md: 40 },
+                    height: { xs: 32, sm: 36, md: 40 },
+                    bgcolor: 'primary.main',
+                    fontSize: { xs: 14, sm: 15, md: 16 },
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                >
+                  {getUserInitials(user.full_name, user.email)}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    fontSize={{ xs: 13, sm: 14, md: 15 }}
+                    fontWeight={700}
+                    color="text.primary"
+                    noWrap
+                    sx={{ lineHeight: 1.25 }}
+                  >
+                    {user.full_name || user.email}
+                  </Typography>
+                  <Typography
+                    fontSize={{ xs: 12, sm: 12.5, md: 13 }}
+                    color="text.secondary"
+                    noWrap
+                    sx={{ lineHeight: 1.35 }}
+                  >
+                    {user.email}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+          </Box>
+        )}
+        {user && <Divider sx={{ my: 0.25 }} />}
+        {user &&
+          userMenuItems.map((item) => (
+            <MenuItem
+              key={item.label}
+              onClick={async () => {
+                closeProfileMenu();
+                if ('action' in item && item.action === 'logout') {
+                  await logout();
+                } else if ('path' in item && item.path) {
+                  router.push(item.path);
+                }
+              }}
+              sx={{ mx: { xs: 0.75, sm: 1 }, borderRadius: { xs: '8px', sm: '10px' }, py: { xs: 0.6, sm: 0.65, md: 0.75 }, fontSize: { xs: 13.5, sm: 14.5, md: 16 } }}
+            >
+              <ListItemIcon sx={{ minWidth: { xs: 28, sm: 32 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
+            </MenuItem>
+          ))}
+        {!user && (
+          <Box component="li" sx={{ listStyle: 'none', p: 0 }}>
+            <Box
+              sx={{
+                px: { xs: 1.25, sm: 1.5, md: 1.5 },
+                py: { xs: 1, sm: 1.1, md: 1.25 },
+                bgcolor: tokens.colors.surfaces.alt,
+              }}
+            >
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.1 }} sx={{ alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    width: { xs: 32, sm: 36, md: 40 },
+                    height: { xs: 32, sm: 36, md: 40 },
+                    borderRadius: 1,
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <PersonOutlined sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    fontSize={{ xs: 13, sm: 14, md: 15 }}
+                    fontWeight={700}
+                    color="text.primary"
+                    sx={{ lineHeight: 1.25, mb: 0.2 }}
+                  >
+                    Bienvenue !
+                  </Typography>
+                  <Typography
+                    fontSize={{ xs: 12, sm: 12.5, md: 13 }}
+                    color="text.secondary"
+                    sx={{ lineHeight: 1.35 }}
+                  >
+                    Commandes, favoris et offres exclusives après connexion.
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+            <Box
+              sx={{
+                px: { xs: 1.25, sm: 1.5, md: 1.5 },
+                py: { xs: 1, sm: 1.1, md: 1.25 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: { xs: 0.6, sm: 0.7 },
+              }}
+            >
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                component={Link}
+                href="/login"
+                onClick={closeProfileMenu}
+                disableElevation
+                sx={{
+                  py: { xs: 0.7, sm: 0.75, md: 0.85 },
+                  fontWeight: 700,
+                  fontSize: { xs: 13, sm: 14, md: 15 },
+                  textTransform: 'none',
+                  transition: 'background-color 0.15s ease',
+                }}
+              >
+                Se connecter
+              </Button>
+              <Button
+                fullWidth
+                variant="text"
+                component={Link}
+                href="/register"
+                onClick={closeProfileMenu}
+                sx={{
+                  py: { xs: 0.55, sm: 0.6, md: 0.7 },
+                  borderRadius: 1,
+                  fontWeight: 600,
+                  fontSize: { xs: 12.5, sm: 13, md: 14 },
+                  textTransform: 'none',
+                  color: 'primary.main',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  flexWrap: 'wrap',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                Pas encore de compte ?{' '}
+                <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+                  Créer
+                </Box>
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </Menu>
+
       <Drawer
         variant="temporary"
         open={mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true,
-        }}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
         sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
-            width: { xs: '85vw', sm: 400 },
-            border: 'none',
-          },
+          display: { xs: 'block', lg: 'none' },
+          '& .MuiDrawer-paper': { width: { xs: '85%', sm: 320, md: 375 }, maxWidth: 375, border: 'none' },
         }}
       >
         {drawer}
       </Drawer>
-    </StyledAppBar>
+    </>
   );
 }

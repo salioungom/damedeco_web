@@ -134,12 +134,10 @@ export function SessionGuard({ children, fallback }: GuardProps) {
       try {
         const refreshed = await refreshAccessToken();
         if (!refreshed) {
-          // Session revoked, logout handled by refreshAccessToken
-          return;
+          router.push('/login');
         }
-      } catch (error) {
-        console.error('Session check failed:', error);
-        router.push('/login');
+      } catch {
+        // Network error — do not redirect
       }
     };
 

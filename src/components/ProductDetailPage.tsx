@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Box,
   Container,
@@ -13,29 +14,55 @@ import {
   Stack,
   IconButton,
   CircularProgress,
+  Paper,
+  Breadcrumbs,
+  Skeleton,
+  Alert,
+  alpha,
 } from '@mui/material';
 import {
   ShoppingCart,
   Remove as Minus,
   Add as Plus,
-  ArrowBack as ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Inventory2 as Package,
   LocalShipping as Truck,
   Cached as RefreshCw,
-  WhatsApp as MessageCircle,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
+  Star as StarIcon,
+  NavigateNext,
+  VerifiedUser,
 } from '@mui/icons-material';
-import { Product } from '../types/product';
+import { Product, ProductStatus } from '../types/product';
 import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
-import { orderViaWhatsApp } from '../lib/whatsapp';
 import ProductCard from './ProductCard';
+import { PaymentIcons } from './PaymentIcons';
+import { tokens } from '@/theme/tokens';
+import { formatFcfa } from '@/lib/format';
+import { NAVBAR_HEIGHT } from './Navigation';
 
-// Configuration sécurisée depuis les variables d'environnement
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''; // Utiliser le proxy Next.js
+const C = {
+  primary: tokens.colors.brand.main,
+  dark:    tokens.colors.surfaces.inverse,
+  light:   tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border:  tokens.colors.border.light,
+  mid:     tokens.colors.brand.main,
+  muted:   tokens.colors.text.secondary,
+  text:    tokens.colors.text.primary,
+  paper:   tokens.colors.surfaces.paper,
+  gold:    tokens.colors.accent.main,
+  brandHover: tokens.colors.brand.hover,
+  statusError: tokens.colors.status.error,
+  statusSuccess: tokens.colors.status.success,
+  accentOnLight: tokens.colors.accent.onLight,
+} as const;
+
+const formatPrice = (amount: number) => formatFcfa(amount);
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface ProductDetailPageProps {
   product: Product;
@@ -45,7 +72,6 @@ interface ProductDetailPageProps {
   favorites: string[];
   onToggleFavorite: (productId: string) => void;
   onViewProduct: (product: Product) => void;
-  onAddReview?: (review: any) => void;
 }
 
 interface TabPanelProps {
@@ -54,44 +80,47 @@ interface TabPanelProps {
   value: number;
 }
 
-function CustomTabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
+function CustomTabPanel({ children, value, index, ...other }: TabPanelProps) {
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
+    <div role="tabpanel" hidden={value !== index} {...other}>
       {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
     </div>
   );
 }
 
+const navBtnSx = {
+  position: 'absolute' as const,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  bgcolor: alpha(C.paper, 0.95),
+  color: C.dark,
+  border: `1px solid ${C.border}`,
+  boxShadow: `0 4px 16px ${alpha(C.dark, 0.1)}`,
+  width: { xs: 44, sm: 50, md: 55 },
+  height: { xs: 44, sm: 50, md: 55 },
+  zIndex: 2,
+  '&:hover': { bgcolor: C.paper, transform: 'translateY(-50%) scale(1.05)' },
+};
+
 export function ProductDetailPage({
   product,
   onAddToCart,
-  onBack,
+  onBack: _onBack,
   userType,
   favorites,
   onToggleFavorite,
   onViewProduct,
-  onAddReview,
 }: ProductDetailPageProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [tabValue, setTabValue] = useState(0);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(true);
-  const [galleryImages, setGalleryImages] = useState<any[]>([]);
-  const [galleryStartIndex, setGalleryStartIndex] = useState(0);
+  const [galleryImages, setGalleryImages] = useState<{ image_url: string }[]>([]);
 
   const price = userType === 'wholesale' && product.wholesale_price ? product.wholesale_price : product.price;
   const originalPrice = product.compare_price || product.original_price;
 
-  // Fetch similar products
   useEffect(() => {
     let mounted = true;
     const fetchSimilar = async () => {
@@ -99,36 +128,28 @@ export function ProductDetailPage({
         setLoadingSimilar(true);
         const response = await productService.getProducts({
           category_id: product.category_id,
-          limit: 5
+          limit: 5,
         });
         if (mounted) {
-          // Gérer le nouveau format de retour { data, error }
           if (response.error) {
-            console.error('Error fetching similar products:', response.error);
             setSimilarProducts([]);
           } else {
             const items = response.data?.items || [];
-            setSimilarProducts(items.filter(p => p.id !== product.id).slice(0, 4));
+            setSimilarProducts(items.filter((p) => p.id !== product.id).slice(0, 4));
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch similar products", error);
+      } catch {
         if (mounted) setSimilarProducts([]);
       } finally {
         if (mounted) setLoadingSimilar(false);
       }
     };
 
-    if (product.category_id) {
-      fetchSimilar();
-    } else {
-      setLoadingSimilar(false);
-    }
-
+    if (product.category_id) fetchSimilar();
+    else setLoadingSimilar(false);
     return () => { mounted = false; };
   }, [product.category_id, product.id]);
 
-  // Fetch gallery images
   useEffect(() => {
     let mounted = true;
     const fetchGalleryImages = async () => {
@@ -136,783 +157,563 @@ export function ProductDetailPage({
         const response = await fetch(`${API_BASE_URL}/api/v1/products/${product.id}/images`);
         if (response.ok) {
           const galleryData = await response.json();
-          if (mounted) {
-            setGalleryImages(galleryData.items || []);
-          }
+          if (mounted) setGalleryImages(galleryData.images || []);
         }
-      } catch (error) {
-        console.error("Failed to fetch gallery images", error);
+      } catch {
+        /* galerie optionnelle */
       }
     };
-
-    if (product.id) {
-      fetchGalleryImages();
-    }
-
+    if (product.id) fetchGalleryImages();
     return () => { mounted = false; };
   }, [product.id]);
 
-  // Combiner les images de galerie avec l'image de couverture
-  const galleryImageUrls = (galleryImages || []).map(img => img.image_url).filter(url => url);
-  
-  // Fonction pour convertir les URLs relatives en URLs complètes
+  const galleryImageUrls = (galleryImages || []).map((img) => img.image_url).filter(Boolean);
+
   const getFullImageUrl = (url: string) => {
     if (!url) return '';
-    // Si l'URL est déjà complète (commence par http), la retourner telle quelle
     if (url.startsWith('http')) return url;
-    // Sinon, ajouter le domaine du backend depuis les variables d'environnement
-    return `${API_BASE_URL}/${url.startsWith('/') ? url.slice(1) : url}`;
-  };
-  
-  // Créer la liste complète des images (couverture + galerie)
-  const allImages = [
-    ...(product.cover_image_url ? [getFullImageUrl(product.cover_image_url)] : []),
-    ...galleryImageUrls.map(getFullImageUrl)
-  ];
-  
-  // Si aucune image, utiliser un placeholder
-  const displayImage = allImages[selectedImage] || `${API_BASE_URL}/placeholder-product.jpg`;
-
-  const handleWhatsAppOrder = () => {
-    orderViaWhatsApp(product.name, price, quantity, displayImage, product.id);
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    if (cleanPath.startsWith('/media/')) return `${API_BASE_URL}${cleanPath}`;
+    return `${API_BASE_URL}/media${cleanPath}`;
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
+  const allImages = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    const push = (raw?: string) => {
+      const full = getFullImageUrl(raw || '');
+      if (full && !seen.has(full)) {
+        seen.add(full);
+        list.push(full);
+      }
+    };
+    push(product.cover_image_url);
+    galleryImageUrls.forEach(push);
+    return list;
+  }, [product.cover_image_url, galleryImageUrls]);
+
+  const displayImage = allImages[selectedImage] || '/placeholder-image.jpg';
+  const productIdStr = String(product.id);
+  const isFavorite = favorites.includes(productIdStr);
+  const discountPercent =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : null;
+  const reviewCount = product.review_count ?? 0;
+
+  // ── DISPONIBILITÉ COMMERCIALE ─────────────────────────────────────────────
+  // Le stock ne pilote PLUS l'UX d'achat (gestion du stock différée) :
+  // un produit à 0 exemplaire reste sélectionnable, commandable et
+  // ajoutable au panier. Seul le statut commercial décide de l'achat.
+  //
+  // `status` absent ⇒ fail open (on n'interdit pas la vente) pour ne pas
+  // bloquer un produit dont le statut serait mal sérialisé par l'API.
+  const isActive = !product.status || product.status === ProductStatus.ACTIVE;
+  const canBuy = isActive;
+
+  // Information non bloquante uniquement : à 0 on n'affiche rien, sinon on
+  // afficherait « Plus que 0 exemplaire en stock », qui est un non-sens.
+  const isLowStock =
+    product.inventory_quantity > 0 && product.inventory_quantity <= 5;
 
   const handlePrevImage = () => {
-    setSelectedImage((prev) => {
-      const length = allImages.length || 1;
-      return prev === 0 ? length - 1 : prev - 1;
-    });
+    setSelectedImage((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
   };
 
   const handleNextImage = () => {
-    setSelectedImage((prev) => {
-      const length = allImages.length || 1;
-      return prev === length - 1 ? 0 : prev + 1;
-    });
+    setSelectedImage((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
   };
 
-  const handleThumbnailClick = (index: number) => {
-    setSelectedImage(index);
-  };
+  const trustPoints = [
+    { icon: VerifiedUser, text: 'Import direct depuis la Chine — qualité garantie' },
+    { icon: Truck, text: 'Livraison express Dakar & tout le Sénégal' },
+    { icon: RefreshCw, text: 'Retour possible sous 7 jours' },
+  ];
 
-  const handlePrevGallery = () => {
-    setGalleryStartIndex(prev => Math.max(0, prev - 1));
-  };
-
-  const handleNextGallery = () => {
-    const length = allImages.length || 0;
-    setGalleryStartIndex(prev => Math.min(length - 4, prev + 1));
-  };
-
-  // Calculer les images visibles dans la galerie (max 4)
-  const visibleGalleryImages = allImages.slice(galleryStartIndex, galleryStartIndex + 4);
+  const Thumbnail = ({ src, index }: { src: string; index: number }) => (
+    <Box
+      component="button"
+      type="button"
+      onClick={() => setSelectedImage(index)}
+      aria-label={`Image ${index + 1}`}
+      sx={{
+        width: '100%',
+        aspectRatio: '1',
+        borderRadius: '15px',
+        overflow: 'hidden',
+        border: selectedImage === index ? `2px solid ${C.primary}` : `1px solid ${C.border}`,
+        bgcolor: C.paper,
+        p: 0,
+        cursor: 'pointer',
+        opacity: selectedImage === index ? 1 : 0.75,
+        transition: 'all 0.2s ease',
+        boxShadow: selectedImage === index ? `0 4px 16px ${alpha(C.primary, 0.2)}` : 'none',
+        '&:hover': { opacity: 1, borderColor: C.primary },
+      }}
+    >
+      <ProductImage
+        src={src}
+        alt={`${product.name} ${index + 1}`}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+      />
+    </Box>
+  );
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'background.default' }}>
-      <Container maxWidth="xl">
-        <Button
-          startIcon={<ArrowLeft />}
-          onClick={onBack}
-          sx={{ mb: 4, color: 'text.secondary' }}
+    <Box sx={{ minHeight: '100vh', bgcolor: C.surface, pb: { xs: 5, sm: 6, md: 8, lg: 10 } }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 2.5, md: 3, lg: 4 } }}>
+        <Breadcrumbs
+          separator={<NavigateNext sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: C.muted }} />}
+          sx={{ mb: { xs: 2, sm: 2.5, md: 3, lg: 4 }, '& .MuiBreadcrumbs-li': { fontSize: { xs: 14, sm: 15, md: 16.25 } } }}
         >
-          Retour à la boutique
-        </Button>
+          <Link href="/" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Accueil</Link>
+          <Link href="/shop" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Boutique</Link>
+          {product.category_name && (
+            <Link
+              href={`/shop?category=${product.category_id}`}
+              style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}
+            >
+              {product.category_name}
+            </Link>
+          )}
+          <Typography sx={{ color: C.dark, fontWeight: 600, fontSize: { xs: 14, sm: 15, md: 16.25 } }} noWrap>
+            {product.name}
+          </Typography>
+        </Breadcrumbs>
 
-        {/* Main 2-Column Responsive Layout */}
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', lg: 'row' },
-            gap: 4,
-            alignItems: 'flex-start',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.15fr) minmax(340px, 0.85fr)' },
+            gap: { xs: 3, sm: 4, lg: 5 },
+            alignItems: 'start',
           }}
         >
-          {/* Left Column - Gallery (60%) */}
-          <Box sx={{ width: { xs: '100%', lg: '60%' }, display: 'block' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2 }}>
-              {/* Main Image Container */}
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  paddingTop: '65%', // Réduit de 75% à 65% pour un affichage plus compact
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  bgcolor: '#f8f9fa',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
-                    transform: 'scale(1.01)',
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <ProductImage
-                    src={displayImage}
-                    alt={product.name}
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'contain',
-                      objectPosition: 'center',
-                      transition: 'all 0.4s ease',
-                    }}
-                  />
-                </Box>
-
-                {/* Image Counter */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: 16,
-                    right: 16,
-                    bgcolor: 'rgba(0, 0, 0, 0.6)',
-                    color: 'white',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 2,
-                    fontSize: '0.8rem',
-                    fontWeight: 'medium',
-                  }}
-                >
-                  {selectedImage + 1}/{allImages.length || 1}
-                </Box>
-
-                {/* Navigation Arrows */}
-                {(allImages.length || 0) > 1 && (
-                  <>
-                    <IconButton
-                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); handlePrevImage(); }}
-                      sx={{
-                        position: 'absolute',
-                        left: 12,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        bgcolor: 'rgba(255,255,255,0.95)',
-                        color: 'text.primary',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                        '&:hover': { 
-                          bgcolor: 'white', 
-                          boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
-                          transform: 'translateY(-50%) scale(1.1)',
-                        },
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        zIndex: 2,
-                        width: 40,
-                        height: 40,
-                      }}
-                      size="medium"
-                    >
-                      <ChevronLeft sx={{ fontSize: 20 }} />
-                    </IconButton>
-                    <IconButton
-                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleNextImage(); }}
-                      sx={{
-                        position: 'absolute',
-                        right: 12,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        bgcolor: 'rgba(255,255,255,0.95)',
-                        color: 'text.primary',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                        '&:hover': { 
-                          bgcolor: 'white', 
-                          boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
-                          transform: 'translateY(-50%) scale(1.1)',
-                        },
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        zIndex: 2,
-                        width: 40,
-                        height: 40,
-                      }}
-                      size="medium"
-                    >
-                      <ChevronRight sx={{ fontSize: 20 }} />
-                    </IconButton>
-                  </>
-                )}
-
-                {/* Counter Overlay */}
-                {(allImages.length || 0) > 1 && (
-                  <Chip
-                    label={`${selectedImage + 1} / ${allImages.length || 1}`}
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      bottom: 20,
-                      right: 20,
-                      bgcolor: 'rgba(0,0,0,0.8)',
-                      color: 'white',
-                      fontWeight: 700,
-                      fontSize: '0.813rem',
-                      zIndex: 2,
-                      backdropFilter: 'blur(6px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        bgcolor: 'rgba(0,0,0,0.9)',
-                        transform: 'scale(1.05)',
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-
-              {/* Gallery Section */}
-              {(allImages.length || 0) > 1 && (
-                <Box sx={{ width: '100%' }}>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      mb: 2,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      fontSize: '0.875rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                    }}
-                  >
-                    <Box
-                      component="span"
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                      }}
-                    >
-                      <Box
-                        component="span"
-                        sx={{
-                          width: 4,
-                          height: 4,
-                          borderRadius: '50%',
-                          bgcolor: 'golden.main',
-                        }}
-                      />
-                      Galerie photos ({allImages.length || 0})
-                    </Box>
-                  </Typography>
-                  
-                  {/* Gallery Container with Navigation */}
-                  <Box sx={{ position: 'relative', width: '100%' }}>
-                    {/* Left Arrow */}
-                    {galleryStartIndex > 0 && (
-                      <IconButton
-                        onClick={handlePrevGallery}
-                        sx={{
-                          position: 'absolute',
-                          left: -12,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          bgcolor: 'rgba(255,255,255,0.95)',
-                          color: 'primary.main',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                          '&:hover': { 
-                            bgcolor: 'primary.main', 
-                            color: 'white',
-                          },
-                          transition: 'all 0.3s ease',
-                          zIndex: 2,
-                          width: 32,
-                          height: 32,
-                        }}
-                        size="small"
-                      >
-                        <ChevronLeft sx={{ fontSize: 18 }} />
-                      </IconButton>
-                    )}
-
-                    {/* Gallery Images Grid */}
-                    <Box
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: 1,
-                        width: '100%',
-                        mx: 'auto',
-                      }}
-                    >
-                      {visibleGalleryImages.map((image, index) => {
-                        const actualIndex = galleryStartIndex + index;
-                        return (
-                          <Box
-                            key={actualIndex}
-                            component="button"
-                            onClick={() => handleThumbnailClick(actualIndex)}
-                            sx={{
-                              width: '100%',
-                              aspectRatio: '1',
-                              position: 'relative',
-                              borderRadius: 2,
-                              overflow: 'hidden',
-                              border: selectedImage === actualIndex ? '2px solid' : 'none',
-                              borderColor: selectedImage === actualIndex ? 'primary.main' : 'transparent',
-                              cursor: 'pointer',
-                              transition: 'all 0.3s ease',
-                              bgcolor: 'background.paper',
-                              p: 0,
-                              m: 0,
-                              boxShadow: 'none',
-                              transform: 'scale(1)',
-                              '&:hover': {
-                                borderColor: 'primary.main',
-                                boxShadow: 'none',
-                                transform: 'scale(1)',
-                                bgcolor: 'rgba(25, 118, 210, 0.04)',
-                              },
-                              '&:focus-visible': {
-                                outline: '2px solid',
-                                outlineColor: 'primary.main',
-                                outlineOffset: 2,
-                              },
-                            }}
-                          >
-                            <ProductImage
-                              src={image}
-                              alt={`${product.name} ${actualIndex + 1}`}
-                              style={{ 
-                                width: '100%', 
-                                height: '100%', 
-                                objectFit: 'contain',
-                                objectPosition: 'center',
-                                transition: 'transform 0.3s ease',
-                              }}
-                            />
-                            {selectedImage === actualIndex && (
-                              <Box
-                                sx={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  bgcolor: 'rgba(25, 118, 210, 0.15)',
-                                  pointerEvents: 'none',
-                                }}
-                              />
-                            )}
-                          </Box>
-                        );
-                      })}
-                    </Box>
-
-                    {/* Right Arrow */}
-                    {galleryStartIndex + 4 < (allImages.length || 0) && (
-                      <IconButton
-                        onClick={handleNextGallery}
-                        sx={{
-                          position: 'absolute',
-                          right: -12,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          bgcolor: 'rgba(255,255,255,0.95)',
-                          color: 'primary.main',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                          '&:hover': { 
-                            bgcolor: 'primary.main', 
-                            color: 'white',
-                          },
-                          transition: 'all 0.3s ease',
-                          zIndex: 2,
-                          width: 32,
-                          height: 32,
-                        }}
-                        size="small"
-                      >
-                        <ChevronRight sx={{ fontSize: 18 }} />
-                      </IconButton>
-                    )}
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          </Box>
-
-          {/* Right Column - Product Info (40%) */}
-          <Box sx={{ width: { xs: '100%', lg: '40%' } }}>
-            <Stack spacing={3}>
-              {/* Badges */}
-              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                <Chip
-                  label="Populaire"
-                  size="small"
-                  sx={{
-                    bgcolor: '#FFF3CD',
-                    color: '#856404',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    px: 0.5,
-                  }}
-                />
-                <Chip
-                  label="2 pièces"
-                  size="small"
-                  sx={{
-                    bgcolor: '#E9ECEF',
-                    color: '#495057',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    px: 0.5,
-                  }}
-                />
-                {product.is_new && (
-                  <Chip
-                    label="Nouveau"
-                    size="small"
-                    color="primary"
-                    sx={{ fontWeight: 700, fontSize: '0.75rem', height: 24 }}
-                  />
-                )}
-                <IconButton
-                  onClick={() => onToggleFavorite(product.id)}
-                  sx={{
-                    color: favorites.includes(product.id.toString()) ? 'error.main' : 'action.active',
-                    '&:hover': {
-                      backgroundColor: 'action.hover',
-                    },
-                  }}
-                  size="small"
-                >
-                  {favorites.includes(product.id.toString()) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </IconButton>
-              </Stack>
-
-              {/* Title */}
-              <Typography
-                variant="h4"
-                component="h1"
-                sx={{
-                  fontSize: { xs: '1.75rem', md: '1.75rem' },
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  mb: 1,
-                }}
-              >
-                {product.name}
-              </Typography>
-
-              {/* Price Section */}
-              <Box>
-                <Stack direction="row" alignItems="baseline" spacing={2} flexWrap="wrap" mb={1.5}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      color: 'golden.main',
-                      fontWeight: 700,
-                      fontSize: { xs: '1.5rem', md: '1.625rem' },
-                    }}
-                  >
-                    {price.toLocaleString('fr-FR')} FCFA
-                  </Typography>
-
-                  {originalPrice && userType !== 'wholesale' && (
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: 'text.secondary',
-                        textDecoration: 'line-through',
-                        fontSize: '1.125rem',
-                      }}
-                    >
-                      {originalPrice.toLocaleString('fr-FR')} FCFA
-                    </Typography>
-                  )}
-                  {userType === 'wholesale' && (
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: 'text.secondary',
-                        textDecoration: 'line-through',
-                        fontSize: '1.125rem',
-                      }}
-                    >
-                      {product.price.toLocaleString('fr-FR')} FCFA
-                    </Typography>
-                  )}
-                </Stack>
-
-                {originalPrice && userType !== 'wholesale' && (
-                  <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
-                    <Chip
-                      label={`-${Math.round(((originalPrice - price) / originalPrice) * 100)}% DE RÉDUCTION`}
-                      sx={{
-                        bgcolor: 'error.main',
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        height: 26,
-                      }}
-                    />
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
-                      Économisez {(originalPrice - price).toLocaleString('fr-FR')} FCFA
-                    </Typography>
-                  </Stack>
-                )}
-
-                {userType === 'wholesale' && (
-                  <Chip
-                    label="Prix grossiste appliqué"
-                    color="secondary"
-                    size="small"
-                    sx={{ mt: 1 }}
-                  />
-                )}
-              </Box>
-
-              {/* Short Description */}
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{
-                  lineHeight: 1.6,
-                  fontSize: '0.938rem',
-                }}
-              >
-                {product.short_description || product.description}
-              </Typography>
-
-              <Divider />
-
-              {/* Quantity Selector */}
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    Quantité :
-                  </Typography>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <IconButton
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      size="small"
-                      sx={{
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        width: 32,
-                        height: 32,
-                      }}
-                    >
-                      <Minus fontSize="small" />
-                    </IconButton>
-                    <Typography
-                      sx={{
-                        minWidth: 40,
-                        textAlign: 'center',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                      }}
-                    >
-                      {quantity}
-                    </Typography>
-                    <IconButton
-                      onClick={() => setQuantity(quantity + 1)}
-                      disabled={quantity >= product.inventory_quantity}
-                      size="small"
-                      sx={{
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        width: 32,
-                        height: 32,
-                      }}
-                    >
-                      <Plus fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                    {product.inventory_quantity} en stock
-                  </Typography>
-                </Stack>
-              </Box>
-
-              {/* CTA Buttons */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<ShoppingCart />}
-                  onClick={() => onAddToCart(product, quantity)}
-                  disabled={product.inventory_quantity === 0}
-                  sx={{
-                    flex: 1,
-                    py: 1.5,
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    fontSize: '0.938rem',
-                  }}
-                >
-                  Ajouter au panier
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  color="success"
-                  startIcon={<MessageCircle />}
-                  onClick={handleWhatsAppOrder}
-                  sx={{
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    fontSize: '0.938rem',
-                    minWidth: { xs: '100%', sm: 140 },
-                    borderWidth: 2,
-                    '&:hover': {
-                      borderWidth: 2,
-                    },
-                  }}
-                >
-                  WhatsApp
-                </Button>
-              </Stack>
-
-              <Divider />
-
-              {/* Delivery Info */}
-              <Stack spacing={2}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Package sx={{ color: 'primary.main', fontSize: 24 }} />
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                    Import direct depuis la Chine – Qualité garantie
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Truck sx={{ color: 'primary.main', fontSize: 24 }} />
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                    Livraison à Dakar et dans toute la sous-région
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <RefreshCw sx={{ color: 'primary.main', fontSize: 24 }} />
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                    Retour possible sous 7 jours
-                  </Typography>
-                </Stack>
-              </Stack>
-
-              <Divider />
-
-              {/* Tabs Section */}
-              <Box sx={{ width: '100%' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                  <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    aria-label="product tabs"
-                    variant="scrollable"
-                    scrollButtons="auto"
-                    sx={{
-                      '& .MuiTab-root': {
-                        fontWeight: 600,
-                        fontSize: '0.938rem',
-                        textTransform: 'none',
-                      },
-                    }}
-                  >
-                    <Tab label="Description" />
-                    <Tab label="Avis (3)" />
-                    <Tab label="Livraison" />
-                    <Tab label="Paiement" />
-                  </Tabs>
-                </Box>
-
-                <CustomTabPanel value={tabValue} index={0}>
-                  <Typography paragraph sx={{ lineHeight: 1.7, fontSize: '0.938rem' }}>
-                    {product.description || product.short_description || 'Magnifiques rideaux occultants en tissu de haute qualité.'}
-                  </Typography>
-                  <Typography variant="subtitle1" gutterBottom fontWeight={700} sx={{ mt: 2, mb: 1.5 }}>
-                    Caractéristiques :
-                  </Typography>
-                  <Box component="ul" sx={{ pl: 3, '& li': { mb: 1 } }}>
-                    <li><Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.6 }}>Importé directement de Chine</Typography></li>
-                    <li><Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.6 }}>Qualité premium contrôlée</Typography></li>
-                    {product.pieces && <li><Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.6 }}>Ensemble de {product.pieces} pièces</Typography></li>}
-                    <li><Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.6 }}>Matériaux de haute qualité</Typography></li>
-                  </Box>
-                </CustomTabPanel>
-
-                <CustomTabPanel value={tabValue} index={1}>
-                  <Typography variant="body2" color="text.secondary">Les avis seront bientôt disponibles.</Typography>
-                </CustomTabPanel>
-
-                <CustomTabPanel value={tabValue} index={2}>
-                  <Stack spacing={2}>
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom fontWeight={600}>Livraison à Dakar</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>Livraison sous 2-3 jours ouvrables.</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom fontWeight={600}>Livraison en Gambie</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>Livraison sous 5-7 jours ouvrables.</Typography>
-                    </Box>
-                  </Stack>
-                </CustomTabPanel>
-
-                <CustomTabPanel value={tabValue} index={3}>
-                  <Stack spacing={2}>
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom fontWeight={600}>Mobile Money</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>Wave et Orange Money acceptés</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom fontWeight={600}>Paiement à la livraison</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>Payez en espèces à la réception</Typography>
-                    </Box>
-                  </Stack>
-                </CustomTabPanel>
-              </Box>
-            </Stack>
-          </Box>
-        </Box>
-
-        {/* Similar Products */}
-        {loadingSimilar ? (
-          <Box display="flex" justifyContent="center" my={8}><CircularProgress /></Box>
-        ) : Array.isArray(similarProducts) && similarProducts.length > 0 && (
-          <Box mt={8}>
-            <Divider sx={{ mb: 4 }} />
-            <Box mb={4}>
-              <Typography variant="h4" gutterBottom fontWeight={700}>Produits Similaires</Typography>
-              <Typography variant="body1" color="text.secondary">Découvrez d'autres produits de la même catégorie</Typography>
-            </Box>
+          {/* Galerie */}
+          <Box>
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' },
-                gap: 3,
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  md: allImages.length > 1 ? '72px 1fr' : '1fr',
+                },
+                gap: { xs: 1.5, sm: 2 },
               }}
             >
-              {Array.isArray(similarProducts) && similarProducts.map((similarProduct) => (
-                <div key={similarProduct.id}>
-                  <ProductCard
-                    product={similarProduct}
-                    onAddToCart={(p) => onAddToCart(p, 1)}
-                    onViewDetails={onViewProduct}
-                    userType={userType}
-                    isFavorite={favorites.includes(similarProduct.id.toString())}
-                    onToggleFavorite={onToggleFavorite}
+              {allImages.length > 1 && (
+                <Stack
+                  spacing={{ xs: 0.75, sm: 1 }}
+                  sx={{
+                    display: { xs: 'none', md: 'flex' },
+                    maxHeight: { md: 650, lg: 700 },
+                    overflowY: 'auto',
+                    pr: 0.5,
+                  }}
+                >
+                  {allImages.map((img, index) => (
+                    <Thumbnail key={img} src={img} index={index} />
+                  ))}
+                </Stack>
+              )}
+
+              <Paper
+                elevation={0}
+                sx={{
+                  position: 'relative',
+                  borderRadius: { xs: '20px', sm: '22px', md: '25px' },
+                  overflow: 'hidden',
+                  bgcolor: C.paper,
+                  border: `1px solid ${C.border}`,
+                  aspectRatio: { xs: '1', sm: '4/5', md: '1' },
+                  maxHeight: { md: 650, lg: 700 },
+                  boxShadow: `0 16px 48px ${alpha(C.dark, 0.08)}`,
+                }}
+              >
+                <ProductImage
+                  src={displayImage}
+                  alt={product.name}
+                  priority
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                  }}
+                />
+
+                {allImages.length > 1 && (
+                  <>
+                    <IconButton onClick={handlePrevImage} sx={{ ...navBtnSx, left: 14 }} size="small">
+                      <ChevronLeft />
+                    </IconButton>
+                    <IconButton onClick={handleNextImage} sx={{ ...navBtnSx, right: 14 }} size="small">
+                      <ChevronRight />
+                    </IconButton>
+                    <Chip
+                      label={`${selectedImage + 1} / ${allImages.length}`}
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        bottom: { xs: 12, sm: 14, md: 16 },
+                        right: { xs: 12, sm: 14, md: 16 },
+                        bgcolor: alpha(C.dark, 0.75),
+                        color: C.paper,
+                        fontWeight: 700,
+                        fontSize: { xs: 13, sm: 14, md: 15 },
+                        backdropFilter: 'blur(8px)',
+                      }}
+                    />
+                  </>
+                )}
+
+                </Paper>
+            </Box>
+
+            {allImages.length > 1 && (
+              <Box
+                sx={{
+                  display: { xs: 'grid', md: 'none' },
+                  gridTemplateColumns: `repeat(${Math.min(allImages.length, 5)}, 1fr)`,
+                  gap: { xs: 0.75, sm: 1 },
+                  mt: { xs: 1.5, sm: 2 },
+                }}
+              >
+                {allImages.map((img, index) => (
+                  <Thumbnail key={`m-${img}`} src={img} index={index} />
+                ))}
+              </Box>
+            )}
+          </Box>
+
+          {/* Panneau achat */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, sm: 3, md: 3.5 },
+              borderRadius: { xs: '20px', sm: '22px', md: '25px' },
+              border: `1px solid ${C.border}`,
+              bgcolor: C.paper,
+              position: { lg: 'sticky' },
+              top: { lg: 96 },
+              boxShadow: `0 12px 40px ${alpha(C.dark, 0.06)}`,
+            }}
+          >
+            <Stack direction="row" gap={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: { xs: 1.5, sm: 2 } }}>
+              {(product.popular || product.is_featured) && (
+                <Chip
+                  label="Populaire"
+                  size="small"
+                  sx={{ bgcolor: alpha(C.gold, 0.15), color: C.accentOnLight, fontWeight: 700, fontSize: { xs: 11.5, sm: 12.5, md: 13.75 } }}
+                />
+              )}
+              {product.is_new && (
+                <Chip label="Nouveau" size="small" sx={{ bgcolor: C.light, color: C.primary, fontWeight: 700, fontSize: { xs: 11.5, sm: 12.5, md: 13.75 } }} />
+              )}
+              {product.pieces != null && product.pieces > 0 && (
+                <Chip
+                  label={`${product.pieces} pièce${product.pieces > 1 ? 's' : ''}`}
+                  size="small"
+                  sx={{ bgcolor: C.surface, color: C.muted, fontWeight: 600, fontSize: { xs: 11.5, sm: 12.5, md: 13.75 } }}
+                />
+              )}
+              {product.category_name && (
+                <Chip
+                  label={product.category_name}
+                  size="small"
+                  component={Link}
+                  href={`/shop?category=${product.category_id}`}
+                  clickable
+                  sx={{ bgcolor: C.surface, color: C.primary, fontWeight: 600, fontSize: { xs: 11.5, sm: 12.5, md: 13.75 } }}
+                />
+              )}
+              <Box sx={{ flex: 1 }} />
+              <IconButton
+                onClick={() => onToggleFavorite(productIdStr)}
+                aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                sx={{
+                  border: `1px solid ${C.primary}`,
+                  borderRadius: '50%',
+                  width: { xs: 36, sm: 45 },
+                  height: { xs: 36, sm: 45 },
+                  color: isFavorite ? C.statusError : C.paper,
+                  bgcolor: C.primary,
+                  boxShadow: `0 2px 8px ${alpha(C.primary, 0.25)}`,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: C.brandHover,
+                    boxShadow: `0 4px 12px ${alpha(C.brandHover, 0.35)}`,
+                    transform: 'scale(1.1)',
+                  },
+                }}
+              >
+                {isFavorite ? <FavoriteIcon sx={{ fontSize: { xs: 17, sm: 22.5 } }} /> : <FavoriteBorderIcon sx={{ fontSize: { xs: 17, sm: 22.5 } }} />}
+              </IconButton>
+            </Stack>
+
+            <Typography
+              component="h1"
+              sx={{
+                fontSize: { xs: '1.25rem', sm: '1.4rem', md: '1.5rem', lg: '1.75rem' },
+                fontWeight: 800,
+                color: C.dark,
+                letterSpacing: '-0.03em',
+                lineHeight: { xs: 1.25, md: 1.2 },
+                mb: { xs: 1.5, sm: 1.75, md: 2 },
+              }}
+            >
+              {product.name}
+            </Typography>
+
+            {product.average_rating && Number(product.average_rating) > 0 && (
+              <Stack direction="row" spacing={{ xs: 0.5, sm: 0.75 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2 } }}>
+                <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: C.gold }} />
+                <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, sm: 16, md: 17.5 }, color: C.dark }}>
+                  {Number(product.average_rating).toFixed(1)}
+                </Typography>
+                {reviewCount > 0 && (
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.muted }}>({reviewCount} avis)</Typography>
+                )}
+              </Stack>
+            )}
+
+            <Box sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                <Typography sx={{ fontSize: { xs: '1.5rem', sm: '1.65rem', md: '1.75rem', lg: '2rem' }, fontWeight: 800, color: C.dark, letterSpacing: '-0.02em' }}>
+                  {formatPrice(price)}
+                </Typography>
+                {originalPrice && originalPrice > price && (
+                  <Typography sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: C.muted, textDecoration: 'line-through' }}>
+                    {formatPrice(originalPrice)}
+                  </Typography>
+                )}
+              </Stack>
+
+              {discountPercent != null && userType !== 'wholesale' && (
+                <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', mt: { xs: 1, sm: 1.25 } }}>
+                  <Chip
+                    label={`-${discountPercent}%`}
+                    size="small"
+                    sx={{ bgcolor: alpha(C.statusError, 0.08), color: C.statusError, fontWeight: 800, fontSize: { xs: 13, sm: 14, md: 15 } }}
                   />
-                </div>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.statusSuccess, fontWeight: 600 }}>
+                    Économisez {formatPrice(originalPrice! - price)}
+                  </Typography>
+                </Stack>
+              )}
+
+              {userType === 'wholesale' && (
+                <Chip
+                  label="Prix grossiste appliqué"
+                  size="small"
+                  sx={{ mt: { xs: 1, sm: 1.25 }, bgcolor: C.light, color: C.primary, fontWeight: 700, fontSize: { xs: 12, sm: 13, md: 14 } }}
+                />
+              )}
+            </Box>
+
+            {(product.short_description || product.description) && (
+              <Typography sx={{ fontSize: { xs: 15, sm: 16, md: 17.5 }, color: C.text, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 } }}>
+                {product.short_description || product.description}
+              </Typography>
+            )}
+
+            <Divider sx={{ borderColor: C.border, mb: { xs: 2, sm: 2.5, md: 3 } }} />
+
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: { xs: 2, sm: 2.5, md: 3 } }}>
+              <Typography sx={{ fontSize: { xs: 15, sm: 16, md: 17.5 }, fontWeight: 700, color: C.dark }}>Quantité</Typography>
+              <Stack direction="row" spacing={{ xs: 0.25, sm: 0.5 }} sx={{ alignItems: 'center' }}>
+                <IconButton
+                  aria-label="Diminuer la quantité"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={!canBuy || quantity <= 1}
+                  size="small"
+                  sx={{ border: `1px solid ${C.border}`, borderRadius: { xs: '10px', sm: '11px', md: '12.5px' }, width: { xs: 38, sm: 42, md: 45 }, height: { xs: 38, sm: 42, md: 45 } }}
+                >
+                  <Minus fontSize="small" sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
+                </IconButton>
+                <Typography sx={{ minWidth: { xs: 45, sm: 50, md: 55 }, textAlign: 'center', fontWeight: 800, fontSize: { xs: 17, sm: 18.5, md: 20 } }}>
+                  {quantity}
+                </Typography>
+                <IconButton
+                  aria-label="Augmenter la quantité"
+                  onClick={() => setQuantity(quantity + 1)}
+                  disabled={!canBuy}
+                  size="small"
+                  sx={{ border: `1px solid ${C.border}`, borderRadius: { xs: '10px', sm: '11px', md: '12.5px' }, width: { xs: 38, sm: 42, md: 45 }, height: { xs: 38, sm: 42, md: 45 } }}
+                >
+                  <Plus fontSize="small" sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
+                </IconButton>
+              </Stack>
+            </Stack>
+
+            {!canBuy ? (
+              <Alert severity="warning" variant="outlined" sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+                Produit indisponible à la vente.
+              </Alert>
+            ) : isLowStock ? (
+              <Alert severity="info" variant="outlined" sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+                {`Plus que ${product.inventory_quantity} ${product.inventory_quantity > 1 ? 'exemplaires' : 'exemplaire'} en stock.`}
+              </Alert>
+            ) : null}
+
+            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                startIcon={<ShoppingCart sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
+                onClick={() => onAddToCart(product, quantity)}
+                disabled={!canBuy}
+                sx={{
+                  py: { xs: 1.25, sm: 1.4, md: 1.5 },
+                  borderRadius: { xs: '12px', sm: '13px', md: '15px' },
+                  fontWeight: 800,
+                  fontSize: { xs: 15.5, sm: 17, md: 18.75 },
+                  textTransform: 'none',
+                  bgcolor: C.primary,
+                  boxShadow: `0 8px 24px ${alpha(C.primary, 0.35)}`,
+                  '&:hover': { bgcolor: C.dark },
+                }}
+              >
+                {canBuy ? 'Ajouter au panier' : 'Indisponible'}
+              </Button>
+            </Stack>
+
+            <Stack spacing={{ xs: 1, sm: 1.5, md: 1.75 }}>
+              {trustPoints.map(({ icon: Icon, text }) => (
+                <Stack key={text} direction="row" spacing={{ xs: 0.75, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'flex-start' }}>
+                  <Box
+                    sx={{
+                      width: { xs: 34, sm: 42, md: 45 },
+                      height: { xs: 34, sm: 42, md: 45 },
+                      borderRadius: { xs: '9px', sm: '11px', md: '12.5px' },
+                      bgcolor: C.light,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon sx={{ fontSize: { xs: 17, sm: 20, md: 22.5 }, color: C.primary }} />
+                  </Box>
+                  <Typography sx={{ fontSize: { xs: 13.5, sm: 15, md: 16.25 }, color: C.text, lineHeight: { xs: 1.35, sm: 1.45, md: 1.5 }, pt: { xs: 0.25, sm: 0.35, md: 0.5 } }}>{text}</Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Paper>
+        </Box>
+
+        {/* Détails */}
+        <Paper
+          elevation={0}
+          sx={{
+            mt: { xs: 4, sm: 5, md: 7 },
+            borderRadius: { xs: '20px', sm: '22px', md: '25px' },
+            border: `1px solid ${C.border}`,
+            bgcolor: C.paper,
+            overflow: 'hidden',
+          }}
+        >
+          <Tabs
+            value={tabValue}
+            onChange={(_: React.SyntheticEvent, v: number) => setTabValue(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              px: { xs: 1, sm: 1.5, md: 2 },
+              borderBottom: `1px solid ${C.border}`,
+              minHeight: { xs: 55, sm: 60, md: 65 },
+              '& .MuiTab-root': {
+                fontWeight: 700,
+                fontSize: { xs: 14, sm: 15.5, md: 17.5 },
+                textTransform: 'none',
+                color: C.muted,
+                minHeight: { xs: 55, sm: 60, md: 65 },
+                '&.Mui-selected': { color: C.primary },
+              },
+              '& .MuiTabs-indicator': { height: { xs: 3, sm: 3.5, md: 3.75 }, borderRadius: '3.75px 3.75px 0 0', bgcolor: C.primary },
+            }}
+          >
+            <Tab label="Description" />
+            <Tab label="Livraison" />
+            <Tab label="Paiement" />
+          </Tabs>
+
+          <Box sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
+            <CustomTabPanel value={tabValue} index={0}>
+              <Typography sx={{ fontSize: { xs: 15, sm: 16.5, md: 18.75 }, color: C.text, lineHeight: { xs: 1.6, sm: 1.7, md: 1.8 }, mb: { xs: 2, sm: 2.5, md: 3 } }}>
+                {product.description || product.short_description || 'Description à venir.'}
+              </Typography>
+              <Typography sx={{ fontSize: { xs: 15.5, sm: 16.5, md: 17.5 }, fontWeight: 800, color: C.dark, mb: { xs: 1, sm: 1.25, md: 1.5 } }}>Caractéristiques</Typography>
+              <Box component="ul" sx={{ pl: { xs: 2, sm: 2.25, md: 2.5 }, m: 0, '& li': { mb: { xs: 0.75, sm: 1 } } }}>
+                <Typography component="li" sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text }}>Importé directement de Chine</Typography>
+                <Typography component="li" sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text }}>Qualité premium contrôlée</Typography>
+                {product.pieces != null && product.pieces > 0 && (
+                  <Typography component="li" sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text }}>
+                    Ensemble de {product.pieces} pièce{product.pieces > 1 ? 's' : ''}
+                  </Typography>
+                )}
+                {product.sku && (
+                  <Typography component="li" sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text }}>Réf. {product.sku}</Typography>
+                )}
+              </Box>
+            </CustomTabPanel>
+
+            <CustomTabPanel value={tabValue} index={1}>
+              <Stack spacing={{ xs: 2, sm: 2.25, md: 2.5 }}>
+                <Box>
+                  <Typography sx={{ fontWeight: 700, color: C.dark, mb: { xs: 0.35, sm: 0.4, md: 0.5 }, fontSize: { xs: 14.5, sm: 15.5, md: 17.5 } }}>Dakar & banlieue</Typography>
+                  <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text }}>Livraison express sous 24–48h ouvrées.</Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 700, color: C.dark, mb: { xs: 0.35, sm: 0.4, md: 0.5 }, fontSize: { xs: 14.5, sm: 15.5, md: 17.5 } }}>Reste du Sénégal</Typography>
+                  <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text }}>Expédition sous 3–5 jours ouvrés avec suivi.</Typography>
+                </Box>
+              </Stack>
+            </CustomTabPanel>
+
+            <CustomTabPanel value={tabValue} index={2}>
+              <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text, mb: { xs: 1.5, sm: 1.75, md: 2 } }}>
+                Paiement sécurisé — Wave, Orange Money ou paiement à la livraison.
+              </Typography>
+              <PaymentIcons size="md" showLabels />
+            </CustomTabPanel>
+          </Box>
+        </Paper>
+
+        {/* Similaires */}
+        <Box sx={{ mt: { xs: 5, sm: 6, md: 7, lg: 9 } }}>
+          <Box sx={{ mb: { xs: 3, sm: 3.5, md: 4 } }}>
+            <Typography sx={{ fontSize: { xs: 12, sm: 12.5, md: 13.75 }, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.primary, mb: { xs: 0.75, sm: 1 } }}>
+              Vous aimerez aussi
+            </Typography>
+            <Typography component="h2" sx={{ fontSize: { xs: '1.35rem', sm: '1.45rem', md: '1.5rem', lg: '1.85rem' }, fontWeight: 800, color: C.dark, letterSpacing: '-0.03em' }}>
+              Produits similaires
+            </Typography>
+          </Box>
+
+          {loadingSimilar ? (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} variant="rounded" height={{ xs: 350, sm: 400, md: 450 }} sx={{ borderRadius: { xs: '15px', sm: '16px', md: '17.5px' } }} />
               ))}
             </Box>
-          </Box>
-        )}
+          ) : similarProducts.length > 0 ? (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
+              {similarProducts.map((similarProduct) => (
+                <ProductCard
+                  key={similarProduct.id}
+                  product={similarProduct}
+                  onAddToCart={(p) => onAddToCart(p, 1)}
+                  onViewDetails={onViewProduct}
+                  userType={userType}
+                  isFavorite={favorites.includes(String(similarProduct.id))}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              ))}
+            </Box>
+          ) : null}
+        </Box>
       </Container>
     </Box>
   );

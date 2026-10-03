@@ -74,12 +74,23 @@ export class ApiErrorHandler {
       return apiError;
     }
 
+    // Non-Axios errors: extract .status / .code if present
+    // (api.ts interceptor adds them on the structured Error it rethrows).
+    const maybeStatus = (error as any)?.status;
+    const maybeCode = (error as any)?.code;
+    const is4xx = typeof maybeStatus === 'number' && maybeStatus >= 400 && maybeStatus < 500;
+    const is5xx = typeof maybeStatus === 'number' && maybeStatus >= 500;
+    const code = typeof maybeCode === 'string' ? maybeCode : undefined;
+
     return {
       message,
-      isNetworkError: false,
-      isTimeout: false,
-      isServerError: false,
-      isClientError: false,
+      status: maybeStatus,
+      code,
+      isNetworkError:
+        code === 'ERR_NETWORK' || code === 'NETWORK_ERROR' || code === 'ECONNABORTED',
+      isTimeout: code === 'ECONNABORTED',
+      isServerError: is5xx,
+      isClientError: is4xx,
     };
   }
 
@@ -98,7 +109,48 @@ export class ApiErrorHandler {
     if (this.isAxiosError(error)) {
       return error.response?.status === 401 || error.response?.status === 403;
     }
-    return false;
+    // api.ts interceptor adds .status to plain Error objects
+    const s = (error as any)?.status;
+    return s === 401 || s === 403;
+  }
+
+  /**
+   * Message d'erreur dédié au parcours commande & paiement.
+   * - 403 / 404 → messages distincts imposés par l'UI.
+   * - timeout / réseau → « résultat inconnu » : on invite à vérifier le statut
+   *   réel de la commande côté backend avant de relancer. Aucune retentative
+   *   automatique d'un paiement n'est effectuée.
+   *
+   * @param phase 'load' (lecture commande) | 'create' | 'pay' | 'check' (vérification).
+   */
+  static getOrderError(error: unknown, phase: 'load' | 'create' | 'pay' | 'check' = 'check'): string {
+    const classified = this.classifyError(error);
+
+    if (classified.status === 403) {
+      return "Vous n'avez pas accès à cette commande.";
+    }
+    if (classified.status === 404) {
+      return 'Commande introuvable.';
+    }
+
+    if (classified.isTimeout || classified.isNetworkError) {
+      switch (phase) {
+        case 'pay':
+          return 'La demande de paiement est restée sans réponse : le résultat est inconnu. '
+            + 'Vérifiez le statut de votre commande dans vos commandes avant de retenter.';
+        case 'create':
+          return 'La création de commande est restée sans réponse : vérifiez dans vos commandes '
+            + "si elle a bien été enregistrée avant de réessayer.";
+        case 'load':
+          return "Impossible de charger la commande : le serveur n'a pas répondu. "
+            + 'Vérifiez votre connexion puis réessayez.';
+        default:
+          return 'La vérification est restée sans réponse : le résultat du paiement est inconnu. '
+            + 'Vérifiez le statut de votre commande dans vos commandes.';
+      }
+    }
+
+    return classified.message || 'Une erreur est survenue. Veuillez réessayer.';
   }
 }
 
@@ -143,18 +195,7 @@ export async function safeApiCall<T>(
     apiError.message = customErrorHandler(lastError);
   }
 
-  // Handle auth errors automatically
-  if (ApiErrorHandler.isAuthError(lastError)) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('accessToken');
-      // Redirect to login page (but avoid infinite redirects)
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
-    }
-  }
-
+  // Auth errors are returned to callers — they decide how to handle navigation/tokens
   return { data: null, error: apiError };
 }
 

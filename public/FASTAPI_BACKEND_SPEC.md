@@ -4,7 +4,7 @@ Ce document décrit l’ensemble des **tables (BDD)** et des **API** nécessaire
 
 Le front est un e-commerce avec:
 - Catalogue produits + catégories
-- Panier local (Zustand) + checkout (Wave/PayPal/COD + livraison/retrait)
+- Panier local (Zustand) + checkout (Wave/COD + livraison/retrait)
 - Avis produits
 - Espace compte (profil + historique commandes)
 - Espace admin (produits/commandes/clients/avis)
@@ -89,7 +89,7 @@ Permet de gérer refresh token + révocation (aligné avec le code existant côt
 - `customer_phone` (nullable)
 - `status` (enum: `pending`, `processing`, `shipped`, `delivered`, `cancelled`)
 - `source` (enum: `website`, `whatsapp`)
-- `payment_method` (enum: `wave`, `paypal`, `cod`)
+- `payment_method` (enum: `wave`, `cod`)
 - `payment_status` (enum: `unpaid`, `paid`, `refunded`, `failed`)
 - `currency` (ex: `XOF`)
 - `subtotal_amount`
@@ -325,6 +325,6 @@ Admin:
 ## 4) Questions à valider (pour figer le schéma)
 
 1) Commande invitée: autorisée ou compte obligatoire ?
-2) Paiement: intégration réelle (Wave/PayPal + webhooks) ou enregistrement simple ?
+2) Paiement: intégration réelle (Wave + webhooks) ou enregistrement simple ?
 3) Stockage images: S3/Cloudinary/local ?
 4) Commandes WhatsApp: enregistrer en DB via un endpoint dédié ou saisie manuelle admin ?

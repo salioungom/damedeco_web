@@ -33,14 +33,14 @@ export function AddressCard({ address, onSetDefault, onEdit, onDelete }: Address
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <LocationOn sx={{ color: 'primary.main', fontSize: 20 }} />
+            <LocationOn sx={{ color: 'primary.main', fontSize: 25 }} />
             <Typography variant="h6" fontWeight={700}>
               {address.address_type === 'billing' ? 'Adresse de facturation' : 'Adresse de livraison'}
             </Typography>
           </Box>
           {address.is_default && (
             <Chip
-              icon={<Star sx={{ fontSize: 16 }} />}
+              icon={<Star sx={{ fontSize: 20 }} />}
               label="Par défaut"
               size="small"
               color="primary"
@@ -88,7 +88,7 @@ export function AddressCard({ address, onSetDefault, onEdit, onDelete }: Address
           <Button
             size="small"
             variant="outlined"
-            startIcon={<Edit sx={{ fontSize: 16 }} />}
+            startIcon={<Edit sx={{ fontSize: 20 }} />}
             onClick={() => onEdit(address)}
             sx={{ borderRadius: 1, textTransform: 'none' }}
           >
@@ -100,7 +100,7 @@ export function AddressCard({ address, onSetDefault, onEdit, onDelete }: Address
               onClick={() => onDelete(address.id)}
               sx={{ color: 'error.main' }}
             >
-              <Delete sx={{ fontSize: 18 }} />
+              <Delete sx={{ fontSize: 22.5 }} />
             </IconButton>
           )}
         </Box>

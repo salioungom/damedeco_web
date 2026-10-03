@@ -14,10 +14,6 @@ export default function ShippingZonesList() {
   const [showForm, setShowForm] = useState(false);
   const [editingZone, setEditingZone] = useState<ShippingZone | null>(null);
 
-  useEffect(() => {
-    loadZones();
-  }, []);
-
   const loadZones = async () => {
     setLoading(true);
     setError(null);
@@ -31,6 +27,10 @@ export default function ShippingZonesList() {
     
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadZones();
+  }, []);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette zone ?')) return;

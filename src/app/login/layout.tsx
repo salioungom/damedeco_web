@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Connexion - Dame Sarr',
-    description: 'Connectez-vous à votre compte Dame Sarr',
+    title: 'Connexion - DameDéco',
+    description: 'Connectez-vous à votre compte DameDéco',
 };
 
 export default function AuthLayout({

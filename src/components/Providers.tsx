@@ -2,47 +2,79 @@
 
 import { SnackbarProvider } from 'notistack';
 import { Box } from '@mui/material';
-import { Navigation } from './Navigation';
+import { Navigation, NAVBAR_HEIGHT } from './Navigation';
 import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
+import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from 'sonner';
 import { useStore } from '@/store/useStore';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-
 import { usePathname } from 'next/navigation';
+import { cartLog } from '@/lib/cart-logger';
 
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
 function CartInitializer() {
-  const { loadCart, syncCartWithAPI } = useStore();
+  const loadCart = useStore((s) => s.loadCart);
+  const initGuestSession = useStore((s) => s.initGuestSession);
+  const flushOfflineQueue = useStore((s) => s.flushOfflineQueue);
+  const { loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // Initialiser le panier au chargement de l'application
-    loadCart();
-    
-    // Synchroniser périodiquement le panier (toutes les 30 secondes)
-    const interval = setInterval(() => {
-      syncCartWithAPI();
-    }, 30000);
+    if (authLoading) return;
 
-    return () => clearInterval(interval);
-  }, [loadCart, syncCartWithAPI]);
+    const init = async () => {
+      await initGuestSession();
+      await loadCart();
+    };
+    init();
+
+    // ─── Sync on window focus ─────────────────────────────────────────
+    const onFocus = () => {
+      cartLog('Window focused — syncing cart');
+      loadCart(true);
+    };
+
+    // ─── Sync on back online ──────────────────────────────────────────
+    const onOnline = () => {
+      cartLog('Network restored — flushing offline queue');
+      flushOfflineQueue();
+    };
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onOnline);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onOnline);
+    };
+  }, [authLoading, loadCart, initGuestSession, flushOfflineQueue]);
 
   return null;
 }
 
 function FavoritesInitializer() {
-  const { loadFavorites, setUser } = useStore();
+  const setUser = useStore((s) => s.setUser);
+  const loadFavorites = useStore((s) => s.loadFavorites);
+  const storeUser = useStore((s) => s.user);
   const { user, isAuthenticated } = useAuth();
+  const syncedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Synchroniser l'utilisateur du store avec AuthContext
-    if (isAuthenticated && user) {
-      // Mapper le User d'AuthContext vers le User du store
-      const storeUser = {
+    if (!isAuthenticated || !user) {
+      if (storeUser) setUser(null);
+      syncedUserIdRef.current = null;
+      return;
+    }
+
+    if (syncedUserIdRef.current === user.id) return;
+    syncedUserIdRef.current = user.id;
+
+    if (storeUser?.id !== user.id) {
+      setUser({
         id: user.id,
         name: user.full_name,
         email: user.email || '',
@@ -50,21 +82,17 @@ function FavoritesInitializer() {
         type: 'retail' as const,
         avatar: user.avatar,
         phone: user.phone,
-      };
-      setUser(storeUser);
-      // Charger les favoris quand l'utilisateur est connecté
-      loadFavorites();
-    } else if (!isAuthenticated) {
-      setUser(null);
+      });
     }
-  }, [isAuthenticated, user, loadFavorites, setUser]);
+
+    loadFavorites();
+  }, [isAuthenticated, user, setUser, loadFavorites, storeUser]);
 
   return null;
 }
 
 export function Providers({ children }: ProvidersProps) {
   const pathname = usePathname();
-  const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/register');
 
   return (
     <SnackbarProvider
@@ -83,7 +111,8 @@ export function Providers({ children }: ProvidersProps) {
           overflowX: 'hidden',
         }}
       >
-        {!isAuthPage && <Navigation />}
+        <Navigation />
+
         <Box
           component="main"
           sx={{
@@ -91,16 +120,21 @@ export function Providers({ children }: ProvidersProps) {
             width: '100%',
             maxWidth: '100%',
             mx: 'auto',
-            pt: isAuthPage ? 0 : { xs: 8, md: 9 }, // Compensation pour header fixe
+            pt: {
+              xs: `${NAVBAR_HEIGHT.xs}px`,
+              sm: `${NAVBAR_HEIGHT.sm}px`,
+              md: `${NAVBAR_HEIGHT.md}px`,
+            },
           }}
         >
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </Box>
-        {!isAuthPage && <Footer />}
+        <Footer />
         <CartDrawer />
         <Toaster />
       </Box>
     </SnackbarProvider>
   );
 }
-

@@ -1,4 +1,4 @@
-# Dame Sarr E-Commerce
+# DameDéco E-Commerce
 
 Site e-commerce moderne développé avec **Next.js**, **React 19** et **Material-UI** pour la vente de produits d'import depuis la Chine.
 
@@ -237,7 +237,7 @@ interface Review {
 ### Intégration WhatsApp
 
 #### Configuration
-**Numéro** : +221 78 595 06 01 (Dame Sarr Import & Commerce)
+**Numéro** : +221 77 133 36 58 (DameDéco)
 
 #### Fonctionnalités
 - Bouton WhatsApp sur chaque produit
@@ -257,8 +257,8 @@ interface Review {
 Éditer `src/lib/whatsapp.ts` :
 ```typescript
 export const WHATSAPP_CONFIG = {
-  phoneNumber: '221785950601', // Format: code pays + numéro
-  businessName: 'Dame Sarr Import & Commerce',
+  phoneNumber: '22177133658', // Format: code pays + numéro
+  businessName: 'DameDéco',
 };
 ```
 
@@ -398,12 +398,11 @@ pnpm lint            # ESLint avec --max-warnings=0
 ## 📞 Support
 
 Pour toute question :
-- **WhatsApp Business** : +221 78 595 06 01
-- **Contact** : Dame Sarr Import & Commerce
-
+- **WhatsApp Business** : +221 77 133 36 58
+- **Contact** : DameDéco
 ---
 
 **Version** : 2.0  
 **Date** : Décembre 2024  
 **Framework** : Next.js 16 + React 19 + Material-UI v7  
-**Développé avec** : ❤️ pour Dame Sarr E-Commerce
+**Développé avec** : ❤️ pour DameDéco E-Commerce

@@ -1,36 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
-  Container,
   Grid,
   Typography,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
+  Paper,
   Tabs,
   Tab,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Chip,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogActions,
-  Select,
-  MenuItem,
-  IconButton,
   Stack,
-  useTheme,
   alpha,
   CircularProgress,
-  Skeleton,
+  Alert,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  TablePagination,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Dashboard as LayoutDashboard,
@@ -38,124 +35,122 @@ import {
   ShoppingCart,
   People as Users,
   Settings,
-  TrendingUp,
   AttachMoney as DollarSign,
-  Visibility as Eye,
-  Chat,
+  Receipt as ReceiptIcon,
+  Payments as PaidIcon,
   Category,
-  ArrowUpward,
-  Star
+  AdminPanelSettings,
+  Search as SearchIcon,
+  Visibility,
 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 import { Product } from '@/lib/types';
 import { productService } from '@/services/product.service';
+import { DashboardService } from '@/services/dashboard.service';
+import type { DashboardOverview, RecentOrderItem } from '@/services/dashboard.service';
+import { api, getAdminOrders } from '@/lib/api';
+import { formatFcfa } from '@/lib/format';
+import { computePaidRevenue } from '@/utils/paidRevenue';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
+import { AdminOrderManagement } from './AdminOrderManagement';
 import ShippingManagement from './shipping/ShippingManagement';
+import { useAuth } from '@/contexts/AuthContext';
+import { tokens } from '@/theme/tokens';
 
-// Local Mock Data for Orders and Customers (to be replaced by real services later)
-interface OrderItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  total: number;
+const C = tokens.colors;
+
+const BRAND = {
+  primary: C.brand.main,
+  dark: C.surfaces.inverse,
+  white: C.surfaces.paper,
+  light: C.brand.soft,
+  surface: C.surfaces.default,
+  border: C.border.light,
+  muted: C.text.secondary,
+} as const;
+
+interface ClientWithStats {
+  id: number;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  is_active: boolean;
+  created_at: string;
+  total_orders: number;
+  total_spent: number;
+  pending_orders: number;
+  last_order_date: string | null;
 }
 
-interface Order {
-  id: string;
-  customerId: string;
-  customerName: string;
-  items: OrderItem[];
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  orderDate: string;
-  deliveryDate?: string;
-  paymentMethod: string;
-  shippingAddress: string;
-  source?: 'website' | 'whatsapp';
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  loading,
+  accent,
+}: {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: React.ReactNode;
+  loading?: boolean;
+  accent?: string;
+}) {
+  const accentColor = accent || BRAND.primary;
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2.75,
+        height: '100%',
+        borderRadius: '20px',
+        border: `1px solid ${BRAND.border}`,
+        bgcolor: BRAND.white,
+        transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+        '&:hover': {
+          boxShadow: `0 8px 24px ${alpha(accentColor, 0.12)}`,
+          transform: 'translateY(-2px)',
+        },
+      }}
+    >
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
+        <Box
+          sx={{
+            width: 60,
+            height: 60,
+            borderRadius: '15px',
+            bgcolor: alpha(accentColor, 0.1),
+            color: accentColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {icon}
+        </Box>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontSize: 16.25, color: BRAND.muted, fontWeight: 500 }}>
+            {title}
+          </Typography>
+          {loading ? (
+            <CircularProgress size={24} sx={{ color: accentColor, mt: 1 }} />
+          ) : (
+            <Typography sx={{ fontSize: 30, fontWeight: 700, color: BRAND.dark, mt: 0.5, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+              {value}
+            </Typography>
+          )}
+          <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.5, lineHeight: 1.4 }}>
+            {subtitle}
+          </Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
 }
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  totalOrders: number;
-  totalSpent: number;
-  joinDate: string;
-  status: 'active' | 'inactive';
-}
-
-const mockCustomers: Customer[] = [
-  {
-    id: '1',
-    name: 'Marie Diop',
-    email: 'marie.diop@email.com',
-    phone: '+221 77 123 45 67',
-    address: 'Dakar, Sénégal',
-    totalOrders: 5,
-    totalSpent: 250000,
-    joinDate: '2024-01-15',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Ahmadou Bâ',
-    email: 'ahmadou.ba@email.com',
-    phone: '+221 76 987 65 43',
-    address: 'Thiès, Sénégal',
-    totalOrders: 3,
-    totalSpent: 180000,
-    joinDate: '2024-02-20',
-    status: 'active'
-  }
-];
-
-const mockOrders: Order[] = [
-  {
-    id: 'ORD-001',
-    customerId: '1',
-    customerName: 'Marie Diop',
-    items: [
-      {
-        productId: '1',
-        productName: 'Ensemble draps luxe 6 pièces',
-        quantity: 2,
-        price: 45000,
-        total: 90000
-      }
-    ],
-    total: 90000,
-    status: 'delivered',
-    orderDate: '2024-01-20',
-    deliveryDate: '2024-01-22',
-    paymentMethod: 'Wave',
-    shippingAddress: 'Dakar, Sénégal',
-    source: 'website'
-  },
-  {
-    id: 'ORD-002',
-    customerId: '2',
-    customerName: 'Ahmadou Bâ',
-    items: [
-      {
-        productId: '2',
-        productName: 'Rideaux premium 3 pièces',
-        quantity: 1,
-        price: 35000,
-        total: 35000
-      }
-    ],
-    total: 35000,
-    status: 'processing',
-    orderDate: '2024-02-25',
-    paymentMethod: 'Orange Money',
-    shippingAddress: 'Thiès, Sénégal',
-    source: 'whatsapp'
-  }
-];
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -163,334 +158,705 @@ interface TabPanelProps {
   value: number;
 }
 
-function CustomTabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+function CustomTabPanel({ children, value, index }: TabPanelProps) {
+  if (value !== index) return null;
+  return <Box sx={{ py: 3 }}>{children}</Box>;
+}
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
+function getOrderCustomerName(order: { customer_name?: string | null; email?: string | null }) {
+  return order.customer_name || 'Client invité';
+}
+
+const STATUS_META: { status: string; label: string; color: string }[] = [
+  { status: 'pending', label: 'En attente', color: C.status.warning },
+  { status: 'confirmed', label: 'Confirmée', color: C.brand.main },
+  { status: 'processing', label: 'En traitement', color: C.brand.hover },
+  { status: 'shipped', label: 'Expédiée', color: C.brand.active },
+  { status: 'delivered', label: 'Livrée', color: C.status.success },
+  { status: 'cancelled', label: 'Annulée', color: C.status.error },
+  { status: 'refunded', label: 'Remboursée', color: C.text.secondary },
+];
+
+const PERIOD_OPTIONS: { value: 'all' | 'today' | '7d' | '30d'; label: string }[] = [
+  { value: 'all', label: 'Tout' },
+  { value: 'today', label: "Aujourd'hui" },
+  { value: '7d', label: '7 derniers jours' },
+  { value: '30d', label: '30 derniers jours' },
+];
+
+function getDateRange(period: 'all' | 'today' | '7d' | '30d'): { start_date?: string; end_date?: string } {
+  if (period === 'all') return {};
+  const formatDate = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const end = new Date();
+  const start = new Date();
+  if (period === 'today') {
+    return { start_date: formatDate(start), end_date: formatDate(end) };
+  }
+  start.setDate(end.getDate() - (period === '7d' ? 6 : 29));
+  return { start_date: formatDate(start), end_date: formatDate(end) };
 }
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState(0);
-  const [productsCount, setProductsCount] = useState<number>(0);
-  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
-  const [loadingStats, setLoadingStats] = useState(true);
-
-  // Use local mock data for now
-  const orders = mockOrders;
-  const customers = mockCustomers;
-
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const totalOrders = orders.length;
-  const totalCustomers = customers.length;
-  const whatsappOrders = orders.filter(order => order.source === 'whatsapp').length;
-
-  const theme = useTheme();
   const router = useRouter();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState(0);
+  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
+  const [clients, setClients] = useState<ClientWithStats[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingClients, setLoadingClients] = useState(true);
+
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [recentOrdersData, setRecentOrdersData] = useState<RecentOrderItem[]>([]);
+  const [loadingOverview, setLoadingOverview] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [paidRevenue, setPaidRevenue] = useState<number | null>(null);
+  const [period, setPeriod] = useState<'all' | 'today' | '7d' | '30d'>('all');
+
+  const [clientSearch, setClientSearch] = useState('');
+  const [clientStatusFilter, setClientStatusFilter] = useState('all');
+  const [clientPage, setClientPage] = useState(0);
+  const [clientRowsPerPage, setClientRowsPerPage] = useState(10);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+
+  const fetchOverview = useCallback(async () => {
+    setLoadingOverview(true);
+    setOverviewError(null);
+    try {
+      const range = getDateRange(period);
+      const [overviewRes, recentRes, ordersRes] = await Promise.all([
+        DashboardService.getOverview(range.start_date, range.end_date),
+        DashboardService.getRecentOrders(5),
+        getAdminOrders(0, 100).catch(() => []),
+      ]);
+      setOverview(overviewRes);
+      setRecentOrdersData(Array.isArray(recentRes) ? recentRes : []);
+      setPaidRevenue(computePaidRevenue(Array.isArray(ordersRes) ? ordersRes : [], range));
+    } catch (err) {
+      setOverview(null);
+      setRecentOrdersData([]);
+      setPaidRevenue(null);
+      setOverviewError(err instanceof Error ? err.message : 'Impossible de charger la vue d\'ensemble');
+    } finally {
+      setLoadingOverview(false);
+    }
+  }, [period]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [countRes, popularRes] = await Promise.all([
-          productService.getProducts({ limit: 1 }), // Just to get total count locally if needed or rely on metadata
-          productService.getProducts({ limit: 5, sort_by: 'is_featured', sort_order: 'desc' }) // Popular products
-        ]);
-        
-        // Gérer le nouveau format de retour { data, error }
-        if (countRes.error) {
-          console.error('Error fetching products count:', countRes.error);
-          setProductsCount(0);
-        } else {
-          setProductsCount(countRes.data?.total || 0);
-        }
-        
-        if (popularRes.error) {
-          console.error('Error fetching popular products:', popularRes.error);
-          setPopularProducts([]);
-        } else {
-          setPopularProducts(popularRes.data?.items || []);
-        }
-      } catch (error) {
-        console.error("Error fetching admin stats", error);
-        setPopularProducts([]); // Assurer que popularProducts est toujours un tableau
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-    fetchStats();
-  }, []);
+    fetchOverview();
+  }, [fetchOverview]);
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
-      pending: 'warning',
-      processing: 'info',
-      shipped: 'secondary',
-      delivered: 'success',
-      cancelled: 'error',
-    };
-    return colors[status] || 'default';
-  };
+  const statusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    (overview?.orders_by_status || []).forEach((s) => map.set(s.status, Number(s.count) || 0));
+    return STATUS_META.map((meta) => ({
+      status: meta.status,
+      label: meta.label,
+      color: meta.color,
+      count: map.get(meta.status) || 0,
+    }));
+  }, [overview]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
+  const statusMax = useMemo(() => Math.max(1, ...statusCounts.map((s) => s.count)), [statusCounts]);
 
-  const handleLogout = async () => {
+  const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label || 'Tout';
+
+  const filteredClients = useMemo(() => {
+    let result = clients;
+    if (clientStatusFilter !== 'all') {
+      const isActive = clientStatusFilter === 'active';
+      result = result.filter((c) => c.is_active === isActive);
+    }
+    if (clientSearch.trim()) {
+      const q = clientSearch.toLowerCase();
+      result = result.filter((c) =>
+        (c.full_name || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [clients, clientStatusFilter, clientSearch]);
+
+  const paginatedClients = useMemo(() => {
+    const start = clientPage * clientRowsPerPage;
+    return filteredClients.slice(start, start + clientRowsPerPage);
+  }, [filteredClients, clientPage, clientRowsPerPage]);
+
+  const fetchDashboardData = async () => {
+    setLoadingStats(true);
+    setLoadingClients(true);
+
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
-      router.refresh();
-    } catch (error) {
-      console.error('Logout error:', error);
-      router.push('/login');
+      const [popularRes, clientsRes] = await Promise.all([
+        productService.getProducts({ limit: 5, sort_by: 'is_featured', sort_order: 'desc' }),
+        api.get('/api/v1/users/clients', { params: { skip: 0, limit: 100 } }).catch(() => ({ data: { items: [] } })),
+      ]);
+
+      setPopularProducts(popularRes.error ? [] : popularRes.data?.items || []);
+
+      const clientsData: ClientWithStats[] = Array.isArray(clientsRes.data?.items)
+        ? clientsRes.data.items
+        : Array.isArray(clientsRes.data)
+          ? clientsRes.data
+          : [];
+      setClients(clientsData);
+    } catch {
+      setPopularProducts([]);
+    } finally {
+      setLoadingStats(false);
+      setLoadingClients(false);
     }
   };
 
-  return (
-    <Box sx={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, ${alpha(theme.palette.background.default, 1)} 50%)`,
-      width: '100%'
-    }}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Box sx={{
-          mb: 4,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          p: 3,
-          borderRadius: 3,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.primary.light, 0.1)})`,
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-          backdropFilter: 'blur(10px)'
-        }}>
-          <Box>
-            <Typography
-              variant="h3"
-              gutterBottom
-              sx={{
-                fontWeight: 700,
-                color: 'primary.main',
-                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}
-            >
-              Dashboard Administrateur
-            </Typography>
-            <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
-              Gérez votre boutique en ligne avec style
-            </Typography>
-          </Box>
-        </Box>
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+  useEffect(() => {
+    setClientPage(0);
+  }, [clientSearch, clientStatusFilter]);
+
+  const getStatusChipSx = (status: string) => {
+    const colors: Record<string, { bg: string; color: string }> = {
+      pending: { bg: alpha(C.status.warning, 0.12), color: C.status.warning },
+      confirmed: { bg: alpha(BRAND.primary, 0.1), color: BRAND.primary },
+      processing: { bg: alpha(BRAND.primary, 0.1), color: BRAND.primary },
+      shipped: { bg: alpha(C.brand.active, 0.12), color: C.brand.active },
+      delivered: { bg: alpha(C.status.success, 0.1), color: C.status.success },
+      cancelled: { bg: alpha(C.status.error, 0.1), color: C.status.error },
+      refunded: { bg: alpha(BRAND.muted, 0.15), color: BRAND.muted },
+    };
+    const c = colors[status] || { bg: alpha(BRAND.muted, 0.1), color: BRAND.muted };
+    return { bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 13.75 };
+  };
+
+  return (
+    <Box sx={{ bgcolor: BRAND.surface, minHeight: '100vh', pb: 6 }}>
+      <Box
+        sx={{
+          bgcolor: BRAND.dark,
+          color: BRAND.white,
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 3.5, md: 4.5 },
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1500, mx: 'auto' }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+          >
+            <Box>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
+                <Box
+                  sx={{
+                    width: 55,
+                    height: 55,
+                    borderRadius: '15px',
+                    bgcolor: alpha(BRAND.white, 0.15),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AdminPanelSettings sx={{ fontSize: 32.5 }} />
+                </Box>
+                <Typography sx={{ fontSize: { xs: 30, md: 37.5 }, fontWeight: 700, letterSpacing: '-0.02em' }}>
+                  Dashboard Administrateur
+                </Typography>
+              </Stack>
+              <Typography sx={{ fontSize: 17.5, opacity: 0.9 }}>
+                Bienvenue{user?.full_name ? `, ${user.full_name}` : ''} — gérez votre boutique DameDéco
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+      </Box>
+
+      <Box sx={{ maxWidth: 1500, mx: 'auto', px: { xs: 2, sm: 3 }, mt: -2, position: 'relative', zIndex: 2 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: '17.5px',
+            border: `1px solid ${BRAND.border}`,
+            bgcolor: BRAND.white,
+            mb: 3,
+            overflow: 'hidden',
+          }}
+        >
           <Tabs
             value={activeTab}
-            onChange={handleTabChange}
+            onChange={(_e: any, v: number) => setActiveTab(v)}
             variant="scrollable"
             scrollButtons="auto"
             sx={{
-              '& .MuiTabs-flexContainer': {
-                justifyContent: 'center'
-              }
+              minHeight: 56,
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: 16.25,
+                color: BRAND.muted,
+                minHeight: 56,
+              },
+              '& .Mui-selected': { color: `${BRAND.primary} !important` },
+              '& .MuiTabs-indicator': { height: 3.75, bgcolor: BRAND.primary },
             }}
           >
-            <Tab icon={<LayoutDashboard />} iconPosition="start" label="Vue d'ensemble" />
-            <Tab icon={<Package />} iconPosition="start" label="Produits" />
-            <Tab icon={<Category />} iconPosition="start" label="Categories" />
-            <Tab icon={<ShoppingCart />} iconPosition="start" label="Commandes" />
-            <Tab icon={<Star />} iconPosition="start" label="Avis Clients" />
-            <Tab icon={<Users />} iconPosition="start" label="Clients" />
-            <Tab icon={<Settings />} iconPosition="start" label="Paramètres" />
+            <Tab icon={<LayoutDashboard sx={{ fontSize: 25 }} />} iconPosition="start" label="Vue d'ensemble" />
+            <Tab icon={<Package sx={{ fontSize: 25 }} />} iconPosition="start" label="Produits" />
+            <Tab icon={<Category sx={{ fontSize: 25 }} />} iconPosition="start" label="Catégories" />
+            <Tab icon={<ShoppingCart sx={{ fontSize: 25 }} />} iconPosition="start" label="Commandes" />
+            <Tab icon={<Users sx={{ fontSize: 25 }} />} iconPosition="start" label="Clients" />
+            <Tab icon={<Settings sx={{ fontSize: 25 }} />} iconPosition="start" label="Livraison" />
           </Tabs>
-        </Box>
+        </Paper>
 
-        <Box>
-          {/* Overview Tab */}
-          <CustomTabPanel value={activeTab} index={0}>
-            <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
-              <Grid item xs={12} sm={6} lg={2.4}>
-                <Card
-                  elevation={8}
-                  sx={{
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { transform: 'translateY(-8px) scale(1.02)' },
-                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.primary.light, 0.1)})`,
-                    borderRadius: 3,
-                  }}
-                >
-                  <CardHeader
-                    title="Revenu Total"
-                    titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700, color: 'primary.main' }}
-                    action={<DollarSign fontSize="small" sx={{ color: 'primary.main' }} />}
-                  />
-                  <CardContent sx={{ textAlign: 'center', pt: 1 }}>
-                    <Typography variant="h3" color="primary.main" fontWeight={800}>
-                      {totalRevenue.toLocaleString('fr-FR')} FCFA
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} lg={2.4}>
-                <Card elevation={8} sx={{ borderRadius: 3 }}>
-                  <CardHeader title="Commandes" titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700 }} action={<ShoppingCart />} />
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" fontWeight={800}>{totalOrders}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} lg={2.4}>
-                <Card elevation={8} sx={{ borderRadius: 3 }}>
-                  <CardHeader title="Produits" titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700 }} action={<Package />} />
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" fontWeight={800}>
-                      {loadingStats ? <CircularProgress size={24} /> : productsCount}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} lg={2.4}>
-                <Card elevation={8} sx={{ borderRadius: 3 }}>
-                  <CardHeader title="Clients" titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700 }} action={<Users />} />
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" fontWeight={800}>{totalCustomers}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} lg={2.4}>
-                <Card elevation={8} sx={{ borderRadius: 3 }}>
-                  <CardHeader title="WhatsApp" titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700 }} action={<Chat />} />
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" fontWeight={800}>{whatsappOrders}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+        {/* Vue d'ensemble */}
+        <CustomTabPanel value={activeTab} index={0}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            sx={{ alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, mb: 2.5 }}
+          >
+            <Box>
+              <Typography sx={{ fontSize: 22.5, fontWeight: 700, color: BRAND.dark }}>
+                Vue d'ensemble
+              </Typography>
+              <Typography sx={{ fontSize: 15.5, color: BRAND.muted, mt: 0.25 }}>
+                Statistiques issues du backend — période : {periodLabel}
+              </Typography>
+            </Box>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel sx={{ color: BRAND.muted }}>Période</InputLabel>
+              <Select
+                value={period}
+                label="Période"
+                onChange={(e: React.ChangeEvent<{ value: unknown }>) => setPeriod(e.target.value as 'all' | 'today' | '7d' | '30d')}
+                sx={{ borderRadius: '10px', bgcolor: BRAND.white }}
+              >
+                {PERIOD_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+
+          {overviewError && (
+            <Alert
+              severity="error"
+              variant="outlined"
+              sx={{ mb: 2.5 }}
+              onClose={() => setOverviewError(null)}
+              action={
+                <Button size="small" color="inherit" onClick={() => fetchOverview()}>
+                  Réessayer
+                </Button>
+              }
+            >
+              {overviewError}
+            </Alert>
+          )}
+
+          <Grid container spacing={2.5} sx={{ mb: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Revenu total"
+                value={overview ? formatFcfa(Number(overview.total_revenue) || 0) : '—'}
+                subtitle={period === 'all' ? 'Hors commandes annulées/remboursées' : `Sur ${periodLabel.toLowerCase()}`}
+                icon={<DollarSign sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.status.success}
+              />
             </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Total encaissé"
+                value={paidRevenue == null ? '—' : formatFcfa(paidRevenue)}
+                subtitle={period === 'all' ? 'Commandes payées uniquement' : `Payé sur ${periodLabel.toLowerCase()}`}
+                icon={<PaidIcon sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.brand.main}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Commandes"
+                value={overview ? Number(overview.total_orders) || 0 : '—'}
+                subtitle={period === 'all' ? 'Toutes commandes confondues' : `Sur ${periodLabel.toLowerCase()}`}
+                icon={<ShoppingCart sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.brand.main}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Panier moyen"
+                value={overview ? formatFcfa(Number(overview.average_order_value) || 0) : '—'}
+                subtitle="Revenu ÷ commandes"
+                icon={<ReceiptIcon sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.brand.active}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Produits"
+                value={overview ? Number(overview.total_products) || 0 : '—'}
+                subtitle="Catalogue (total backend)"
+                icon={<Package sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.status.warning}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Clients"
+                value={overview ? Number(overview.total_clients) || 0 : '—'}
+                subtitle={period === 'all' ? 'Comptes enregistrés' : 'Sur la période sélectionnée'}
+                icon={<Users sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent={C.accent.main}
+              />
+            </Grid>
+          </Grid>
 
-            <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
-              <Grid item xs={12} lg={6}>
-                <Card sx={{ borderRadius: 3 }}>
-                  <CardHeader title="Commandes récentes" />
-                  <CardContent>
-                    <Stack spacing={2}>
-                      {orders.slice(0, 5).map((order) => (
-                        <Box key={order.id} sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-                          <Typography variant="subtitle2">{order.customerName}</Typography>
-                          <Typography variant="caption">{order.total} FCFA - {order.status}</Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, lg: 6 }}>
+              <Paper
+                elevation={0}
+                sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+              >
+                <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
+                  <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
+                    Répartition par statut
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 2.5 }}>
+                  {loadingOverview ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={32} sx={{ color: BRAND.primary }} />
+                    </Box>
+                  ) : !overview || statusCounts.every((s) => s.count === 0) ? (
+                    <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
+                      Aucune commande sur la période sélectionnée
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.75}>
+                      {statusCounts.map(({ status, label, color, count }) => (
+                        <Box key={status}>
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
+                              <Typography sx={{ fontSize: 15, fontWeight: 600, color: BRAND.dark }}>{label}</Typography>
+                            </Stack>
+                            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark }}>{count}</Typography>
+                          </Stack>
+                          <Box sx={{ height: 9, borderRadius: '99px', bgcolor: BRAND.surface, overflow: 'hidden' }}>
+                            <Box
+                              sx={{
+                                height: '100%',
+                                width: `${Math.round((count / statusMax) * 100)}%`,
+                                borderRadius: '99px',
+                                bgcolor: color,
+                                transition: 'width 0.4s ease',
+                              }}
+                            />
+                          </Box>
                         </Box>
                       ))}
                     </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} lg={6}>
-                <Card sx={{ borderRadius: 3 }}>
-                  <CardHeader title="Produits populaires" />
-                  <CardContent>
-                    <Stack spacing={2}>
-                      {loadingStats ? (
-                        <Box display="flex" justifyContent="center"><CircularProgress /></Box>
-                      ) : popularProducts && popularProducts.length > 0 ? (
-                        popularProducts.map((product) => (
-                          <Box key={product.id} sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2, display: 'flex', justifyContent: 'space-between' }}>
-                            <Box>
-                              <Typography variant="subtitle2">{product.name}</Typography>
-                              <Typography variant="caption">Stock: {product.inventory_quantity}</Typography>
-                            </Box>
-                            <Typography variant="subtitle2" color="primary">{product.price.toLocaleString('fr-FR')} FCFA</Typography>
-                          </Box>
-                        ))
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">Aucun produit populaire.</Typography>
-                      )}
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  )}
+                </Box>
+              </Paper>
             </Grid>
-          </CustomTabPanel>
 
-          {/* Products Tab */}
-          <CustomTabPanel value={activeTab} index={1}>
-            <ProductManagement />
-          </CustomTabPanel>
+            <Grid size={{ xs: 12, lg: 6 }}>
+              <Paper
+                elevation={0}
+                sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+              >
+                <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
+                  <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
+                    Commandes récentes
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 2 }}>
+                  {loadingOverview ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={32} sx={{ color: BRAND.primary }} />
+                    </Box>
+                  ) : recentOrdersData.length === 0 ? (
+                    <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
+                      Aucune commande pour le moment
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.25}>
+                      {recentOrdersData.map((order) => (
+                        <Box
+                          key={order.id}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: '12.5px',
+                            border: `1px solid ${BRAND.border}`,
+                            bgcolor: BRAND.surface,
+                          }}
+                        >
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5 }}>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }} noWrap>
+                                {getOrderCustomerName(order)}
+                              </Typography>
+                              <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
+                                {order.order_number || `#${order.id}`}
+                                {order.created_at ? ` · ${new Date(order.created_at).toLocaleDateString('fr-FR')}` : ''}
+                                {typeof order.items_count === 'number' ? ` · ${order.items_count} article${order.items_count > 1 ? 's' : ''}` : ''}
+                              </Typography>
+                              {order.email ? (
+                                <Typography sx={{ fontSize: 13.5, color: BRAND.muted, mt: 0.25 }} noWrap>
+                                  {order.email}
+                                </Typography>
+                              ) : null}
+                            </Box>
+                            <Chip label={order.status || '—'} size="small" sx={{ ...getStatusChipSx(order.status || ''), flexShrink: 0 }} />
+                          </Stack>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.primary, mt: 0.75 }}>
+                            {typeof order.total_amount === 'number' ? formatFcfa(Number(order.total_amount) || 0) : '—'}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+              </Paper>
+            </Grid>
 
-          {/* Categories Tab */}
-          <CustomTabPanel value={activeTab} index={2}>
-            <CategoriesManagement />
-          </CustomTabPanel>
+            <Grid size={{ xs: 12 }}>
+              <Paper
+                elevation={0}
+                sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+              >
+                <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
+                  <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
+                    Produits populaires
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 2 }}>
+                  {loadingStats ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={32} sx={{ color: BRAND.primary }} />
+                    </Box>
+                  ) : popularProducts.length === 0 ? (
+                    <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
+                      Aucun produit mis en avant
+                    </Typography>
+                  ) : (
+                    <Grid container spacing={1.5}>
+                      {popularProducts.map((product) => (
+                        <Grid key={product.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              borderRadius: '12.5px',
+                              border: `1px solid ${BRAND.border}`,
+                              bgcolor: BRAND.surface,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: 2,
+                              height: '100%',
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontSize: 16.25, fontWeight: 600, color: BRAND.dark }} noWrap>
+                                {product.name}
+                              </Typography>
+                              <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
+                                Stock : {product.inventory_quantity ?? '—'}
+                              </Typography>
+                            </Box>
+                            <Typography sx={{ fontSize: 16.25, fontWeight: 700, color: BRAND.primary, flexShrink: 0 }}>
+                              {formatFcfa(Number(product.price) || 0)}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </CustomTabPanel>
 
-          {/* Orders Tab */}
-          <CustomTabPanel value={activeTab} index={3}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Client</TableCell>
-                  <TableCell>Total</TableCell>
-                  <TableCell>Statut</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {orders.map(order => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.id}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>{order.total}</TableCell>
-                    <TableCell>
-                      <Chip label={order.status} color={getStatusColor(order.status) as any} size="small" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CustomTabPanel>
+        <CustomTabPanel value={activeTab} index={1}>
+          <ProductManagement />
+        </CustomTabPanel>
 
-          {/* Reviews Tab */}
-          <CustomTabPanel value={activeTab} index={4}>
-            <Typography>Module Avis bientôt disponible</Typography>
-          </CustomTabPanel>
+        <CustomTabPanel value={activeTab} index={2}>
+          <CategoriesManagement />
+        </CustomTabPanel>
 
-          {/* Clients Tab */}
-          <CustomTabPanel value={activeTab} index={5}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nom</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Commandes</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {customers.map(customer => (
-                  <TableRow key={customer.id}>
-                    <TableCell>{customer.name}</TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.totalOrders}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CustomTabPanel>
+        {/* Commandes */}
+        <CustomTabPanel value={activeTab} index={3}>
+          <AdminOrderManagement initialCustomerId={selectedCustomerId} />
+        </CustomTabPanel>
 
-          {/* Settings Tab */}
-          <CustomTabPanel value={activeTab} index={6}>
-            <ShippingManagement />
-          </CustomTabPanel>
+        {/* Clients */}
+        <CustomTabPanel value={activeTab} index={4}>
+          <Paper
+            elevation={0}
+            sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+          >
+            <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
+              <Typography sx={{ fontSize: 22.5, fontWeight: 700, color: BRAND.dark }}>
+                Clients
+              </Typography>
+              <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
+                {loadingClients
+                  ? 'Chargement…'
+                  : `${filteredClients.length} client${filteredClients.length !== 1 ? 's' : ''} sur ${clients.length}`}
+              </Typography>
+            </Box>
 
-        </Box>
-      </Container>
+            <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <TextField
+                size="small"
+                placeholder="Rechercher un client..."
+                value={clientSearch}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClientSearch(e.target.value)}
+                sx={{ flex: 1, minWidth: 220 }}
+                slotProps={{
+                  input: {
+                    startAdornment: <SearchIcon sx={{ color: BRAND.muted, mr: 1, fontSize: 20 }} />,
+                  },
+                }}
+              />
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel sx={{ color: BRAND.muted }}>Statut</InputLabel>
+                <Select
+                  value={clientStatusFilter}
+                  label="Statut"
+                  onChange={(e: React.ChangeEvent<{ value: unknown }>) => setClientStatusFilter(e.target.value as string)}
+                  sx={{ borderRadius: '10px' }}
+                >
+                  <MenuItem value="all">Tous les statuts</MenuItem>
+                  <MenuItem value="active">Actif</MenuItem>
+                  <MenuItem value="inactive">Inactif</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {loadingClients ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                <CircularProgress sx={{ color: BRAND.primary }} />
+              </Box>
+            ) : filteredClients.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Users sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
+                <Typography sx={{ color: BRAND.muted }}>
+                  {clients.length === 0 ? 'Aucun client enregistré' : 'Aucun client ne correspond aux filtres'}
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow
+                        sx={{
+                          bgcolor: BRAND.dark,
+                          '& th': {
+                            color: BRAND.white,
+                            fontWeight: 600,
+                            fontSize: 15,
+                            py: 1.5,
+                            borderBottom: 'none',
+                          },
+                        }}
+                      >
+                        <TableCell>Nom</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Téléphone</TableCell>
+                        <TableCell align="right">Total dépensé</TableCell>
+                        <TableCell align="center">Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {paginatedClients.map((client, i) => (
+                        <TableRow
+                          key={client.id}
+                          sx={{
+                            bgcolor: i % 2 === 0 ? BRAND.white : BRAND.surface,
+                            '& td': { borderColor: BRAND.border, py: 1.5 },
+                          }}
+                        >
+                          <TableCell>
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
+                              {client.full_name || '—'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{client.email || '—'}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{client.phone || '—'}</Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.primary }}>
+                              {formatFcfa(client.total_spent)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Tooltip title="Voir les commandes">
+                              <IconButton
+                                onClick={() => {
+                                  setSelectedCustomerId(client.id);
+                                  setActiveTab(3);
+                                }}
+                                sx={{ color: BRAND.primary }}
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  component="div"
+                  count={filteredClients.length}
+                  page={clientPage}
+                  onPageChange={(_e: React.MouseEvent<HTMLButtonElement> | null, p: number) => setClientPage(p)}
+                  rowsPerPage={clientRowsPerPage}
+                  onRowsPerPageChange={(e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => { setClientRowsPerPage(Number(e.target.value)); setClientPage(0); }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Lignes par page"
+                  labelDisplayedRows={({ from, to, count }: { from: number; to: number; count: number }) => `${from}–${to} sur ${count}`}
+                  sx={{
+                    borderTop: `1px solid ${BRAND.border}`,
+                    '& .MuiTablePagination-toolbar': { minHeight: 52 },
+                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                      color: BRAND.muted,
+                      fontSize: 15,
+                    },
+                    '& .MuiIconButton-root': { color: BRAND.primary },
+                  }}
+                />
+              </>
+            )}
+          </Paper>
+        </CustomTabPanel>
+
+        <CustomTabPanel value={activeTab} index={5}>
+          {/* Après sauvegarde des frais de livraison, on revient sur
+              « Vue d'ensemble » (onglet 0). */}
+          <ShippingManagement onSaved={() => setActiveTab(0)} />
+        </CustomTabPanel>
+      </Box>
     </Box>
   );
 }
