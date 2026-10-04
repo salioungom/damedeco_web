@@ -157,7 +157,12 @@ const createApiInstance = (): AxiosInstance => {
       localStorage.removeItem('refreshToken');
     } catch { /* noop */ }
     if (window.location.pathname !== '/login') {
-      window.location.href = '/login';
+      // Navigation dure volontaire : le provider React garde l'état authentifié
+      // en mémoire, seul un rechargement complet le purge. `replace` évite de
+      // laisser la page expirée dans l'historique (le retour navigateur ne doit
+      // pas ré-enter sur une session invalide). Module non-React : `useRouter`
+      // et `redirect()` sont indisponibles ici.
+      window.location.replace(window.location.origin + '/login');
     }
   };
 

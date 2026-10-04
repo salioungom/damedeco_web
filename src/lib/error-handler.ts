@@ -237,7 +237,7 @@ export function createSafeApiHook<T>(
         loading: false,
         error: result.error,
       });
-    }, [apiCall]);
+    }, []);
 
     useEffect(() => {
       if (options?.immediate !== false) {

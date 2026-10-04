@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, type ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, type ChangeEvent } from 'react';
 import {
   Box,
   Typography,
@@ -270,7 +270,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
     severity: 'success' as 'success' | 'error' | 'warning' | 'info',
   });
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
 
@@ -314,11 +314,11 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         loading: false,
       }));
     }
-  };
+  }, [state.pagination.skip, state.pagination.limit, state.filters]);
 
   useEffect(() => {
     fetchCategories();
-  }, [state.pagination.skip, state.pagination.limit, state.filters]);
+  }, [fetchCategories]);
 
   const handleCreateCategory = async () => {
     try {

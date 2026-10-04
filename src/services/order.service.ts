@@ -288,7 +288,9 @@ export class OrderService {
       // Si l'erreur est liée à l'authentification, on peut proposer la reconnexion
       if (error instanceof Error && error.message.includes('reconnecter')) {
         // Optionnellement, on pourrait déclencher une reconnexion automatique
-        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        // Service non-React : pas de `useRouter` ni de `redirect()`. La navigation
+        // reste dure et `replace` évite de laisser la page expirée dans l'historique.
+        window.location.replace(window.location.origin + '/login?redirect=' + encodeURIComponent(window.location.pathname));
       }
       
       throw error;

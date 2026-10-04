@@ -7,7 +7,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, apiUtils } from '@/lib/api';
 import { useCartSync } from '@/hooks/useCartSync';
@@ -71,7 +71,9 @@ function isTokenExpired(token: string): boolean {
  * Redirection dure vers /login, hors des pages déjà authentifiées.
  * La redirection est volontairement conservée en navigation complète : elle
  * purge l'état mémoire du provider et le jeton, ce qu'un `router.push` ne fait
- * pas. Portée module pour la même raison que `isTokenExpired`.
+ * pas. Portée module pour la même raison que `isTokenExpired` — ni `useRouter`
+ * ni `redirect()` ne sont disponibles hors d'un composant.
+ * `replace` évite de laisser la page expirée dans l'historique.
  */
 function redirectToLogin(): void {
     if (typeof window === 'undefined') {
@@ -81,7 +83,7 @@ function redirectToLogin(): void {
     if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
         return;
     }
-    window.location.href = '/login';
+    window.location.replace(window.location.origin + '/login');
 }
 
 // Provider principal
@@ -102,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useCartSync();
 
     // Gestion sécurisée du localStorage
-    const getStoredToken = (): string | null => {
+    const getStoredToken = useCallback((): string | null => {
         if (typeof window === 'undefined') {
             return null;
         }
@@ -112,9 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             return null;
         }
-    };
+    }, []);
 
-    const clearStoredTokens = (): void => {
+    const clearStoredTokens = useCallback((): void => {
         if (typeof window === 'undefined') return;
 
         try {
@@ -124,9 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             // Silent fail
         }
-    };
+    }, []);
 
-    const setStoredToken = (token: string): void => {
+    const setStoredToken = useCallback((token: string): void => {
         if (typeof window === 'undefined') {
             return;
         }
@@ -136,21 +138,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             // Silent fail
         }
-    };
+    }, []);
 
     // Mise à jour de l'état d'authentification
-    const updateAuthState = (updates: Partial<AuthState>): void => {
+    const updateAuthState = useCallback((updates: Partial<AuthState>): void => {
         setState(prev => ({ ...prev, ...updates }));
-    };
+    }, []);
 
     // Gestion des erreurs API
-    const handleAuthError = (error: any, context: string): string => {
+    const handleAuthError = useCallback((error: any, context: string): string => {
         const errorMessage = apiUtils.handleApiError(error);
         return errorMessage;
-    };
+    }, []);
+
+    // `fetchUser` se ré-invoque lui-même pour le retry réseau (voir
+    // `setTimeout` plus bas). Cette auto-référence ne peut pas figurer dans ses
+    // propres dépendances : la ref casse le cycle. Elle est alimentée par un
+    // effet, jamais pendant le render — une ref mutée en phase de render peut
+    // être issue d'un rendu abandonné en rendu concurrent.
+    // `fetchUser` est par ailleurs stable pour toute la durée du provider (ses
+    // dépendances sont des `useCallback(…, [])`), donc l'effet ne se rejoue pas et
+    // la ref ne peut pas devenir obsolète.
+    const fetchUserRef = useRef<((retryCount?: number) => Promise<void>) | undefined>(undefined);
 
     // Récupération des informations utilisateur avec retry
-    const fetchUser = async (retryCount = 0): Promise<void> => {
+    const fetchUser = useCallback(async (retryCount = 0): Promise<void> => {
         if (typeof window === 'undefined') {
             return;
         }
@@ -210,7 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const errorMessage = handleAuthError(error, 'fetchUser');
             
             if ((error.code === 'ECONNABORTED' || error.code === 'NETWORK_ERROR') && retryCount < 2) {
-                setTimeout(() => fetchUser(retryCount + 1), 1000 * (retryCount + 1));
+                setTimeout(() => fetchUserRef.current?.(retryCount + 1), 1000 * (retryCount + 1));
                 return;
             }
             
@@ -229,10 +241,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [updateAuthState, clearStoredTokens, handleAuthError]);
 
     // Connexion
-    const login = async (identifier: string, password: string): Promise<{ success: boolean; requires2FA?: boolean; mustChangePassword?: boolean; error?: string; user?: User }> => {
+    const login = useCallback(async (identifier: string, password: string): Promise<{ success: boolean; requires2FA?: boolean; mustChangePassword?: boolean; error?: string; user?: User }> => {
         if (typeof window === 'undefined') {
             return { success: false, error: 'Login not available server-side' };
         }
@@ -278,10 +290,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             updateAuthState({ status: 'unauthenticated' });
             return { success: false, error: errorMessage };
         }
-    };
+    }, [updateAuthState, setStoredToken, handleAuthError]);
 
     // Inscription
-    const register = async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
+    const register = useCallback(async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
         if (typeof window === 'undefined') {
             return { success: false, error: 'Registration not available server-side' };
         }
@@ -294,16 +306,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const errorMessage = handleAuthError(error, 'register');
             return { success: false, error: errorMessage };
         }
-    };
+    }, [handleAuthError]);
 
     // Déconnexion
-    const logout = async (): Promise<void> => {
+    // Décision : la présence du jeton est lue dans `localStorage` (via
+    // `getStoredToken`) et non dans `state.accessToken`.
+    // `localStorage` est la source de vérité de la session côté serveur ;
+    // `state.accessToken` n'en est qu'un cache, vide au démarrage tant que
+    // `fetchUser` n'a pas résolu. Lire `state` faisait donc sauter l'appel
+    // `/auth/logout` — donc la révocation serveur — si l'utilisateur cliquait sur
+    // « déconnexion » pendant la fenêtre de bootstrap, et imposait `state` en
+    // dépendance du `useCallback` sans rôle dans la décision.
+    const logout = useCallback(async (): Promise<void> => {
         if (typeof window === 'undefined') {
             return;
         }
 
         try {
-            if (state.accessToken) {
+            if (getStoredToken()) {
                 await api.post('/api/v1/auth/logout', {}, { timeout: 5000 });
             }
         } catch (error: any) {
@@ -322,10 +342,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             router.push('/login');
         }
-    };
+    }, [getStoredToken, clearStoredTokens, updateAuthState, router]);
 
     /** @deprecated Handled by the API interceptor — kept for SessionGuard compat */
-    const refreshAccessToken = async (): Promise<boolean> => {
+    const refreshAccessToken = useCallback(async (): Promise<boolean> => {
         if (typeof window === 'undefined') {
             return false;
         }
@@ -345,10 +365,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
             return false;
         }
-    };
+    }, [setStoredToken, updateAuthState]);
 
     // Vérification OTP
-    const verifyOTP = async (otp: string, method: 'totp' | 'email'): Promise<boolean> => {
+    const verifyOTP = useCallback(async (otp: string, method: 'totp' | 'email'): Promise<boolean> => {
         if (typeof window === 'undefined') {
             return false;
         }
@@ -374,17 +394,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             handleAuthError(error, 'verifyOTP');
             return false;
         }
-    };
+    }, [setStoredToken, updateAuthState, handleAuthError]);
 
     // Recharger les données utilisateur
-    const refetchUser = async (): Promise<void> => {
+    const refetchUser = useCallback(async (): Promise<void> => {
         await fetchUser();
-    };
+    }, [fetchUser]);
+
+    // Maintient `fetchUserRef` pointant sur la dernière `fetchUser`. Déclaré AVANT
+    // l'effet d'initialisation : React exécute les effets dans l'ordre de
+    // déclaration après chaque commit, la ref est donc renseignée avant tout
+    // appel à `fetchUser` — donc avant tout retry qu'elle pourrait planifier.
+    useEffect(() => {
+        fetchUserRef.current = fetchUser;
+    }, [fetchUser]);
 
     // Initialisation au montage du composant
     useEffect(() => {
         fetchUser();
-    }, []);
+    }, [fetchUser]);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
