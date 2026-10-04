@@ -19,7 +19,9 @@ export function checkAuthState(): void {
 }
 
 // Export par défaut
-export default {
+const clearCookies = {
   clearAuthData,
   checkAuthState
 };
+
+export default clearCookies;

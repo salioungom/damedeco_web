@@ -131,7 +131,7 @@ export function CartDrawer() {
                 variant="contained"
                 onClick={() => {
                   toggleCart(false);
-                  window.location.href = '/shop';
+                  router.push('/shop');
                 }}
                 sx={{ borderRadius: 2.5, fontWeight: 600 }}
               >

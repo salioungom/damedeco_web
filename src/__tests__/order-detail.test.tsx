@@ -3,10 +3,15 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 const push = vi.fn();
-
+// Le composant de production utilise `usePathname()` pour conserver le chemin
+// courant dans la redirection `/login?redirect=…` (il n'accède plus directement
+// à `window.location.pathname`). Le mock doit donc exposer cette API, avec une
+// valeur cohérente avec `useParams` ci-dessus. Littéral inline : `vi.mock` est
+// hoisté avant les `const` du module.
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace: vi.fn(), prefetch: vi.fn() }),
   useParams: () => ({ id: '123' }),
+  usePathname: () => '/account/orders/123',
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({

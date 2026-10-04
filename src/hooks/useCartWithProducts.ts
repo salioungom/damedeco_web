@@ -10,6 +10,12 @@ export interface CartItemWithProduct extends CartItem {
 
 const PRODUCTS_CACHE_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
 
+// Map vide partagée : identity stable pour tous les états « aucun produit ».
+// `useState`/`setState` comparent par `Object.is` : une nouvelle `Map()` à chaque
+// vidage serait donc perçue comme un changement d'état et re-déclencherait les
+// effets qui dépendent de `productsMap`.
+const EMPTY_PRODUCTS_MAP: Map<string, Product> = new Map();
+
 function getCartSignature(cart: CartItem[]): string {
   return cart.map((i) => `${i.product_id}:${i.quantity}`).sort().join('|');
 }
@@ -52,20 +58,43 @@ async function fetchProducts(): Promise<Product[]> {
 export function useCartWithProducts() {
   const cart = useStore((s) => s.cart);
   const cartLoading = useStore((s) => s.cartLoading);
-  const [productsMap, setProductsMap] = useState<Map<string, Product>>(new Map());
+  const [productsMap, setProductsMap] = useState<Map<string, Product>>(EMPTY_PRODUCTS_MAP);
   const [productsLoading, setProductsLoading] = useState(false);
   const cartSignatureRef = useRef('');
+  const productsMapRef = useRef<Map<string, Product>>(EMPTY_PRODUCTS_MAP);
 
   const cartSignature = useMemo(() => getCartSignature(cart), [cart]);
 
+  // L'effet de synchronisation ci-dessous a besoin de `productsMap` (les ids déjà
+  // chargés) pour savoir s'il peut éviter un re-fetch, mais il ne doit PAS
+  // s'abonner à son identity : il appelle lui-même `setProductsMap`, donc
+  // `[... , productsMap]` rendrait l'effet re-exécutable par sa propre écriture
+  // (boucle infinie sur la branche panier vide, qui vide la Map à chaque passe).
+  //
+  // `productsMapRef` est donc la source de lecture de l'effet. Elle est
+  // synchronisée par l'effet ci-dessus, déclaré AVANT l'effet de synchronisation :
+  // React exécute les effets dans l'ordre de déclaration après chaque commit, la
+  // ref est donc toujours à jour au moment où l'effet de synchronisation la lit.
+  // Une ref n'est pas une dépendance d'effet (identity stable), ce qui est
+  // exactement la propriété recherchée ici, et supprime le warning
+  // `react-hooks/exhaustive-deps` sans disable ni masquage.
+  useEffect(() => {
+    productsMapRef.current = productsMap;
+  }, [productsMap]);
+
   useEffect(() => {
     if (!cart || cart.length === 0) {
-      setProductsMap(new Map());
+      // Ne publier un état que s'il change réellement : sans cette garde, la Map
+      // vidée redescend `productsMap`, l'effet se re-déclenche et recommence.
+      if (productsMapRef.current.size > 0) {
+        setProductsMap(EMPTY_PRODUCTS_MAP);
+      }
       return;
     }
 
     const cartIds = new Set(cart.map((i) => i.product_id.toString()));
-    const cachedIds = new Set(productsMap.keys());
+    const currentMap = productsMapRef.current;
+    const cachedIds = new Set(currentMap.keys());
     const allCached = [...cartIds].every((id) => cachedIds.has(id));
 
     if (allCached && cartSignature === cartSignatureRef.current) return;
@@ -73,7 +102,7 @@ export function useCartWithProducts() {
     // All products already in local state + cache not expired → no re-fetch
     if (allCached && isProductsCacheValid()) {
       const map = new Map<string, Product>();
-      for (const [id, product] of productsMap) {
+      for (const [id, product] of currentMap) {
         if (cartIds.has(id)) map.set(id, product);
       }
       setProductsMap(map);

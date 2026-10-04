@@ -61,7 +61,7 @@ import {
     ErrorOutlined as ErrorOutlineIcon,
 } from '@mui/icons-material';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import OrderService, { ORDER_STATUS } from '@/services/order.service';
 import { OrderResponse, Payment } from '@/services/order.service';
 import { ApiErrorHandler } from '@/lib/error-handler';
@@ -183,6 +183,7 @@ function OrderDetailContent() {
     const { user } = useAuth();
     const params = useParams();
     const router = useRouter();
+    const pathname = usePathname();
     const theme = useTheme();
     const orderId = params.id as string;
 
@@ -402,7 +403,7 @@ function OrderDetailContent() {
             if (!isAuthenticated()) {
                 setError('Votre session a expiré. Veuillez vous reconnecter.');
                 setTimeout(() => {
-                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                    router.push('/login?redirect=' + encodeURIComponent(pathname));
                 }, 2000);
                 return;
             }
@@ -420,7 +421,7 @@ function OrderDetailContent() {
                 setError(errorMessage);
                 setTimeout(() => {
                     setError(null);
-                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                    router.push('/login?redirect=' + encodeURIComponent(pathname));
                 }, 3000);
             } else {
                 setError(errorMessage);
