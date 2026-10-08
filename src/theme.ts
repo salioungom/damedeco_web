@@ -60,21 +60,18 @@ const inter = Inter({
   weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
 });
 
 const poppins = Poppins({
-  weight: ['400', '500', '600', '700'],
+  weight: ['700'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-poppins',
 });
 
 const fraunces = Fraunces({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-fraunces',
 });
 
 export const FONT_INTER = inter.style.fontFamily;

@@ -7,7 +7,6 @@ import {
   Typography,
   Link as MuiLink,
   IconButton,
-  Divider,
   Stack,
 } from '@mui/material';
 import {
@@ -26,10 +25,18 @@ import { tokens } from '@/theme/tokens';
 
 /** Couleurs du footer — toutes issues des tokens (aucune valeur en dur) */
 const INK = tokens.colors.surfaces.inverseFooter;
-const ON_INVERSE = tokens.colors.text.onInverse;
-const ON_INVERSE_MUTED = tokens.colors.text.onInverseMuted;
-const ON_ACCENT = tokens.colors.accent.onDark;
-const ON_DARK_BORDER = tokens.colors.border.onDark;
+const WHITE = tokens.colors.white;
+const LINK = tokens.colors.text.onFooter;
+const MUTED = tokens.colors.text.onFooterMuted;
+const GOLD = tokens.colors.accent.onFooter;
+const RULE = tokens.colors.border.onFooter;
+const SOCIAL_RULE = tokens.colors.border.onFooterSocial;
+
+/** Anneau de focus clavier — doré, visible sur le fond navy */
+const focusRingSx = {
+  outline: `2px solid ${GOLD}`,
+  outlineOffset: '3px',
+};
 
 const NAV_LINKS = [
   { label: 'Accueil', href: '/' },
@@ -59,26 +66,41 @@ const LEGAL_LINKS = [
 
 const linkSx = {
   fontSize: { xs: 14.5, sm: 16, md: 17.5 },
-  color: ON_INVERSE_MUTED,
+  color: LINK,
   textDecorationLine: 'none',
-  transition: 'color 0.15s ease, text-decoration-color 0.15s ease',
+  transition: 'color 0.15s ease, text-decoration-color 0.15s ease, transform 0.15s ease',
   display: 'block',
   width: 'fit-content',
   textUnderlineOffset: '3px',
   '&:hover': {
-    color: ON_INVERSE,
+    color: WHITE,
     textDecorationLine: 'underline',
-    textDecorationColor: ON_ACCENT,
+    textDecorationColor: GOLD,
+    transform: 'translateX(2px)',
+  },
+  '&:focus-visible': {
+    ...focusRingSx,
+    color: WHITE,
+    borderRadius: 2,
   },
 };
 
 const headingSx = {
   fontSize: { xs: 11.5, sm: 12.5, md: 13.75 },
   fontWeight: 700,
-  color: ON_ACCENT,
+  color: GOLD,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
   mb: { xs: 1.5, sm: 2, md: 2.5 },
+};
+
+const legalLinkSx = {
+  ...linkSx,
+  color: MUTED,
+  '&:hover': {
+    ...linkSx['&:hover'],
+    color: WHITE,
+  },
 };
 
 export function Footer() {
@@ -86,22 +108,8 @@ export function Footer() {
   return (
     <Box
       component="footer"
-      sx={{ mt: 'auto', bgcolor: INK, color: ON_INVERSE, position: 'relative', overflow: 'hidden' }}
+      sx={{ mt: 'auto', bgcolor: INK, color: WHITE, position: 'relative', overflow: 'hidden' }}
     >
-      {/* Filet supérieur — accent laiton fin */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          bgcolor: ON_ACCENT,
-          opacity: 0.55,
-          pointerEvents: 'none',
-        }}
-      />
-
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 } }}>
         <Box
           sx={{
@@ -114,18 +122,18 @@ export function Footer() {
           {/* Marque */}
           <Box>
             <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
-              <BrandMark />
+              <BrandMark variant="inverse" />
               <Box>
-                <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: ON_INVERSE, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: WHITE, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
                   DameDéco
                 </Typography>
-                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: ON_ACCENT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: GOLD, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                   Import & Commerce
                 </Typography>
               </Box>
             </Stack>
 
-            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: ON_INVERSE_MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 } }}>
+            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 } }}>
               Importation de produits premium depuis la Chine. Votre partenaire de confiance à Dakar depuis 2010.
             </Typography>
 
@@ -136,8 +144,8 @@ export function Footer() {
                 { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'damedeco1@gmail.com' },
               ].map((item) => (
                 <Stack key={item.value} direction="row" spacing={{ xs: 1, sm: 1.15, md: 1.25 }} sx={{ alignItems: 'center' }}>
-                  <Box sx={{ color: ON_ACCENT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: ON_INVERSE_MUTED }}>{item.value}</Typography>
+                  <Box sx={{ color: LINK, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: MUTED }}>{item.value}</Typography>
                 </Stack>
               ))}
             </Stack>
@@ -188,10 +196,10 @@ export function Footer() {
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: ON_DARK_BORDER }} />
-
-        <Box
+      {/* Barre basse — même fond, séparateur aligné sur le conteneur */}
+      <Box
           sx={{
+            borderTop: `1px solid ${RULE}`,
             py: { xs: 2, sm: 2.5, md: 3, lg: 4 },
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr auto 1fr' },
@@ -199,7 +207,7 @@ export function Footer() {
             gap: { xs: 2, sm: 2.25, md: 2 },
           }}
         >
-          <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: ON_INVERSE_MUTED, textAlign: { xs: 'center', md: 'left' } }}>
+          <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: MUTED, textAlign: { xs: 'center', md: 'left' } }}>
               © {new Date().getFullYear()} DameDéco · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
@@ -215,14 +223,14 @@ export function Footer() {
                   width: 40,
                   height: 40,
                   borderRadius: '50%',
-                  border: `1px solid ${ON_DARK_BORDER}`,
-                  color: ON_INVERSE_MUTED,
+                  border: `1px solid ${SOCIAL_RULE}`,
+                  color: LINK,
                   transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
                   '&:hover': {
-                    color: ON_INVERSE,
-                    bgcolor: 'primary.main',
-                    borderColor: 'primary.main',
+                    color: GOLD,
+                    borderColor: GOLD,
                   },
+                  '&:focus-visible': focusRingSx,
                 }}
               >
                 <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 } }} />
@@ -236,12 +244,12 @@ export function Footer() {
             sx={{ justifyContent: { xs: 'center', md: 'flex-end' }, flexWrap: 'wrap' }}
           >
             {LEGAL_LINKS.map((l) => (
-              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...linkSx, fontSize: { xs: 13, sm: 14, md: 15 } }}>
+              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...legalLinkSx, fontSize: { xs: 13, sm: 14, md: 15 } }}>
                 {l.label}
               </MuiLink>
             ))}
           </Stack>
-        </Box>
+      </Box>
       </Container>
     </Box>
   );
