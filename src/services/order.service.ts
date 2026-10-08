@@ -123,8 +123,138 @@ function withStatus(error: unknown, message: string): Error {
   return out;
 }
 
+// ─── Contrôle d'appartenance des commandes (règle 403) ──────────────────────
+//
+// Le backend répond `403` sur `GET /api/v1/orders/{id}` quand la commande
+// n'appartient pas au client connecté. Le frontend ne doit JAMAIS émettre
+// cette requête pour une commande qui ne figure pas dans SES commandes :
+// la liste `GET /api/v1/orders/` (qui ne retourne que les commandes du
+// client) fait foi et est consultée AVANT toute demande de détail.
+//
+// - 'owned'   → la commande figure dans la liste du client : détail autorisé.
+// - 'foreign' → absente de la liste : aucune demande de détail n'est émise.
+// - 'unknown' → la liste n'a pas pu être parcourue complètement : on laisse
+//               le backend trancher (il reste l'autorité finale).
+type OrderOwnership = 'owned' | 'foreign' | 'unknown';
+
+const OWNERSHIP_PAGE_SIZE = 100;
+/** Garde-fou : nombre maximal de pages parcourues dans la liste du client. */
+const OWNERSHIP_MAX_PAGES = 20;
+
+/**
+ * Cache d'appartenance indexé sur le jeton courant : deux comptes successifs
+ * dans le même onglet n'utilisent jamais le même cache (aucune fuite de
+ * propriété entre utilisateurs). Le jeton tourne → le cache est vidé.
+ * Une commande nouvellement créée possède un id jamais vu : le contrôle est
+ * naturellement frais pour elle.
+ */
+let ownershipCacheToken: string | null | undefined;
+const ownershipCache = new Map<string, OrderOwnership>();
+
+function readAccessToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem('accessToken') || localStorage.getItem('token');
+  } catch {
+    return null;
+  }
+}
+
+function ownershipCacheForSession(): Map<string, OrderOwnership> {
+  const token = readAccessToken();
+  if (token !== ownershipCacheToken) {
+    ownershipCache.clear();
+    ownershipCacheToken = token;
+  }
+  return ownershipCache;
+}
+
+/** Invalide le cache (ex. après création d'une commande). */
+function resetOwnershipCache(): void {
+  ownershipCache.clear();
+  ownershipCacheToken = undefined;
+}
+
+/**
+ * Page de liste des commandes, avec partage des requêtes simultanées :
+ * plusieurs contrôles concurrents (ex. détail de N commandes récentes) n'émettent
+ * qu'une seule requête par page. La promesse est retirée dès l'arrivée de la
+ * réponse → aucune donnée conservée au-delà de l'instant du partage.
+ */
+const ordersPageInFlight = new Map<string, Promise<Order[]>>();
+
+function fetchOrdersPage(page: number, limit: number): Promise<Order[]> {
+  const key = `${page}:${limit}`;
+  const existing = ordersPageInFlight.get(key);
+  if (existing) return existing;
+
+  const request = getOrders(page, limit).finally(() => {
+    ordersPageInFlight.delete(key);
+  });
+  ordersPageInFlight.set(key, request);
+  return request;
+}
+
 // Service de gestion des commandes
 export class OrderService {
+  /**
+   * Détermine si `orderId` appartient au client connecté en parcourant sa
+   * propre liste de commandes (`GET /api/v1/orders/`), seule référence
+   * disponible sans émettre `GET /api/v1/orders/{id}`.
+   *
+   * Parcours paginé avec arrêt dès que l'id est trouvé ; si l'API ne progresse
+   * pas (`skip` ignoré) ou si le garde-fou de pages est atteint, le résultat
+   * est 'unknown' : le backend reste alors juge sur la requête de détail.
+   *
+   * Une erreur sur la liste est propagée telle quelle : aucun détail n'est
+   * demandé dans l'incertitude.
+   */
+  private static async resolveOrderOwnership(orderId: string | number): Promise<OrderOwnership> {
+    const cache = ownershipCacheForSession();
+    const key = String(orderId);
+    const cached = cache.get(key);
+    if (cached !== undefined) return cached;
+
+    let ownership: OrderOwnership = 'foreign';
+    let previousFirstId: string | null = null;
+
+    for (let page = 0; page < OWNERSHIP_MAX_PAGES; page++) {
+      const batch = await fetchOrdersPage(page, OWNERSHIP_PAGE_SIZE);
+
+      // Toutes les pages retournées sont des commandes du client : le cache
+      // en profite pour servir les contrôles suivants sans nouveau parcours.
+      for (const order of batch) {
+        if (!cache.has(String(order.id))) cache.set(String(order.id), 'owned');
+      }
+
+      if (batch.some((order) => String(order.id) === key)) {
+        ownership = 'owned';
+        break;
+      }
+      if (batch.length < OWNERSHIP_PAGE_SIZE) {
+        // Dernière page atteinte : l'absence est concluante.
+        break;
+      }
+
+      const firstId = String(batch[0].id);
+      if (firstId === previousFirstId) {
+        // L'API ne progresse pas : impossible de conclure.
+        ownership = 'unknown';
+        break;
+      }
+      previousFirstId = firstId;
+
+      if (page === OWNERSHIP_MAX_PAGES - 1) {
+        // Garde-fou atteint : liste potentiellement tronquée.
+        ownership = 'unknown';
+      }
+    }
+
+    // Seule une absence concluante est mémorisée : un 'unknown' est revérifié.
+    if (ownership !== 'unknown') cache.set(key, ownership);
+    return ownership;
+  }
+
   /**
    * Récupérer la liste des commandes du client
    */
@@ -143,9 +273,31 @@ export class OrderService {
   }
 
   /**
-   * Récupérer les détails d'une commande
+   * Récupérer les détails d'une commande.
+   *
+   * Garde d'appartenance : la commande est d'abord recherchée dans la liste
+   * des commandes du client. Si elle n'y figure pas, aucune requête
+   * `GET /api/v1/orders/{id}` n'est émise (le backend y répondrait 403) :
+   * la même règle d'autorisation est appliquée ici, côté frontend.
    */
   static async getOrderDetails(orderId: string | number): Promise<OrderResponse> {
+    let ownership: OrderOwnership;
+    try {
+      ownership = await OrderService.resolveOrderOwnership(orderId);
+    } catch (error) {
+      // Liste des commandes indisponible : rien n'est vérifié, aucun détail n'est demandé.
+      console.error('Erreur détails commande:', error);
+      throw withStatus(error, 'Impossible de récupérer les détails de la commande');
+    }
+
+    if (ownership === 'foreign') {
+      // Aucune requête GET /api/v1/orders/{id} : le backend y répondrait 403.
+      // La règle d'autorisation est donc rejouée ici, côté frontend.
+      const forbidden: ServiceError = new Error("Vous n'avez pas accès à cette commande.");
+      forbidden.status = 403;
+      throw forbidden;
+    }
+
     try {
       const order = await getOrderById(orderId);
       return order;
@@ -198,6 +350,9 @@ export class OrderService {
       }
 
       const order = await createOrder(orderData);
+      // Une commande fraîchement créée n'a jamais été contrôlée : on vide le
+      // cache pour que son apparition dans la liste soit vue sans délai.
+      resetOwnershipCache();
       return order;
     } catch (error) {
       throw error;

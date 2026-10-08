@@ -117,10 +117,15 @@ function OrderConfirmationInner() {
                 if (cancelled) return;
 
                 const classified = ApiErrorHandler.classifyError(err);
-                // Commande introuvable : c'est une erreur définitive, inutile de continuer à interroger.
-                if (classified.status === 404) {
+                // 404 = commande inexistante, 403 = commande étrangère au client :
+                // deux erreurs définitives, inutile de continuer à interroger.
+                if (classified.status === 404 || classified.status === 403) {
                     setPhase('error');
-                    setError('Commande introuvable. Vérifiez la référence de votre commande.');
+                    setError(
+                        classified.status === 404
+                            ? 'Commande introuvable. Vérifiez la référence de votre commande.'
+                            : ApiErrorHandler.getOrderError(err, 'check'),
+                    );
                     return;
                 }
 

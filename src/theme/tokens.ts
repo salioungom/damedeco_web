@@ -26,8 +26,8 @@ export const colors = {
     alt: '#EDE6DA',
     /** Sections inversées (footer, bandeaux devis) — encre */
     inverse: '#14213D',
-    /** Footer — encre éclaircie (bleu nuit) pour alléger les sections sombres */
-    inverseFooter: '#2A466F',
+    /** Fond unique du footer — navy-800 */
+    inverseFooter: '#173A66',
   },
 
   /* ─────────────────────────────── Texte ───────────────────────────────── */
@@ -40,6 +40,10 @@ export const colors = {
     onInverse: '#F7F3EC',
     /** Texte secondaire sur fond sombre — ratio ≥ 4.5:1 sur #14213D */
     onInverseMuted: '#C9CFDC',
+    /** Liens et icônes du footer — contraste AA sur #173A66 */
+    onFooter: '#D5DEEB',
+    /** Descriptions, mentions et copyright du footer — contraste AA sur #173A66 */
+    onFooterMuted: '#B4C2D6',
     /** Champs et liens désactivés */
     disabled: '#A9A29A',
   },
@@ -54,6 +58,8 @@ export const colors = {
     active: '#12345E',
     /** Aplat clair de marque (fonds de survol légers, avatars) */
     soft: '#E7EEF6',
+    /** Initiales « DS » du logo sur cercle blanc (variante claire du bleu de marque) — 8.2:1 sur blanc */
+    mark: '#1E4F8F',
   },
 
   /* ─────────────────────── Accent — laiton (≤ 10 %) ────────────────────── */
@@ -64,6 +70,8 @@ export const colors = {
     onDark: '#D4A968',
     /** Assombri — petits textes/icônes sur fond clair (ratio ≈ 4.5:1 sur blanc) */
     onLight: '#96703A',
+    /** Doré du footer — titres de colonnes, tagline, survols et focus */
+    onFooter: '#E0B76C',
   },
 
   /* ──────────────────────── Bordures / séparateurs ─────────────────────── */
@@ -72,6 +80,10 @@ export const colors = {
     light: '#DDD5C7',
     /** Sur fond sombre */
     onDark: 'rgba(247, 243, 236, 0.14)',
+    /** Séparateur de la barre basse du footer */
+    onFooter: 'rgba(255, 255, 255, 0.14)',
+    /** Bordure des icônes sociales du footer */
+    onFooterSocial: 'rgba(255, 255, 255, 0.2)',
   },
 
   /* ───────────────────────────── Sémantique ────────────────────────────── */
