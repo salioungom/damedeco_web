@@ -93,6 +93,15 @@ function FavoritesInitializer() {
 
 export function Providers({ children }: ProvidersProps) {
   const pathname = usePathname();
+  const isAuthRoute = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/change-password',
+    '/verify-otp',
+    '/setup-2fa',
+  ].includes(pathname);
 
   return (
     <SnackbarProvider
@@ -116,7 +125,7 @@ export function Providers({ children }: ProvidersProps) {
         <Box
           component="main"
           sx={{
-            flex: 1,
+            flex: isAuthRoute ? '0 0 auto' : 1,
             width: '100%',
             maxWidth: '100%',
             mx: 'auto',

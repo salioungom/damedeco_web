@@ -151,7 +151,7 @@ export default function Setup2FAPage() {
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', bgcolor: 'background.default' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: { xs: 4, md: 6 }, bgcolor: 'background.default' }}>
                 <CircularProgress />
             </Box>
         );
@@ -332,13 +332,13 @@ export default function Setup2FAPage() {
                                     input: {
                                         readOnly: true,
                                         sx: {
-                                            borderRadius: 2,
+                                            borderRadius: '8px',
                                             fontFamily: 'monospace',
                                             fontSize: '0.875rem',
                                         },
                                     },
                                 }}
-                                sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                             />
 
                             <Typography variant="body2" sx={{ mb: 2 }}>
@@ -371,7 +371,7 @@ export default function Setup2FAPage() {
                                         sx: { fontFamily: 'monospace' },
                                     },
                                 }}
-                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, height: 48 } }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', height: 48 } }}
                             />
                         </>
                     )}
