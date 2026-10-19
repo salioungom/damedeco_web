@@ -203,7 +203,7 @@ function RegisterForm() {
                         size="small"
                         sx={{
                             bgcolor: strengthColors[passwordStrength.strength],
-                            color: 'white',
+                            color: 'primary.contrastText',
                             fontWeight: 600,
                             fontSize: '0.7rem'
                         }}

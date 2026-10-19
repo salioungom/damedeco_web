@@ -57,16 +57,16 @@ import InvoiceService, {
   normalizeInvoicePhone,
 } from '@/services/invoice.service';
 import type { Invoice } from '@/services/invoice.service';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  white: tokens.colors.surfaces.paper,
+  light: tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border: tokens.colors.border.light,
+  muted: tokens.colors.text.secondary,
 } as const;
 
 interface OrderItem {
@@ -371,13 +371,13 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
   // Chip Styling per Status
   const getStatusChipSx = (status: string) => {
     const colors: Record<string, { bg: string; color: string }> = {
-      pending: { bg: alpha('#F59E0B', 0.12), color: '#B45309' }, // orange/warning
-      confirmed: { bg: alpha('#0288D1', 0.12), color: '#0288D1' }, // bleu/info
-      processing: { bg: alpha('#9C27B0', 0.12), color: '#9C27B0' }, // violet/secondaire
-      shipped: { bg: alpha('#3F51B5', 0.12), color: '#3F51B5' }, // indigo/bleu foncé
-      delivered: { bg: alpha('#2E7D32', 0.12), color: '#2E7D32' }, // vert/success
-      cancelled: { bg: alpha('#D32F2F', 0.12), color: '#D32F2F' }, // rouge/error
-      refunded: { bg: alpha('#757575', 0.15), color: '#757575' }, // gris/default
+      pending: { bg: alpha(tokens.colors.status.warning, 0.12), color: tokens.colors.status.warning },
+      confirmed: { bg: alpha(tokens.colors.brand.main, 0.12), color: tokens.colors.brand.main },
+      processing: { bg: alpha(tokens.colors.brand.hover, 0.12), color: tokens.colors.brand.hover },
+      shipped: { bg: alpha(tokens.colors.brand.active, 0.12), color: tokens.colors.brand.active },
+      delivered: { bg: alpha(tokens.colors.status.success, 0.12), color: tokens.colors.status.success },
+      cancelled: { bg: alpha(tokens.colors.status.error, 0.12), color: tokens.colors.status.error },
+      refunded: { bg: alpha(tokens.colors.text.secondary, 0.15), color: tokens.colors.text.secondary },
     };
     const c = colors[status] || { bg: alpha(BRAND.muted, 0.1), color: BRAND.muted };
     return {
@@ -610,10 +610,10 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
                           <IconButton
                             onClick={() => handleOpenInvoiceDialog(order)}
                             sx={{
-                              color: '#2E7D32',
-                              bgcolor: alpha('#2E7D32', 0.08),
+                              color: tokens.colors.status.success,
+                              bgcolor: alpha(tokens.colors.status.success, 0.08),
                               '&:hover': {
-                                bgcolor: alpha('#2E7D32', 0.18),
+                                bgcolor: alpha(tokens.colors.status.success, 0.18),
                               },
                             }}
                             size="small"
@@ -1012,8 +1012,8 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
                   label={getInvoiceStatusLabel(invoice.status)}
                   size="small"
                   sx={{
-                    bgcolor: alpha('#2E7D32', 0.12),
-                    color: '#2E7D32',
+                    bgcolor: alpha(tokens.colors.status.success, 0.12),
+                    color: tokens.colors.status.success,
                     fontWeight: 600,
                     fontSize: 14,
                   }}
@@ -1263,11 +1263,12 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
                             if (!badge) {
                               return <Typography sx={{ fontSize: 16, color: BRAND.dark }}>—</Typography>;
                             }
-                            const c = {
-                              success: { bg: alpha('#2E7D32', 0.12), color: '#2E7D32' },
-                              warning: { bg: alpha('#F59E0B', 0.16), color: '#B45309' },
-                              error: { bg: alpha('#D32F2F', 0.12), color: '#D32F2F' },
-                            }[badge.tone];
+                            const statusColor = badge.tone === 'success'
+                              ? tokens.colors.status.success
+                              : badge.tone === 'warning'
+                                ? tokens.colors.status.warning
+                                : tokens.colors.status.error;
+                            const c = { bg: alpha(statusColor, 0.12), color: statusColor };
                             return (
                               <Chip
                                 size="small"
@@ -1310,7 +1311,7 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
                         {Number(invoice.payment.amount_remaining) > 0 && (
                           <Grid size={{ xs: 12, sm: 6 }}>
                             <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Reste à payer</Typography>
-                            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#B45309' }}>
+                            <Typography sx={{ fontSize: 16, fontWeight: 600, color: 'warning.dark' }}>
                               {formatFcfa(Number(invoice.payment.amount_remaining) || 0)}
                             </Typography>
                           </Grid>
@@ -1348,14 +1349,14 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
                 startIcon={<WhatsAppIcon />}
                 variant="outlined"
                 sx={{
-                  color: '#128C7E',
-                  borderColor: '#128C7E',
+                  color: 'var(--theme-whatsapp)',
+                  borderColor: 'var(--theme-whatsapp)',
                   textTransform: 'none',
                   fontWeight: 600,
                   borderRadius: '10px',
                   '&:hover': {
-                    borderColor: '#075E54',
-                    bgcolor: alpha('#128C7E', 0.08),
+                    borderColor: 'var(--theme-whatsapp-dark)',
+                    bgcolor: 'color-mix(in srgb, var(--theme-whatsapp) 8%, transparent)',
                   },
                 }}
               >

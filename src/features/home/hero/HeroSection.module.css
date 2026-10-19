@@ -1,0 +1,12 @@
+.heroSection {
+  position: relative;
+  overflow: hidden;
+}
+
+.entranceItem {
+  will-change: opacity, transform;
+}
+
+.primaryButton {
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.2s ease;
+}

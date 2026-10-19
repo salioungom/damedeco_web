@@ -38,6 +38,7 @@ import { Product, ProductStatus } from '../types/product';
 import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
+import Reveal from './motion/Reveal';
 import { PaymentIcons } from './PaymentIcons';
 import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
@@ -199,6 +200,10 @@ export function ProductDetailPage({
     originalPrice && originalPrice > price
       ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : null;
+  const savingsAmount =
+    originalPrice && originalPrice > price
+      ? originalPrice - price
+      : null;
   const reviewCount = product.review_count ?? 0;
 
   // ── DISPONIBILITÉ COMMERCIALE ─────────────────────────────────────────────
@@ -262,24 +267,26 @@ export function ProductDetailPage({
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: C.surface, pb: { xs: 5, sm: 6, md: 8, lg: 10 } }}>
       <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 2.5, md: 3, lg: 4 } }}>
-        <Breadcrumbs
-          separator={<NavigateNext sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: C.muted }} />}
-          sx={{ mb: { xs: 2, sm: 2.5, md: 3, lg: 4 }, '& .MuiBreadcrumbs-li': { fontSize: { xs: 14, sm: 15, md: 16.25 } } }}
-        >
-          <Link href="/" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Accueil</Link>
-          <Link href="/shop" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Boutique</Link>
-          {product.category_name && (
-            <Link
-              href={`/shop?category=${product.category_id}`}
-              style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}
-            >
-              {product.category_name}
-            </Link>
-          )}
-          <Typography sx={{ color: C.dark, fontWeight: 600, fontSize: { xs: 14, sm: 15, md: 16.25 } }} noWrap>
-            {product.name}
-          </Typography>
-        </Breadcrumbs>
+        <Reveal>
+          <Breadcrumbs
+            separator={<NavigateNext sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: C.muted }} />}
+            sx={{ mb: { xs: 2, sm: 2.5, md: 3, lg: 4 }, '& .MuiBreadcrumbs-li': { fontSize: { xs: 14, sm: 15, md: 16.25 } } }}
+          >
+            <Link href="/" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Accueil</Link>
+            <Link href="/shop" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Boutique</Link>
+            {product.category_name && (
+              <Link
+                href={`/shop?category=${product.category_id}`}
+                style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}
+              >
+                {product.category_name}
+              </Link>
+            )}
+            <Typography sx={{ color: C.dark, fontWeight: 600, fontSize: { xs: 14, sm: 15, md: 16.25 } }} noWrap>
+              {product.name}
+            </Typography>
+          </Breadcrumbs>
+        </Reveal>
 
         <Box
           sx={{
@@ -289,6 +296,7 @@ export function ProductDetailPage({
             alignItems: 'start',
           }}
         >
+          <Reveal y={32} style={{ display: 'contents' }}>
           {/* Galerie */}
           <Box>
             <Box
@@ -472,34 +480,47 @@ export function ProductDetailPage({
                   {Number(product.average_rating).toFixed(1)}
                 </Typography>
                 {reviewCount > 0 && (
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.muted }}>({reviewCount} avis)</Typography>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: 'text.secondary' }}>({reviewCount} avis)</Typography>
                 )}
               </Stack>
             )}
 
             <Box sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
-              <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                <Typography sx={{ fontSize: { xs: '1.5rem', sm: '1.65rem', md: '1.75rem', lg: '2rem' }, fontWeight: 800, color: C.dark, letterSpacing: '-0.02em' }}>
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'baseline', flexWrap: 'nowrap' }}>
+                <Typography sx={{ fontSize: { xs: '1.5rem', sm: '1.65rem', md: '1.75rem', lg: '2rem' }, fontWeight: 600, color: C.dark, letterSpacing: '-0.02em', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                   {formatPrice(price)}
                 </Typography>
                 {originalPrice && originalPrice > price && (
-                  <Typography sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: C.muted, textDecoration: 'line-through' }}>
+                  <Typography sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: 'text.disabled', textDecoration: 'line-through', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                     {formatPrice(originalPrice)}
                   </Typography>
                 )}
               </Stack>
 
               {discountPercent != null && userType !== 'wholesale' && (
-                <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', mt: { xs: 1, sm: 1.25 } }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 1,
+                    mt: { xs: 1, sm: 1.25 },
+                    minWidth: 0,
+                  }}
+                >
                   <Chip
                     label={`-${discountPercent}%`}
                     size="small"
-                    sx={{ bgcolor: alpha(C.statusError, 0.08), color: C.statusError, fontWeight: 800, fontSize: { xs: 13, sm: 14, md: 15 } }}
+                    color="error"
+                    sx={{ fontWeight: 800, fontSize: { xs: 13, sm: 14, md: 15 }, flexShrink: 0 }}
                   />
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.statusSuccess, fontWeight: 600 }}>
-                    Économisez {formatPrice(originalPrice! - price)}
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 600, fontSize: { xs: 13, sm: 14, md: 15 }, whiteSpace: 'nowrap', color: '#067647' }}
+                  >
+                    Économisez {formatPrice(savingsAmount!)}
                   </Typography>
-                </Stack>
+                </Box>
               )}
 
               {userType === 'wholesale' && (
@@ -601,6 +622,7 @@ export function ProductDetailPage({
               ))}
             </Stack>
           </Paper>
+          </Reveal>
         </Box>
 
         {/* Détails */}
@@ -682,15 +704,18 @@ export function ProductDetailPage({
         </Paper>
 
         {/* Similaires */}
-        <Box sx={{ mt: { xs: 5, sm: 6, md: 7, lg: 9 } }}>
-          <Box sx={{ mb: { xs: 3, sm: 3.5, md: 4 } }}>
+        <Reveal y={30}>
+          <Box sx={{ mt: { xs: 5, sm: 6, md: 7, lg: 9 } }}>
+            <Reveal y={22}>
+              <Box sx={{ mb: { xs: 3, sm: 3.5, md: 4 } }}>
             <Typography sx={{ fontSize: { xs: 12, sm: 12.5, md: 13.75 }, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.primary, mb: { xs: 0.75, sm: 1 } }}>
               Vous aimerez aussi
             </Typography>
             <Typography component="h2" sx={{ fontSize: { xs: '1.35rem', sm: '1.45rem', md: '1.5rem', lg: '1.85rem' }, fontWeight: 800, color: C.dark, letterSpacing: '-0.03em' }}>
               Produits similaires
             </Typography>
-          </Box>
+              </Box>
+            </Reveal>
 
           {loadingSimilar ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
@@ -700,7 +725,8 @@ export function ProductDetailPage({
             </Box>
           ) : similarProducts.length > 0 ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
-              {similarProducts.map((similarProduct) => (
+              <Reveal stagger={0.1} style={{ display: 'contents' }}>
+                {similarProducts.map((similarProduct) => (
                 <ProductCard
                   key={similarProduct.id}
                   product={similarProduct}
@@ -710,10 +736,12 @@ export function ProductDetailPage({
                   isFavorite={favorites.includes(String(similarProduct.id))}
                   onToggleFavorite={onToggleFavorite}
                 />
-              ))}
+                ))}
+              </Reveal>
             </Box>
           ) : null}
-        </Box>
+          </Box>
+        </Reveal>
       </Container>
     </Box>
   );

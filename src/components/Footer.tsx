@@ -60,9 +60,9 @@ const SOCIALS = [
 ];
 
 const LEGAL_LINKS = [
-  { label: 'Mentions légales', href: '#' },
-  { label: 'CGV', href: '#' },
-  { label: 'Confidentialité', href: '#' },
+  { label: 'Mentions légales', href: '/mentions-legales' },
+  { label: 'CGV', href: '/cgv' },
+  { label: 'Confidentialité', href: '/confidentialite' },
 ];
 
 const linkSx = {

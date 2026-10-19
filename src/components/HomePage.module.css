@@ -1,0 +1,87 @@
+.featureCard {
+  --feature-card-bg: var(--theme-white);
+  --feature-card-border: var(--theme-border-light);
+  --feature-card-color: var(--theme-text-primary);
+  --feature-icon-bg: var(--theme-primary-light);
+  --feature-icon-border: var(--theme-border-light);
+  --feature-icon-color: var(--theme-primary-main);
+  --feature-number-color: var(--theme-secondary-main);
+  --feature-title-color: var(--theme-text-primary);
+  --feature-body-color: var(--theme-text-secondary);
+  --feature-divider-color: var(--theme-border-light);
+  --feature-payment-label: var(--theme-primary-main);
+  --feature-payment-bg: var(--theme-primary-light);
+  --feature-payment-border: var(--theme-border-light);
+
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.featureIconTile,
+.featureIcon,
+.featureNumber,
+.featureTitle,
+.featureDescription,
+.featureDivider,
+.featurePaymentLabel,
+.featurePaymentMethods {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+@media (hover: hover) {
+  .featureCard:hover {
+    --feature-card-bg: var(--theme-card-hover-bg);
+    --feature-card-border: var(--theme-card-hover-bg);
+    --feature-card-color: var(--theme-white);
+    --feature-icon-bg: var(--theme-white);
+    --feature-icon-border: var(--theme-white);
+    --feature-icon-color: var(--theme-card-hover-bg);
+    --feature-number-color: var(--theme-secondary-light);
+    --feature-title-color: var(--theme-white);
+    --feature-body-color: var(--theme-on-inverse-light);
+    --feature-divider-color: var(--theme-gold-soft);
+    --feature-payment-label: var(--theme-on-inverse-light);
+    --feature-payment-bg: var(--theme-white-10);
+    --feature-payment-border: var(--theme-white-25);
+
+    transform: translateY(-4px);
+    box-shadow: 0 22px 48px var(--theme-black-20);
+  }
+}
+
+.featureCard:focus-within {
+  --feature-card-bg: var(--theme-card-hover-bg);
+  --feature-card-border: var(--theme-card-hover-bg);
+  --feature-card-color: var(--theme-white);
+  --feature-icon-bg: var(--theme-white);
+  --feature-icon-border: var(--theme-white);
+  --feature-icon-color: var(--theme-card-hover-bg);
+  --feature-number-color: var(--theme-secondary-light);
+  --feature-title-color: var(--theme-white);
+  --feature-body-color: var(--theme-on-inverse-light);
+  --feature-divider-color: var(--theme-gold-soft);
+  --feature-payment-label: var(--theme-on-inverse-light);
+  --feature-payment-bg: var(--theme-white-10);
+  --feature-payment-border: var(--theme-white-25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featureCard,
+  .featureIconTile,
+  .featureIcon,
+  .featureNumber,
+  .featureTitle,
+  .featureDescription,
+  .featureDivider,
+  .featurePaymentLabel,
+  .featurePaymentMethods {
+    transition: none;
+  }
+}

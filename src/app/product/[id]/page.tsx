@@ -53,12 +53,12 @@ export default function Page() {
 
     if (loading) {
         return (
-            <Box sx={{ bgcolor: '#F8FAFC', minHeight: '60vh', pb: { xs: 3, md: 5 }, pt: { xs: '92px', sm: 3, md: 5 } }}>
+            <Box sx={{ bgcolor: 'background.default', minHeight: '60vh', pb: { xs: 3, md: 5 }, pt: { xs: '92px', sm: 3, md: 5 } }}>
                 <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
                     <Skeleton width={280} height={24} sx={{ mb: 4, borderRadius: 1 }} />
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.15fr 0.85fr' }, gap: 5 }}>
                         <Skeleton variant="rounded" sx={{ borderRadius: '20px', aspectRatio: '1', maxHeight: 560 }} />
-                        <Paper elevation={0} sx={{ p: 3.5, borderRadius: '20px', border: '1px solid #D4E6F7' }}>
+                        <Paper elevation={0} sx={{ p: 3.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
                             <Stack spacing={2}>
                                 <Skeleton width="40%" height={28} />
                                 <Skeleton width="70%" height={40} />
@@ -76,10 +76,10 @@ export default function Page() {
     if (error || !product) {
         return (
             <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: '#042C53', mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>
                     {error || 'Produit non trouvé'}
                 </Typography>
-                <Typography sx={{ color: '#64748B', mb: 3, fontSize: 15 }}>
+                <Typography sx={{ color: 'text.secondary', mb: 3, fontSize: 15 }}>
                     Ce produit n&apos;existe pas ou n&apos;est plus disponible.
                 </Typography>
                 <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'center' }}>

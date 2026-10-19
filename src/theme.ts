@@ -1,9 +1,12 @@
 'use client';
 import { createTheme, alpha } from '@mui/material/styles';
-import { Inter, Poppins, Fraunces } from 'next/font/google';
+import { Inter, Poppins } from 'next/font/google';
 import { tokens } from '@/theme/tokens';
 
 declare module '@mui/material/styles' {
+  interface TypeBackground {
+    cream: string;
+  }
   interface Palette {
     accent: {
       main: string;
@@ -68,59 +71,53 @@ const poppins = Poppins({
   display: 'swap',
 });
 
-const fraunces = Fraunces({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
-
 export const FONT_INTER = inter.style.fontFamily;
 export const FONT_POPPINS = poppins.style.fontFamily;
-export const FONT_FRAUNCES = fraunces.style.fontFamily;
+export const FONT_FRAUNCES = FONT_POPPINS;
 
 export const BRAND_BLUE = tokens.colors.brand.main;
 
 const { colors, fontSize } = tokens;
-const focusRing = `2px solid ${tokens.colors.status.focus}`;
+const focusRing = `2px solid ${tokens.colors.brand.main}`;
 
 const theme = createTheme({
   spacing: 10,
   typography: {
-    fontFamily: [inter.style.fontFamily, fraunces.style.fontFamily, poppins.style.fontFamily, 'sans-serif'].join(','),
+    fontFamily: [inter.style.fontFamily, 'sans-serif'].join(','),
     h1: {
-      fontFamily: FONT_FRAUNCES,
+      fontFamily: FONT_POPPINS,
       fontSize: fontSize.xxl,
       fontWeight: 600,
       lineHeight: 1.08,
       letterSpacing: '-0.02em',
     },
     h2: {
-      fontFamily: FONT_FRAUNCES,
+      fontFamily: FONT_POPPINS,
       fontSize: fontSize.xl,
       fontWeight: 600,
       lineHeight: 1.12,
       letterSpacing: '-0.015em',
     },
     h3: {
-      fontFamily: FONT_FRAUNCES,
+      fontFamily: FONT_POPPINS,
       fontSize: fontSize.xl,
       fontWeight: 600,
       lineHeight: 1.2,
     },
     h4: {
-      fontFamily: FONT_FRAUNCES,
+      fontFamily: FONT_POPPINS,
       fontSize: fontSize.lg,
       fontWeight: 600,
       lineHeight: 1.2,
     },
     h5: {
-      fontFamily: FONT_FRAUNCES,
+      fontFamily: FONT_POPPINS,
       fontSize: fontSize.md,
       fontWeight: 600,
       lineHeight: 1.25,
     },
     h6: {
-      fontFamily: FONT_FRAUNCES,
+      fontFamily: FONT_POPPINS,
       fontSize: fontSize.md,
       fontWeight: 600,
       lineHeight: 1.3,
@@ -155,37 +152,37 @@ const theme = createTheme({
     mode: 'light',
     primary: {
       main: colors.brand.main,
-      light: '#2E64A8',
+      light: colors.brand.soft,
       dark: colors.brandDark,
-      contrastText: '#ffffff',
+      contrastText: colors.white,
     },
     secondary: {
-      main: '#7c3aed',
-      light: '#8b5cf6',
-      dark: '#6d28d9',
-      contrastText: '#ffffff',
+      main: colors.accent.onLight,
+      light: colors.accent.onDark,
+      dark: colors.accent.onLight,
+      contrastText: colors.white,
     },
     success: {
       main: colors.success,
-      light: '#44946A',
-      dark: '#176039',
-      contrastText: '#ffffff',
+      light: colors.status.successLight,
+      dark: colors.status.successDark,
+      contrastText: colors.white,
     },
     error: {
       main: colors.error,
-      light: '#C94F45',
-      dark: '#8F1D14',
-      contrastText: '#ffffff',
+      light: colors.status.errorLight,
+      dark: colors.status.errorDark,
+      contrastText: colors.white,
     },
     warning: {
       main: colors.warning,
-      light: '#A9862F',
-      dark: '#6C5216',
-      contrastText: '#ffffff',
+      light: colors.status.warningLight,
+      dark: colors.status.warningDark,
+      contrastText: colors.white,
     },
     info: {
       main: colors.brand.main,
-      light: '#2E64A8',
+      light: colors.brand.soft,
       dark: colors.brandDark,
     },
     text: {
@@ -196,6 +193,7 @@ const theme = createTheme({
     background: {
       default: colors.surfaces.default,
       paper: colors.surfaces.paper,
+      cream: colors.surfaces.alt,
     },
     divider: colors.border.light,
     accent: {
@@ -205,15 +203,15 @@ const theme = createTheme({
     },
     custom: {
       main: colors.brand.main,
-      light: '#2E64A8',
+      light: colors.brand.soft,
       dark: colors.brandDark,
-      contrastText: '#ffffff',
+      contrastText: colors.white,
     },
     golden: {
-      main: '#C6A75E',
-      light: '#D4B76E',
-      dark: '#B8965E',
-      contrastText: '#ffffff',
+      main: colors.accent.main,
+      light: colors.accent.onDark,
+      dark: colors.accent.onLight,
+      contrastText: colors.white,
     },
     laiton: {
       main: colors.accent.main,
@@ -223,13 +221,92 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         'html, body': {
           scrollBehavior: 'smooth',
+          backgroundColor: colors.surfaces.default,
+          color: colors.text.primary,
+        },
+        ':root': {
+          '--theme-primary-main': colors.brand.main,
+          '--theme-primary-dark': colors.brandDark,
+          '--theme-primary-light': colors.brand.soft,
+          '--theme-secondary-main': colors.accent.onLight,
+          '--theme-secondary-light': colors.accent.onDark,
+          '--theme-background-cream': colors.surfaces.alt,
+          '--theme-background-default': colors.surfaces.default,
+          '--theme-border-light': colors.border.light,
+          '--theme-text-primary': colors.text.primary,
+          '--theme-text-secondary': colors.text.secondary,
+          '--theme-on-inverse-muted': colors.text.onInverseMuted,
+          '--theme-on-inverse-light': '#e8eff5',
+          '--theme-white': colors.white,
+          '--theme-white-10': 'rgba(255, 255, 255, 0.1)',
+          '--theme-white-12': 'rgba(255, 255, 255, 0.12)',
+          '--theme-white-14': 'rgba(255, 255, 255, 0.14)',
+          '--theme-white-15': 'rgba(255, 255, 255, 0.15)',
+          '--theme-white-18': 'rgba(255, 255, 255, 0.18)',
+          '--theme-white-20': 'rgba(255, 255, 255, 0.2)',
+          '--theme-white-25': 'rgba(255, 255, 255, 0.25)',
+          '--theme-white-30': 'rgba(255, 255, 255, 0.3)',
+          '--theme-white-50': 'rgba(255, 255, 255, 0.5)',
+          '--theme-white-70': 'rgba(255, 255, 255, 0.7)',
+          '--theme-white-82': 'rgba(255, 255, 255, 0.82)',
+          '--theme-white-06': 'rgba(255, 255, 255, 0.06)',
+          '--theme-white-08': 'rgba(255, 255, 255, 0.08)',
+          '--theme-white-09': 'rgba(255, 255, 255, 0.9)',
+          '--theme-black-10': 'rgba(0, 0, 0, 0.1)',
+          '--theme-black-25': 'rgba(0, 0, 0, 0.25)',
+          '--theme-black-30': 'rgba(0, 0, 0, 0.3)',
+          '--theme-black-40': 'rgba(0, 0, 0, 0.4)',
+          '--theme-black-80': 'rgba(0, 0, 0, 0.8)',
+          '--theme-black-05': 'rgba(0, 0, 0, 0.05)',
+          '--theme-black-50': 'rgba(0, 0, 0, 0.5)',
+          '--theme-black-70': 'rgba(0, 0, 0, 0.7)',
+          '--theme-neutral-placeholder': '#f3f4f6',
+          '--theme-neutral-placeholder-line': '#d1d5db',
+          '--theme-neutral-placeholder-border': '#e5e7eb',
+          '--theme-error-light': colors.status.errorLight,
+          '--theme-error-main': colors.error,
+          '--theme-black-04': 'rgba(0, 0, 0, 0.04)',
+          '--theme-black-08': 'rgba(0, 0, 0, 0.08)',
+          '--theme-black-15': 'rgba(0, 0, 0, 0.15)',
+          '--theme-black-20': 'rgba(0, 0, 0, 0.2)',
+          '--theme-whatsapp': '#128C7E',
+          '--theme-whatsapp-dark': '#075E54',
+          '--theme-gold-soft': 'rgba(224, 184, 114, 0.45)',
+          '--theme-card-hover-bg': '#1e3a6e',
+          '--theme-card-border': colors.border.light,
+          '--theme-icon-fallback-bg': '#f3f4f6',
+          '--theme-icon-fallback-line': '#d1d5db',
+          '--theme-icon-fallback-stroke': '#9ca3af',
+          '--theme-icon-fallback-ink': '#6b7280',
+        },
+        ':focus-visible': {
+          outline: focusRing,
+          outlineOffset: '2px',
+        },
+        '::-webkit-scrollbar': {
+          width: '10px',
+          height: '10px',
+        },
+        '::-webkit-scrollbar-track': {
+          background: colors.ivory,
+        },
+        '::-webkit-scrollbar-thumb': {
+          background: colors.border.light,
+          borderRadius: '5px',
+          '&:hover': { background: colors.disabled },
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '*, *::before, *::after': {
+            scrollBehavior: 'auto !important',
+            transitionDuration: '0.01ms !important',
+          },
         },
         a: {
           textDecoration: 'none',
@@ -243,9 +320,10 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 10,
           fontWeight: 600,
           padding: '13px 24px',
+          transition: 'transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease',
           '&.Mui-focusVisible': {
             outline: focusRing,
             outlineOffset: '2px',
@@ -261,18 +339,21 @@ const theme = createTheme({
         },
         containedPrimary: {
           background: colors.brand.main,
+          boxShadow: '0 6px 16px rgba(20, 48, 92, 0.18)',
           '&:hover': {
             background: colors.brandDark,
+            transform: 'translateY(-2px)',
           },
           '&:active': {
             background: colors.brandDark,
           },
           '&.Mui-disabled': {
-            background: colors.sand,
+            background: colors.surfaces.alt,
             color: colors.disabled,
           },
         },
         outlinedPrimary: {
+          boxShadow: 'none',
           borderColor: colors.brand.main,
           color: colors.brand.main,
           '&:hover': {
@@ -281,6 +362,7 @@ const theme = createTheme({
           },
         },
         outlined: {
+          boxShadow: 'none',
           borderColor: colors.border.light,
           color: colors.ink,
           '&:hover': {
@@ -291,9 +373,20 @@ const theme = createTheme({
         textPrimary: {
           color: colors.brand.main,
           '&:hover': {
+            boxShadow: 'none',
             background: alpha(colors.brand.main, 0.08),
           },
         },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: { color: 'inherit' },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: { borderRadius: 12 },
       },
     },
     MuiCard: {
@@ -302,13 +395,7 @@ const theme = createTheme({
           borderRadius: 12,
           boxShadow: 'none',
           border: `1px solid ${colors.border.light}`,
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          boxShadow: 'none',
+          transition: 'transform 0.2s, box-shadow 0.2s',
         },
       },
     },
@@ -360,7 +447,7 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          color: colors.brand.main,
+          color: 'inherit',
           textUnderlineOffset: '3px',
           '&.Mui-focusVisible': {
             outline: focusRing,
@@ -396,27 +483,5 @@ const theme = createTheme({
     },
   },
 });
-
-theme.components = {
-  ...theme.components,
-  MuiCssBaseline: {
-    styleOverrides: {
-      '::-webkit-scrollbar': {
-        width: '10px',
-        height: '10px',
-      },
-      '::-webkit-scrollbar-track': {
-        background: colors.ivory,
-      },
-      '::-webkit-scrollbar-thumb': {
-        background: colors.border.light,
-        borderRadius: '5px',
-        '&:hover': {
-          background: colors.disabled,
-        },
-      },
-    },
-  },
-};
 
 export default theme;

@@ -124,7 +124,7 @@ export const PasswordField = forwardRef<HTMLDivElement, PasswordFieldProps>(
                     color: 'text.secondary',
                     '&:hover': {
                       color: 'primary.main',
-                      bgcolor: 'rgba(24, 95, 165, 0.08)',
+                      bgcolor: 'action.hover',
                     },
                     '@media (pointer: coarse)': {
                       width: 44,

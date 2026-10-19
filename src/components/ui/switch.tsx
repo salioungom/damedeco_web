@@ -14,7 +14,7 @@ const Switch = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof M
         transitionDuration: "300ms",
         "&.Mui-checked": {
           transform: "translateX(16px)",
-          color: "#fff",
+          color: "primary.contrastText",
           "& + .MuiSwitch-track": {
             backgroundColor: "primary.main",
             opacity: 1,
@@ -25,8 +25,9 @@ const Switch = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof M
           },
         },
         "&.Mui-focusVisible .MuiSwitch-thumb": {
-          color: "#33cf4d",
-          border: "6px solid #fff",
+          color: "primary.main",
+          border: "6px solid",
+          borderColor: "primary.contrastText",
         },
         "&.Mui-disabled .MuiSwitch-thumb": {
           color: "grey.100",

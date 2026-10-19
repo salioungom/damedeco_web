@@ -576,7 +576,7 @@ export function CheckoutFinalize({
                         justifyContent: 'center',
                       }}
                     >
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'white' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'common.white' }} />
                     </Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: { xs: 600, lg: 700 } }} color="text.primary">
                       Paiement en ligne sécurisé

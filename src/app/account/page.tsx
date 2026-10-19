@@ -159,8 +159,8 @@ function AccountPageContent() {
                     p: { xs: 2.5, sm: 3.5, md: 6 },
                     mb: { xs: 3, sm: 4, md: 5 },
                     background: theme.palette.primary.main,
-                    color: 'white',
-                    boxShadow: '0 20px 40px -15px rgba(0,0,0,0.2)',
+                    color: 'primary.contrastText',
+                    boxShadow: theme.shadows[6],
                 }}
             >
                 
@@ -170,19 +170,19 @@ function AccountPageContent() {
                         sx={{
                             width: { xs: 100, md: 120 },
                             height: { xs: 100, md: 120 },
-                            bgcolor: 'rgba(255,255,255,0.2)',
+                            bgcolor: 'var(--theme-white-20)',
                             backdropFilter: 'blur(10px)',
-                            border: '3px solid rgba(255,255,255,0.5)',
+                            border: '3px solid var(--theme-white-50)',
                             fontSize: '3.5rem',
                             fontWeight: 700,
-                            color: 'white',
-                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)'
+                            color: 'primary.contrastText',
+                            boxShadow: theme.shadows[4]
                         }}
                     >
                         {user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </Avatar>
                     <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                        <Typography variant="h3" gutterBottom fontWeight={800} sx={{ textShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: { xs: '2rem', md: '3rem' } }}>
+                        <Typography variant="h3" gutterBottom fontWeight={800} sx={{ textShadow: `0 2px 10px ${alpha(theme.palette.common.black, 0.1)}`, fontSize: { xs: '2rem', md: '3rem' } }}>
                             Bonjour, {user?.full_name || user?.email?.split('@')[0] || 'Cher client'}
                         </Typography>
                         <Typography variant="body1" sx={{ opacity: 0.9, fontWeight: 400, maxWidth: 600, fontSize: { xs: 14, sm: 15, md: 16 }, lineHeight: 1.6 }}>
@@ -337,7 +337,7 @@ function AccountPageContent() {
                                                     bgcolor: 'background.paper',
                                                     borderColor: alpha(theme.palette.primary.main, 0.2),
                                                     transform: 'translateX(6px)',
-                                                    boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+                                                    boxShadow: theme.shadows[1],
                                                 },
                                             }}
                                             onClick={() => router.push(`/account/orders/${order.id}`)}
@@ -406,7 +406,7 @@ function AccountPageContent() {
                                                                 borderRadius: 2,
                                                                 height: 32,
                                                                 px: 1,
-                                                                bgcolor: alpha(theme.palette[getStatusColor(order.status) as 'primary' | 'success' | 'warning' | 'error' | 'info']?.main || '#999', 0.1),
+                                                                bgcolor: alpha(theme.palette[getStatusColor(order.status) as 'primary' | 'success' | 'warning' | 'error' | 'info']?.main || theme.palette.text.secondary, 0.1),
                                                                 color: theme.palette[getStatusColor(order.status) as 'primary' | 'success' | 'warning' | 'error' | 'info']?.main,
                                                                 border: 'none',
                                                             }}
@@ -447,7 +447,7 @@ function AccountPageContent() {
                             {/* Decorative background circle */}
                             <Box sx={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: alpha(theme.palette.info.main, 0.05) }} />
 
-                            <Box sx={{ p: { xs: 1.5, sm: 1.75, md: 2 }, borderRadius: '50%', bgcolor: 'white', mb: { xs: 1.5, sm: 1.75, md: 2 }, color: 'info.main', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', position: 'relative', zIndex: 1 }}>
+                            <Box sx={{ p: { xs: 1.5, sm: 1.75, md: 2 }, borderRadius: '50%', bgcolor: 'background.paper', mb: { xs: 1.5, sm: 1.75, md: 2 }, color: 'info.main', boxShadow: theme.shadows[3], position: 'relative', zIndex: 1 }}>
                                 <HeadsetMic sx={{ fontSize: { xs: 32, sm: 36, md: 40 } }} />
                             </Box>
                             <Typography variant="h6" fontWeight={700} gutterBottom sx={{ position: 'relative', zIndex: 1, fontSize: { xs: 16, sm: 17, md: 18 } }}>

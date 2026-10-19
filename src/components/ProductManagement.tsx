@@ -50,17 +50,17 @@ import { productService } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 import { Product, ProductStatus, CreateProductData } from '../types/product';
 import { ProductImage } from './ProductImage';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  white: tokens.colors.surfaces.paper,
+  light: tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border: tokens.colors.border.light,
+  muted: tokens.colors.text.secondary,
 } as const;
 
 const primaryBtnSx = {
@@ -93,7 +93,7 @@ const ProductImageOverlay = styled(Box)(({ theme }: any) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%)',
+  background: 'linear-gradient(to bottom, transparent 0%, var(--theme-black-70) 100%)',
   opacity: 0,
   transition: 'opacity 0.3s ease-in-out',
   display: 'flex',
@@ -769,7 +769,7 @@ export function ProductManagement() {
                     <IconButton size="small" onClick={() => openEditDialog(product)} sx={{ color: BRAND.primary, '&:hover': { bgcolor: alpha(BRAND.primary, 0.1) } }}>
                       <Edit fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }} sx={{ color: '#DC2626', '&:hover': { bgcolor: alpha('#DC2626', 0.08) } }}>
+                    <IconButton size="small" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }} sx={{ color: 'error.main', '&:hover': { bgcolor: 'error.light' } }}>
                       <Trash2 fontSize="small" />
                     </IconButton>
                   </CardActions>
@@ -1170,7 +1170,7 @@ export function ProductManagement() {
                           bgcolor: 'background.paper',
                           color: 'primary.main',
                           boxShadow: theme.shadows[2],
-                          '&:hover': { bgcolor: 'primary.light', color: 'white' }
+                          '&:hover': { bgcolor: 'primary.light', color: 'primary.contrastText' }
                         }}
                       >
                         <Upload fontSize="small" />
@@ -1200,7 +1200,7 @@ export function ProductManagement() {
                           bgcolor: 'background.paper',
                           color: 'error.main',
                           boxShadow: theme.shadows[2],
-                          '&:hover': { bgcolor: 'error.main', color: 'white' }
+                          '&:hover': { bgcolor: 'error.main', color: 'primary.contrastText' }
                         }}
                         onClick={() => selectedProduct?.cover_image_url ? handleDeleteCoverImage() : (setCoverImage(null), setCoverPreview(null))}
                       >
@@ -1302,8 +1302,8 @@ export function ProductManagement() {
                           top: 2,
                           right: 2,
                           p: 0.3,
-                          bgcolor: 'rgba(0,0,0,0.7)',
-                          color: 'white',
+                          bgcolor: 'var(--theme-black-70)',
+                          color: 'primary.contrastText',
                           '&:hover': { bgcolor: 'error.main' }
                         }}
                         onClick={async () => {
@@ -1337,8 +1337,8 @@ export function ProductManagement() {
                             bottom: 2,
                             right: 2,
                             p: 0.3,
-                            bgcolor: 'rgba(25, 118, 210, 0.7)',
-                            color: 'white',
+                            bgcolor: alpha(theme.palette.primary.main, 0.7),
+                            color: 'primary.contrastText',
                             '&:hover': { bgcolor: 'primary.main' }
                           }}
                         >
@@ -1384,7 +1384,7 @@ export function ProductManagement() {
                       {img.isReplacing && (
                         <Box sx={{
                           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                          bgcolor: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          bgcolor: alpha(theme.palette.common.white, 0.5), display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
                           <CircularProgress size={20} />
                         </Box>

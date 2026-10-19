@@ -405,7 +405,7 @@ export function CartDrawer() {
                 <Box className="cart-drawer-delivery" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', [mobileQuery]: { flexWrap: 'wrap', gap: '4px 8px' } }}>
                   <Typography color="text.secondary" sx={{ [mobileQuery]: { fontSize: '13px', lineHeight: 1.4, minWidth: 0 } }}>Livraison</Typography>
                   {subtotal >= FREE_SHIPPING_THRESHOLD ? (
-                    <Typography variant="body2" fontWeight={700} sx={{ color: theme.palette.success?.main || '#2e7d32' }}>
+                    <Typography variant="body2" fontWeight={700} color="success.main">
                       Gratuite
                     </Typography>
                   ) : (
@@ -422,8 +422,8 @@ export function CartDrawer() {
                     px: 1.5,
                     py: 1,
                     borderRadius: 1.5,
-                    bgcolor: alpha(theme.palette.warning?.main || '#ed6c02', 0.06),
-                    border: `1px solid ${alpha(theme.palette.warning?.main || '#ed6c02', 0.15)}`,
+                    bgcolor: alpha(theme.palette.warning.main, 0.06),
+                    border: `1px solid ${alpha(theme.palette.warning.main, 0.15)}`,
                     [mobileQuery]: { flexWrap: 'wrap', justifyContent: 'flex-start', gap: '4px 6px' },
                   }}>
                     <Typography variant="caption" color="text.secondary" sx={{ [mobileQuery]: { fontSize: '12px', lineHeight: 1.4, flex: '0 1 auto' } }}>

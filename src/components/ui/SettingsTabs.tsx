@@ -13,7 +13,7 @@ const tabSx = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '0.875rem',
-    transition: 'all 0.2s',
+    transition: 'color 0.2s ease, background-color 0.2s ease',
     userSelect: 'none' as const,
 };
 
@@ -42,9 +42,9 @@ export function SettingsTabs({ active }: SettingsTabsProps) {
                     background: 'transparent',
                     color: active === 'profile' ? 'primary.main' : 'text.secondary',
                     fontWeight: active === 'profile' ? 600 : 500,
-                    bgcolor: active === 'profile' ? 'rgba(27, 79, 143, 0.08)' : 'transparent',
+                    bgcolor: active === 'profile' ? 'action.selected' : 'transparent',
                     '&:hover': {
-                        bgcolor: active === 'profile' ? 'rgba(27, 79, 143, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                        bgcolor: active === 'profile' ? 'action.selected' : 'action.hover',
                     },
                 }}
             >
@@ -60,9 +60,9 @@ export function SettingsTabs({ active }: SettingsTabsProps) {
                     background: 'transparent',
                     color: active === 'password' ? 'primary.main' : 'text.secondary',
                     fontWeight: active === 'password' ? 600 : 500,
-                    bgcolor: active === 'password' ? 'rgba(27, 79, 143, 0.08)' : 'transparent',
+                    bgcolor: active === 'password' ? 'action.selected' : 'transparent',
                     '&:hover': {
-                        bgcolor: active === 'password' ? 'rgba(27, 79, 143, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                        bgcolor: active === 'password' ? 'action.selected' : 'action.hover',
                     },
                 }}
             >

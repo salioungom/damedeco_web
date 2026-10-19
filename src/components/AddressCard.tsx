@@ -22,11 +22,11 @@ export function AddressCard({ address, onSetDefault, onEdit, onDelete }: Address
         border: '1px solid',
         borderColor: address.is_default ? alpha(theme.palette.primary.main, 0.3) : alpha(theme.palette.divider, 0.4),
         borderRadius: 2,
-        transition: 'all 0.2s ease',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         bgcolor: address.is_default ? alpha(theme.palette.primary.main, 0.02) : 'background.paper',
         '&:hover': {
           borderColor: alpha(theme.palette.primary.main, 0.4),
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          boxShadow: theme.shadows[2],
         },
       }}
     >

@@ -3,14 +3,14 @@
 import { Box, Paper, Typography } from '@mui/material';
 import { LocalShippingOutlined } from '@mui/icons-material';
 import ShippingSettingsForm from './ShippingSettingsForm';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  light: '#E6F1FB',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  light: tokens.colors.brand.soft,
+  border: tokens.colors.border.light,
+  muted: tokens.colors.text.secondary,
 } as const;
 
 export interface ShippingManagementProps {
@@ -38,7 +38,7 @@ export default function ShippingManagement({ onSaved }: ShippingManagementProps 
             width: 55,
             height: 55,
             borderRadius: '15px',
-            bgcolor: 'rgba(24, 95, 165, 0.12)',
+            bgcolor: 'action.hover',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

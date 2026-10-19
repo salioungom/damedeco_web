@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Box } from '@mui/material';
+import { tokens } from '@/theme/tokens';
 
 interface ProductImageProps {
   src?: string;
@@ -22,17 +23,17 @@ const PlaceholderImage = ({ width, height }: { width: number; height: number }) 
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <rect width="100" height="100" fill="#f3f4f6" />
+    <rect width="100" height="100" fill={tokens.colors.surfaces.default} />
     <path
       d="M30 40h40v20H30z"
-      fill="#d1d5db"
-      stroke="#9ca3af"
+      fill={tokens.colors.brand.soft}
+      stroke={tokens.colors.border.light}
       strokeWidth="2"
     />
-    <circle cx="40" cy="50" r="3" fill="#6b7280" />
+    <circle cx="40" cy="50" r="3" fill={tokens.colors.text.secondary} />
     <path
       d="M50 50h15M45 55h10"
-      stroke="#6b7280"
+      stroke={tokens.colors.text.secondary}
       strokeWidth="2"
       strokeLinecap="round"
     />
@@ -78,8 +79,9 @@ export function ProductImage({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f3f4f6',
-          border: '1px solid #e5e7eb',
+          backgroundColor: 'background.default',
+          border: '1px solid',
+          borderColor: 'divider',
           borderRadius: 1,
           ...style
         }}

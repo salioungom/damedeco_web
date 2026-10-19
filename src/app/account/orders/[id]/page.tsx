@@ -607,7 +607,7 @@ function OrderDetailContent() {
                     p: { xs: 3, sm: 4 },
                     mb: 4,
                     background: theme.palette.primary.dark,
-                    color: 'white',
+                    color: 'primary.contrastText',
                     position: 'relative',
                     overflow: 'hidden',
                     borderRadius: 3,
@@ -620,7 +620,7 @@ function OrderDetailContent() {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 }, mb: 1.5 }}>
                                 <Avatar
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.15)',
+                                        bgcolor: 'var(--theme-white-15)',
                                         width: { xs: 48, sm: 60 },
                                         height: { xs: 48, sm: 60 },
                                         backdropFilter: 'blur(8px)',
@@ -643,11 +643,11 @@ function OrderDetailContent() {
                                     label={order && getOrderStatusLabel({ orderStatus: order.status, paymentStatus: order.payment_status, payments })}
                                     size="small"
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.18)',
-                                        color: 'white',
+                                        bgcolor: 'var(--theme-white-18)',
+                                        color: 'common.white',
                                         fontWeight: 600,
                                         backdropFilter: 'blur(8px)',
-                                        '& .MuiChip-icon': { color: 'white', fontSize: 16 },
+                                        '& .MuiChip-icon': { color: 'common.white', fontSize: 16 },
                                         fontSize: '0.75rem',
                                         height: 28,
                                     }}
@@ -657,11 +657,11 @@ function OrderDetailContent() {
                                     label={order && paymentDisplay ? `Paiement : ${getPaymentDisplayLabel(paymentDisplay)}` : 'Paiement'}
                                     size="small"
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.18)',
-                                        color: 'white',
+                                        bgcolor: 'var(--theme-white-18)',
+                                        color: 'common.white',
                                         fontWeight: 600,
                                         backdropFilter: 'blur(8px)',
-                                        '& .MuiChip-icon': { color: 'white', fontSize: 16 },
+                                        '& .MuiChip-icon': { color: 'common.white', fontSize: 16 },
                                         fontSize: '0.75rem',
                                         height: 28,
                                     }}
@@ -672,11 +672,11 @@ function OrderDetailContent() {
                                         label={`${order.items?.length || 0} article${(order.items?.length || 0) > 1 ? 's' : ''}`}
                                         size="small"
                                         sx={{
-                                            bgcolor: 'rgba(255,255,255,0.18)',
-                                            color: 'white',
+                                            bgcolor: 'var(--theme-white-18)',
+                                            color: 'common.white',
                                             fontWeight: 600,
                                             backdropFilter: 'blur(8px)',
-                                            '& .MuiChip-icon': { color: 'white', fontSize: 16 },
+                                            '& .MuiChip-icon': { color: 'common.white', fontSize: 16 },
                                             fontSize: '0.75rem',
                                             height: 28,
                                         }}
@@ -687,7 +687,7 @@ function OrderDetailContent() {
                         <Grid size={{ xs: 12, md: 5 }}>
                             <Box
                                 sx={{
-                                    bgcolor: 'rgba(255,255,255,0.1)',
+                                    bgcolor: 'var(--theme-white-10)',
                                     borderRadius: 2,
                                     p: 2,
                                     backdropFilter: 'blur(8px)',
