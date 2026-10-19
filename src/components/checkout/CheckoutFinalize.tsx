@@ -154,6 +154,10 @@ export function CheckoutFinalize({
   const estimatedDeliveryFee = deliveryFee;
   const displayDeliveryFee = serverDeliveryFee ?? estimatedDeliveryFee;
   const displayTotal = serverTotal ?? subtotal + estimatedDeliveryFee;
+  const homeDeliveryFee =
+    orderMode && orderDetails?.mode === 'home_delivery' && serverDeliveryFee !== null
+      ? serverDeliveryFee
+      : computeDeliveryFee('home_delivery', subtotal);
 
   const validateField = (name: string, value: string) => {
     let error = '';
@@ -252,20 +256,24 @@ export function CheckoutFinalize({
     borderRadius: 3,
     bgcolor: 'background.paper',
     border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+    scrollMarginTop: { xs: '64px', sm: '74px' },
   };
 
   const inputSx = {
+    scrollMarginTop: { xs: '64px', sm: '74px' },
     '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) },
+    '& .MuiInputBase-input, & .MuiSelect-select': { fontSize: 16 },
+    '& .MuiFormHelperText-root': { fontSize: { xs: 14, lg: 12 }, lineHeight: 1.4, whiteSpace: 'normal', overflow: 'visible' },
   };
 
   const deliveryCities = ['Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Kaolack', 'Mbour', 'Touba', 'Rufisque', 'Louga', 'Fatick', 'Kolda', 'Matam', 'Kaffrine', 'Kédougou', 'Sédhiou'];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth="xl" sx={{ py: { xs: 4, md: 5 } }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 4 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 'env(safe-area-inset-bottom)' }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 5 } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: { xs: 2, lg: 4 } }}>
           <Box>
-              <Stack spacing={3.5}>
+              <Stack spacing={{ xs: 2, lg: 3.5 }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 0 }}>
                   Vérifiez et complétez vos coordonnées. Les champs marqués d'un * sont obligatoires.
                 </Typography>
@@ -273,9 +281,17 @@ export function CheckoutFinalize({
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                   <LocalShippingOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Mode de livraison</Typography>
+                    <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Mode de livraison</Typography>
                 </Box>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr',
+                      gap: { xs: 1.5, sm: 2 },
+                      [theme.breakpoints.up(480)]: { gridTemplateColumns: '1fr 1fr' },
+                      alignItems: 'stretch',
+                    }}
+                  >
                   <Box
                     role="button"
                     tabIndex={0}
@@ -284,6 +300,11 @@ export function CheckoutFinalize({
                     onClick={() => setDeliveryMode('home_delivery')}
                     sx={{
                       p: { xs: 1.5, sm: 2.5 },
+                      minHeight: 56,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                       border: '2px solid',
                       borderColor: deliveryMode === 'home_delivery' ? brandBlue : alpha(theme.palette.divider, 0.8),
                       borderRadius: 3,
@@ -292,21 +313,31 @@ export function CheckoutFinalize({
                       transition: 'all 0.2s ease',
                       '&:hover': { borderColor: alpha(brandBlue, 0.4), bgcolor: alpha(brandBlue, 0.03) },
                       '&:focus-visible': { outline: `3px solid ${brandBlue}`, outlineOffset: 3 },
+                      [theme.breakpoints.down(480)]: {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                      },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 }, minWidth: 0 }}>
                       <LocalShippingOutlined sx={{ color: deliveryMode === 'home_delivery' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'}>
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'} sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                         Livraison à la maison
                       </Typography>
                     </Box>
-                    
-                    {deliveryMode === 'home_delivery' && (
-                      <Box sx={{ mt: { xs: 1, sm: 1.5 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle2 sx={{ color: brandBlue, fontSize: { xs: 18, sm: 22.5 } }} />
-                        <Typography variant={{ xs: 'caption', sm: 'caption' }} fontWeight={600} color={brandBlue}>Sélectionné</Typography>
+                    <Box sx={{ textAlign: 'right', flexShrink: 0, [theme.breakpoints.up(480)]: { textAlign: 'left' } }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: 14, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                        {homeDeliveryFee === 0 ? 'Gratuit' : formatFcfa(homeDeliveryFee)}
+                      </Typography>
+                      <Box sx={{ minHeight: 20, mt: { xs: 0, sm: 0.5 }, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5, [theme.breakpoints.up(480)]: { justifyContent: 'flex-start' } }}>
+                        {deliveryMode === 'home_delivery' && <>
+                          <CheckCircle2 sx={{ color: brandBlue, fontSize: 18 }} />
+                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: brandBlue, whiteSpace: 'nowrap' }}>Sélectionné</Typography>
+                        </>}
                       </Box>
-                    )}
+                    </Box>
                   </Box>
 
                   <Box
@@ -317,6 +348,11 @@ export function CheckoutFinalize({
                     onClick={() => setDeliveryMode('store_pickup')}
                     sx={{
                       p: { xs: 1.5, sm: 2.5 },
+                      minHeight: 56,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                       border: '2px solid',
                       borderColor: deliveryMode === 'store_pickup' ? brandBlue : alpha(theme.palette.divider, 0.8),
                       borderRadius: 3,
@@ -325,23 +361,29 @@ export function CheckoutFinalize({
                       transition: 'all 0.2s ease',
                       '&:hover': { borderColor: alpha(brandBlue, 0.4), bgcolor: alpha(brandBlue, 0.03) },
                       '&:focus-visible': { outline: `3px solid ${brandBlue}`, outlineOffset: 3 },
+                      [theme.breakpoints.down(480)]: {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                      },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 }, minWidth: 0 }}>
                       <StoreOutlined sx={{ color: deliveryMode === 'store_pickup' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'}>
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'} sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                         Retrait en boutique
                       </Typography>
                     </Box>
-                    <Typography variant={{ xs: 'caption', sm: 'body2' }} color="text.secondary">
-                      Gratuit 
-                    </Typography>
-                    {deliveryMode === 'store_pickup' && (
-                      <Box sx={{ mt: { xs: 1, sm: 1.5 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle2 sx={{ color: brandBlue, fontSize: { xs: 18, sm: 22.5 } }} />
-                        <Typography variant={{ xs: 'caption', sm: 'caption' }} fontWeight={600} color={brandBlue}>Sélectionné</Typography>
+                    <Box sx={{ textAlign: 'right', flexShrink: 0, [theme.breakpoints.up(480)]: { textAlign: 'left' } }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: 14, whiteSpace: 'nowrap' }}>Gratuit</Typography>
+                      <Box sx={{ minHeight: 20, mt: { xs: 0, sm: 0.5 }, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5, [theme.breakpoints.up(480)]: { justifyContent: 'flex-start' } }}>
+                        {deliveryMode === 'store_pickup' && <>
+                          <CheckCircle2 sx={{ color: brandBlue, fontSize: 18 }} />
+                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: brandBlue, whiteSpace: 'nowrap' }}>Sélectionné</Typography>
+                        </>}
                       </Box>
-                    )}
+                    </Box>
                   </Box>
                 </Box>
               </Box>
@@ -350,7 +392,7 @@ export function CheckoutFinalize({
                 <Box sx={{ ...sectionSx, bgcolor: alpha(brandBlue, 0.04) }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <StoreOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
-                    <Typography variant="h6" fontWeight={700}>Retrait en boutique</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: { xs: 600, lg: 700 } }}>Retrait en boutique</Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
                     Vous pourrez récupérer votre commande directement en boutique, sans frais de livraison.
@@ -364,7 +406,7 @@ export function CheckoutFinalize({
                 <Box sx={sectionSx} component="form" noValidate>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                     <LocationOn sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                    <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Informations de livraison</Typography>
+                    <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Informations de livraison</Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
@@ -375,6 +417,7 @@ export function CheckoutFinalize({
                         fullWidth
                         label="Prénom"
                         placeholder="Votre prénom"
+                        slotProps={{ htmlInput: { autoComplete: 'given-name' } }}
                         value={firstName}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setFirstName(e.target.value);
@@ -394,6 +437,7 @@ export function CheckoutFinalize({
                         fullWidth
                         label="Nom"
                         placeholder="Votre nom"
+                        slotProps={{ htmlInput: { autoComplete: 'family-name' } }}
                         value={lastName}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setLastName(e.target.value);
@@ -414,6 +458,7 @@ export function CheckoutFinalize({
                         label="Email"
                         placeholder="exemple@email.com"
                         type="email"
+                        slotProps={{ htmlInput: { autoComplete: 'email', inputMode: 'email' } }}
                         value={email}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                         sx={inputSx}
@@ -427,6 +472,8 @@ export function CheckoutFinalize({
                         fullWidth
                         label="Téléphone"
                         placeholder="+221 77 123 45 67"
+                        type="tel"
+                        slotProps={{ htmlInput: { autoComplete: 'tel', inputMode: 'tel' } }}
                         value={phone}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setPhone(e.target.value);
@@ -469,6 +516,7 @@ export function CheckoutFinalize({
                         fullWidth
                         label="Adresse complète"
                         placeholder="Rue, quartier, repères..."
+                        slotProps={{ htmlInput: { autoComplete: 'street-address' } }}
                         value={address}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setAddress(e.target.value);
@@ -504,7 +552,7 @@ export function CheckoutFinalize({
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                   <PaymentOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Mode de paiement</Typography>
+                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Mode de paiement</Typography>
                 </Box>
 
                 <Box
@@ -528,9 +576,9 @@ export function CheckoutFinalize({
                         justifyContent: 'center',
                       }}
                     >
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'white' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'common.white' }} />
                     </Box>
-                    <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                    <Typography variant="subtitle1" sx={{ fontWeight: { xs: 600, lg: 700 } }} color="text.primary">
                       Paiement en ligne sécurisé
                     </Typography>
                   </Box>
@@ -560,15 +608,17 @@ export function CheckoutFinalize({
             <Box
               sx={{
                 ...sectionSx,
-                position: 'sticky',
-                top: 100,
-                maxHeight: 'calc(100vh - 140px)',
-                overflow: 'auto',
-                pr: { xs: 0, sm: 0 },
+                px: '16px',
+                position: { lg: 'sticky' },
+                top: { lg: 100 },
+                maxHeight: { lg: 'calc(100vh - 140px)' },
+                overflow: { lg: 'auto' },
+                [theme.breakpoints.up(480)]: { px: '20px' },
+                [theme.breakpoints.up('lg')]: { px: 3.5 },
               }}
               aria-live="polite"
             >
-              <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700} sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ mb: { xs: 1.5, sm: 3 }, fontWeight: { xs: 600, lg: 700 } }}>
                 Récapitulatif
               </Typography>
               <Stack spacing={2.5}>
@@ -578,7 +628,7 @@ export function CheckoutFinalize({
                     item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
                   const totalPrice = (price || 0) * item.quantity;
                   return (
-                    <Box key={item.id || item.product.id} sx={{ display: 'flex', gap: 2 }}>
+                    <Box key={item.id || item.product.id} sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 }, minWidth: 0 }}>
                         <Box
                         sx={{
                           width: { xs: 55, sm: 70 },
@@ -597,14 +647,47 @@ export function CheckoutFinalize({
                         />
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={600} noWrap sx={{ mb: 0.5 }}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          sx={{
+                            mb: 0.5,
+                            minWidth: 0,
+                            lineHeight: 1.35,
+                            display: '-webkit-box',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: 2,
+                            overflow: 'hidden',
+                            overflowWrap: 'anywhere',
+                            [theme.breakpoints.up('lg')]: {
+                              lineHeight: 'inherit',
+                              display: 'block',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                              WebkitBoxOrient: 'initial',
+                              WebkitLineClamp: 'unset',
+                            },
+                          }}
+                        >
                           {item.product.name || `Produit #${item.product_id}`}
                         </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant={{ xs: 'caption', sm: 'caption' }} color="text.secondary">
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            minWidth: 0,
+                            [theme.breakpoints.down('lg')]: {
+                              display: 'grid',
+                              gridTemplateColumns: 'minmax(0, 1fr) auto',
+                              columnGap: 1,
+                            },
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary" sx={{ minWidth: 0, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                             {item.quantity} x {formatFcfa(price || 0)}
                           </Typography>
-                          <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={700} color="primary">
+                          <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={700} color="primary" sx={{ whiteSpace: 'nowrap', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                             {formatFcfa(totalPrice)}
                           </Typography>
                         </Box>

@@ -60,7 +60,7 @@ export function StaticTextField({ slotProps, sx, ...rest }: ComponentProps<typeo
         '& .MuiOutlinedInput-root': {
           borderRadius: 8,
           '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
-            WebkitBoxShadow: '0 0 0 1000px #ffffff inset',
+            WebkitBoxShadow: `0 0 0 1000px ${tokens.colors.white} inset`,
             WebkitTextFillColor: tokens.colors.ink,
             WebkitTextDecorationColor: tokens.colors.ink,
             caretColor: tokens.colors.ink,

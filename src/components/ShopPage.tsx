@@ -35,6 +35,7 @@ import {
   Tune as TuneIcon,
 } from '@mui/icons-material';
 import ProductCard from './ProductCard';
+import Reveal from './motion/Reveal';
 import { productService } from '../services/product.service';
 import { homeService } from '../services/home.service';
 import { Product, Category } from '../lib/types';
@@ -353,12 +354,14 @@ export function ShopPage({
           >
             {/* Titre + compteur */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <Typography
-                component="h1"
-                sx={{ fontSize: { xs: 22.5, md: 27.5 }, fontWeight: 700, color: C.dark, letterSpacing: '-0.375px' }}
-              >
-                {searchQuery ? 'Résultats' : 'Boutique'}
-              </Typography>
+              <Reveal style={{ display: 'contents' }}>
+                <Typography
+                  component="h1"
+                  sx={{ fontSize: { xs: 22.5, md: 27.5 }, fontWeight: 700, color: C.dark, letterSpacing: '-0.375px' }}
+                >
+                  {searchQuery ? 'Résultats' : 'Boutique'}
+                </Typography>
+              </Reveal>
               {searchQuery && (
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, bgcolor: alpha(C.primary, 0.08), color: C.primary, px: 1.25, py: 0.25, borderRadius: '100px', fontSize: 15, fontWeight: 600 }}>
                   « {searchQuery} »
@@ -494,31 +497,33 @@ export function ShopPage({
               <CircularProgress sx={{ color: C.primary }} />
             </Box>
           ) : sortedProducts.length > 0 ? (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: 'repeat(2, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(2, 1fr)',
-                  lg: 'repeat(3, 1fr)',
-                  xl: 'repeat(4, 1fr)',
-                },
-                gap: { xs: 1.5, md: 2.5 },
-              }}
-            >
-              {sortedProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={onAddToCart}
-                  onViewDetails={onViewProduct}
-                  userType={userType}
-                  isFavorite={favorites.includes(product.id.toString())}
-                  onToggleFavorite={onToggleFavorite}
-                />
-              ))}
-            </Box>
+            <Reveal stagger={0.08}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'repeat(2, 1fr)',
+                    sm: 'repeat(2, 1fr)',
+                    md: 'repeat(2, 1fr)',
+                    lg: 'repeat(3, 1fr)',
+                    xl: 'repeat(4, 1fr)',
+                  },
+                  gap: { xs: 1.5, md: 2.5 },
+                }}
+              >
+                {sortedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={onAddToCart}
+                    onViewDetails={onViewProduct}
+                    userType={userType}
+                    isFavorite={favorites.includes(product.id.toString())}
+                    onToggleFavorite={onToggleFavorite}
+                  />
+                ))}
+              </Box>
+            </Reveal>
           ) : (
             /* État vide */
             <Box

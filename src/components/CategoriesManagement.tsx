@@ -61,16 +61,16 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { categoryService, type Category } from '@/services/category.service';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  white: tokens.colors.surfaces.paper,
+  light: tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border: tokens.colors.border.light,
+  muted: tokens.colors.text.secondary,
 } as const;
 
 const primaryBtnSx = {
@@ -584,7 +584,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         {showStats && (
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card sx={{ bgcolor: BRAND.primary, color: 'white', borderRadius: '15px' }}>
+              <Card sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.pagination.total}
@@ -596,7 +596,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card sx={{ bgcolor: '#0D7A4A', color: 'white', borderRadius: '15px' }}>
+              <Card sx={{ bgcolor: 'success.main', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.is_active).length}
@@ -608,7 +608,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card sx={{ bgcolor: BRAND.muted, color: 'white', borderRadius: '15px' }}>
+              <Card sx={{ bgcolor: 'text.secondary', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => !c.is_active).length}
@@ -620,7 +620,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card sx={{ bgcolor: BRAND.dark, color: 'white', borderRadius: '15px' }}>
+              <Card sx={{ bgcolor: 'primary.dark', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.cover_image_url).length}
@@ -752,8 +752,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     borderRadius: '10px',
                     textTransform: 'none',
                     fontWeight: 600,
-                    ...(state.filters.is_active === true
-                      ? { bgcolor: '#0D7A4A', boxShadow: 'none', '&:hover': { bgcolor: '#0a6240' } }
+                      ...(state.filters.is_active === true
+                        ? { bgcolor: 'success.main', boxShadow: 'none', '&:hover': { bgcolor: 'success.dark' } }
                       : { borderColor: BRAND.border, color: BRAND.dark }),
                   }}
                 >
@@ -772,7 +772,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     textTransform: 'none',
                     fontWeight: 600,
                     ...(state.filters.is_active === false
-                      ? { bgcolor: '#DC2626', boxShadow: 'none', '&:hover': { bgcolor: '#b91c1c' } }
+                      ? { bgcolor: 'error.main', boxShadow: 'none', '&:hover': { bgcolor: 'error.dark' } }
                       : { borderColor: BRAND.border, color: BRAND.dark }),
                   }}
                 >
@@ -1037,7 +1037,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                           sx={{
                             width: 70,
                             height: 70,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            boxShadow: theme.shadows[2],
                             border: category.cover_image_url ? 'none' : `2px dashed ${alpha(theme.palette.divider, 0.5)}`,
                           }}
                         >

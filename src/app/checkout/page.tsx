@@ -46,7 +46,7 @@ export default function CheckoutRecapPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)' }}>
       <CheckoutHeader
         activeStep={0}
         onBack={() => router.push('/cart')}

@@ -19,67 +19,67 @@ export const colors = {
   /* ─────────────────────────── Surfaces (60 % neutres) ─────────────────── */
   surfaces: {
     /** Fond de page principal — ivoire */
-    default: '#F7F3EC',
+    default: '#faf7f2',
     /** Cartes, header, menus — blanc pur */
-    paper: '#FFFFFF',
+    paper: '#ffffff',
     /** Sections alternées — sable */
-    alt: '#EDE6DA',
+    alt: '#efe8dc',
     /** Sections inversées (footer, bandeaux devis) — encre */
-    inverse: '#14213D',
+    inverse: '#1e3a6e',
     /** Fond unique du footer — navy-800 */
-    inverseFooter: '#173A66',
+    inverseFooter: '#173b70',
   },
 
   /* ─────────────────────────────── Texte ───────────────────────────────── */
   text: {
     /** Titres et texte courant (encre) */
-    primary: '#14213D',
+    primary: '#111a2e',
     /** Descriptions, labels secondaires, legende */
-    secondary: '#5B6478',
+    secondary: '#4a5568',
     /** Texte sur fond sombre (ivoire cassé) */
-    onInverse: '#F7F3EC',
+    onInverse: '#ffffff',
     /** Texte secondaire sur fond sombre — ratio ≥ 4.5:1 sur #14213D */
-    onInverseMuted: '#C9CFDC',
+    onInverseMuted: '#c9d4e8',
     /** Liens et icônes du footer — contraste AA sur #173A66 */
-    onFooter: '#D5DEEB',
+    onFooter: '#c9d4e8',
     /** Descriptions, mentions et copyright du footer — contraste AA sur #173A66 */
-    onFooterMuted: '#B4C2D6',
+    onFooterMuted: '#c9d4e8',
     /** Champs et liens désactivés */
-    disabled: '#A9A29A',
+    disabled: '#667085',
   },
 
   /* ─────────────────────── Marque — bleu aplat ─────────────────────────── */
   brand: {
     /** CTA principaux, liens, focus ring — toujours en aplat, jamais en dégradé */
-    main: '#1B4F8F',
+    main: '#1e4a8a',
     /** Hover des contrôles primaires */
-    hover: '#163F73',
+    hover: '#173b70',
     /** État actif / pressé */
-    active: '#12345E',
+    active: '#173b70',
     /** Aplat clair de marque (fonds de survol légers, avatars) */
-    soft: '#E7EEF6',
+    soft: '#eef3fa',
     /** Initiales « DS » du logo sur cercle blanc (variante claire du bleu de marque) — 8.2:1 sur blanc */
-    mark: '#1E4F8F',
+    mark: '#1e4a8a',
   },
 
   /* ─────────────────────── Accent — laiton (≤ 10 %) ────────────────────── */
   accent: {
     /** Filets fins, CTA des sections sombres, un mot d'accent par titre */
-    main: '#B8894A',
+    main: '#7a5c26',
     /** Éclairci — texte/icônes sur fond sombre (ratio ≈ 7.4:1 sur encre) */
-    onDark: '#D4A968',
+    onDark: '#e0b872',
     /** Assombri — petits textes/icônes sur fond clair (ratio ≈ 4.5:1 sur blanc) */
-    onLight: '#96703A',
+    onLight: '#7a5c26',
     /** Doré du footer — titres de colonnes, tagline, survols et focus */
-    onFooter: '#E0B76C',
+    onFooter: '#e0b872',
   },
 
   /* ──────────────────────── Bordures / séparateurs ─────────────────────── */
   border: {
     /** Sur fond clair */
-    light: '#DDD5C7',
+    light: '#e1ddd6',
     /** Sur fond sombre */
-    onDark: 'rgba(247, 243, 236, 0.14)',
+    onDark: 'rgba(255, 255, 255, 0.14)',
     /** Séparateur de la barre basse du footer */
     onFooter: 'rgba(255, 255, 255, 0.14)',
     /** Bordure des icônes sociales du footer */
@@ -88,9 +88,15 @@ export const colors = {
 
   /* ───────────────────────────── Sémantique ────────────────────────────── */
   status: {
-    success: '#2E7D5B',
+    success: '#067647',
+    successLight: '#e6f4ed',
+    successDark: '#045b36',
     warning: '#B7791F',
-    error: '#B42318',
+    warningLight: '#A9862F',
+    warningDark: '#6C5216',
+    error: '#b42318',
+    errorLight: '#fdecea',
+    errorDark: '#8a1c13',
     /** Focus ring 2 px + offset 2 px */
     focus: '#1B4F8F',
   },
@@ -98,18 +104,18 @@ export const colors = {
   /* ⚠️ Aliases legacy — conservés pour compatibilité, migrer progressivement.
      - `brand`/`border` (groupes) ont des alias dédiés `brandBlue`/`borderLine`
        pour éviter tout conflit de nom dans l'objet `colors`. */
-  ivory: '#F7F3EC',
-  white: '#FFFFFF',
-  sand: '#EDE6DA',
-  ink: '#14213D',
-  inkMuted: '#5B6478',
-  brandBlue: '#1B4F8F',
-  brandDark: '#163F73',
-  brandSoft: '#E7EEF6',
-  laiton: '#B8894A',
-  borderLine: '#DDD5C7',
-  error: '#B42318',
-  success: '#2E7D5B',
+  ivory: '#faf7f2',
+  white: '#ffffff',
+  sand: '#efe8dc',
+  ink: '#111a2e',
+  inkMuted: '#4a5568',
+  brandBlue: '#1e4a8a',
+  brandDark: '#173b70',
+  brandSoft: '#eef3fa',
+  laiton: '#7a5c26',
+  borderLine: '#e1ddd6',
+  error: '#b42318',
+  success: '#067647',
   warning: '#B7791F',
   disabled: '#A9A29A',
 } as const;

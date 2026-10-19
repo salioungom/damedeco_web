@@ -8,6 +8,7 @@ import {
   Link as MuiLink,
   IconButton,
   Stack,
+  useTheme,
 } from '@mui/material';
 import {
   LocationOn as MapPin,
@@ -59,9 +60,9 @@ const SOCIALS = [
 ];
 
 const LEGAL_LINKS = [
-  { label: 'Mentions légales', href: '#' },
-  { label: 'CGV', href: '#' },
-  { label: 'Confidentialité', href: '#' },
+  { label: 'Mentions légales', href: '/mentions-legales' },
+  { label: 'CGV', href: '/cgv' },
+  { label: 'Confidentialité', href: '/confidentialite' },
 ];
 
 const linkSx = {
@@ -104,11 +105,20 @@ const legalLinkSx = {
 };
 
 export function Footer() {
+  const theme = useTheme();
+  const mobileQuery = theme.breakpoints.down(768);
   const { categories } = useCategories();
   return (
     <Box
       component="footer"
-      sx={{ mt: 'auto', bgcolor: INK, color: WHITE, position: 'relative', overflow: 'hidden' }}
+      sx={{
+        mt: 'auto',
+        bgcolor: INK,
+        color: WHITE,
+        position: 'relative',
+        overflow: 'hidden',
+        [mobileQuery]: { '& a': { minHeight: 44, display: 'flex', alignItems: 'center' } },
+      }}
     >
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 } }}>
         <Box
@@ -117,6 +127,7 @@ export function Footer() {
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: '1.4fr 1fr 1fr 1.2fr' },
             gap: { xs: 3, sm: 4, md: 5 },
             py: { xs: 3.5, sm: 4.5, md: 6, lg: 7 },
+            [mobileQuery]: { gap: '24px', py: '28px' },
           }}
         >
           {/* Marque */}
@@ -127,13 +138,13 @@ export function Footer() {
                 <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: WHITE, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
                   DameDéco
                 </Typography>
-                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: GOLD, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: GOLD, letterSpacing: '0.14em', textTransform: 'uppercase', [mobileQuery]: { fontSize: '12px' } }}>
                   Import & Commerce
                 </Typography>
               </Box>
             </Stack>
 
-            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 } }}>
+            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 }, [mobileQuery]: { fontSize: '14px', lineHeight: 1.5, mb: '16px' } }}>
               Importation de produits premium depuis la Chine. Votre partenaire de confiance à Dakar depuis 2010.
             </Typography>
 
@@ -153,7 +164,7 @@ export function Footer() {
 
           {/* Navigation */}
           <Box>
-            <Typography sx={headingSx}>Navigation</Typography>
+            <Typography sx={{ ...headingSx, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Navigation</Typography>
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
               {NAV_LINKS.map((link) => (
                 <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
@@ -165,7 +176,7 @@ export function Footer() {
 
           {/* Catégories */}
           <Box>
-            <Typography sx={headingSx}>Catégories</Typography>
+            <Typography sx={{ ...headingSx, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Catégories</Typography>
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
               {(Array.isArray(categories) ? categories : []).map((cat) => (
                 <MuiLink
@@ -182,7 +193,7 @@ export function Footer() {
 
           {/* Compte + paiement */}
           <Box>
-            <Typography sx={headingSx}>Mon compte</Typography>
+            <Typography sx={{ ...headingSx, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Mon compte</Typography>
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2.5, sm: 3, md: 4 } }}>
               {ACCOUNT_LINKS.map((link) => (
                 <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
@@ -191,7 +202,7 @@ export function Footer() {
               ))}
             </Stack>
 
-            <Typography sx={{ ...headingSx, mb: { xs: 1.5, sm: 1.75, md: 2 } }}>Paiement accepté</Typography>
+            <Typography sx={{ ...headingSx, mb: { xs: 1.5, sm: 1.75, md: 2 }, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Paiement accepté</Typography>
             <PaymentIcons size="sm" />
           </Box>
         </Box>
@@ -231,6 +242,7 @@ export function Footer() {
                     borderColor: GOLD,
                   },
                   '&:focus-visible': focusRingSx,
+                  [mobileQuery]: { width: 44, height: 44, minWidth: 44, minHeight: 44 },
                 }}
               >
                 <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 } }} />

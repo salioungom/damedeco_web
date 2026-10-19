@@ -5,6 +5,7 @@ import { alpha, Box, Container, Paper, Stack, Typography, Button, Link as MuiLin
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Eyebrow } from '@/components/ui/PageHeader';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 import { EditorialList } from '@/components/ui/EditorialList';
 import { useCategories } from '@/hooks/useCategories';
 import { FONT_FRAUNCES, FONT_POPPINS } from '@/theme';
@@ -65,15 +66,6 @@ const C = {
   onInverse: tokens.colors.text.onInverse,
   onInverseMuted: tokens.colors.text.onInverseMuted,
 } as const;
-
-const sectionLabelSx = {
-  fontSize: { xs: 12, sm: 13, md: 14, lg: 15 },
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: C.laitonOnLight,
-  mb: { xs: 1, sm: 1.25, md: 1.5 },
-};
 
 export default function AboutPage() {
   const router = useRouter();
@@ -396,7 +388,7 @@ export default function AboutPage() {
               <Box>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
                   <Box sx={{ width: 32, height: 2, borderRadius: 1, bgcolor: C.laitonOnDark }} />
-                  <Typography sx={{ ...sectionLabelSx, mb: 0, color: C.laitonOnDark }}>Achat en gros</Typography>
+                  <SectionLabel onDark sx={{ mb: 0 }}>Achat en gros</SectionLabel>
                 </Stack>
                 <Typography
                   id="about-cta"
@@ -459,9 +451,9 @@ export default function AboutPage() {
                   p: { xs: 2.5, sm: 3, md: 3.5 },
                 }}
               >
-                <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.laitonOnLight, mb: 0.75 }}>
+                <SectionLabel sx={{ fontSize: 12, letterSpacing: '0.14em', mb: 0.75 }}>
                   Devis express
-                </Typography>
+                </SectionLabel>
                 <Typography sx={{ fontSize: 19, fontWeight: 700, color: C.dark, lineHeight: 1.3, mb: 2.5 }}>
                   Recevez votre tarif sous 24&nbsp;h
                 </Typography>

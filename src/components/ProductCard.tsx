@@ -62,7 +62,7 @@ const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
     paddingTop: '100%', // sm et + : ratio 1:1 confortable
   },
   overflow: 'hidden',
-  backgroundColor: theme.palette.grey[900],
+  backgroundColor: theme.palette.primary.dark,
   borderBottom: 'none',
   borderRadius: '0',
   // Clip-path pour couper net sans border-radius visible
@@ -112,8 +112,6 @@ const FavoriteButton = muiStyled(IconButton)(({ theme }: { theme: any }) => ({
   transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
   '&:hover': {
     backgroundColor: theme.palette.primary.main,
-    boxShadow: theme.shadows[4],
-    transform: 'translateY(-1px)',
   },
   [theme.breakpoints.down('sm')]: {
     width: 36,
@@ -193,6 +191,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
         ? Math.round(
             ((Number(originalPrice) - Number(product.price)) / Number(originalPrice)) * 100,
           )
+        : 0,
+    [originalPrice, product.price],
+  );
+
+  const savingsAmount = useMemo(
+    () =>
+      originalPrice && Number(originalPrice) > Number(product.price)
+        ? Number(originalPrice) - Number(product.price)
         : 0,
     [originalPrice, product.price],
   );
@@ -368,12 +374,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </Typography>
 
         <Box sx={{ mt: { xs: 0.25, sm: 'auto' } }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
             {originalPrice && Number(originalPrice) > Number(product.price) && (
               <Typography
                 variant="body2"
-                color="text.secondary"
-                sx={{ textDecoration: 'line-through', mb: 0, fontWeight: 500, fontSize: { xs: '0.78rem', sm: '0.875rem' } }}
+                color="text.disabled"
+                sx={{ textDecoration: 'line-through', mb: 0, fontWeight: 500, fontSize: { xs: '0.78rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}
               >
                 {fmt(Number(originalPrice))}
               </Typography>
@@ -384,9 +390,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
               color="primary"
               sx={{
                 fontSize: { xs: '0.95rem', sm: '1.3rem' },
-                fontWeight: 'bold',
+                fontWeight: 600,
                 lineHeight: 1.2,
-                whiteSpace: 'normal',
+                whiteSpace: 'nowrap',
+                fontVariantNumeric: 'tabular-nums',
                 overflowWrap: 'anywhere',
                 minWidth: 0,
               }}
@@ -401,23 +408,30 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </Box>
 
           {originalPrice && Number(originalPrice) > Number(product.price) && userType !== 'wholesale' && (
-            <Box sx={{ mt: { xs: 0.375, sm: 1 } }}>
-              <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
-                <Chip
-                  label={`-${discountPercentage}%`}
-                  size="small"
-                  sx={{
-                    bgcolor: 'error.main',
-                    color: 'white',
-                    fontWeight: 600,
-                    fontSize: '0.7rem',
-                    height: 25,
-                  }}
-                />
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: 'success.main', lineHeight: 1.3 }}>
-                  Économisez {fmt(Number(originalPrice) - Number(product.price))}
-                </Typography>
-              </Stack>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                columnGap: 1,
+                rowGap: 0.5,
+                flexWrap: 'wrap',
+                mt: { xs: 0.375, sm: 1 },
+                minWidth: 0,
+              }}
+            >
+              <Chip
+                label={`-${discountPercentage}%`}
+                size="small"
+                color="error"
+                sx={{ fontWeight: 600, fontSize: '0.7rem', height: 25, flexShrink: 0 }}
+              />
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, whiteSpace: 'nowrap', color: '#067647' }}
+              >
+                Économisez {fmt(savingsAmount)}
+              </Typography>
             </Box>
           )}
 
@@ -438,8 +452,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
             p: { xs: 1.5, sm: 2.5 },
             pt: { xs: 0.5, sm: 0.5 },
             opacity: 1,
-            transition: 'all 0.3s ease-in-out',
-            '& button': { transition: 'all 0.2s ease-in-out' },
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+            '& button': { transition: 'background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease' },
             '& button:hover': { transform: 'scale(1.05)' },
           }}
         >
@@ -449,6 +463,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 color="primary"
                 size={isMobile ? 'small' : 'medium'}
                 onClick={handleAddToCart}
+                aria-label={`Ajouter ${product.name} au panier`}
                 sx={{
                   bgcolor: 'primary.main',
                   color: 'primary.contrastText',
@@ -472,6 +487,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <IconButton
                 size={isMobile ? 'small' : 'medium'}
                 onClick={handleViewDetails}
+                aria-label={`Voir les détails de ${product.name}`}
                 sx={{
                   bgcolor: 'action.hover',
                   '&:hover': { bgcolor: 'action.selected' },

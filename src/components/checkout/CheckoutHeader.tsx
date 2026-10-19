@@ -29,8 +29,8 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
       sx={{
         background: `linear-gradient(135deg, ${alpha(brandBlue, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`,
         borderBottom: `1px solid ${alpha(brandBlue, 0.1)}`,
-        pt: { xs: 10, sm: 11, md: 13, lg: 14 },
-        pb: { xs: 2.5, sm: 3, md: 3.5, lg: 4 },
+        pt: { xs: 6.5, sm: 11, md: 13, lg: 14 },
+        pb: { xs: 1.5, sm: 3, md: 3.5, lg: 4 },
       }}
     >
       <Container maxWidth="xl">
@@ -38,7 +38,9 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
           startIcon={<ArrowLeft sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
           onClick={onBack}
           sx={{
-            mb: { xs: 1.5, sm: 2 },
+            minHeight: 44,
+            px: { xs: 1, sm: 1.5 },
+            mb: { xs: 0.5, sm: 2 },
             borderRadius: { xs: 2, sm: 2.25, md: 2.5 },
             fontWeight: 500,
             color: 'text.secondary',
@@ -52,15 +54,15 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
           variant="h3"
           fontWeight={800}
           sx={{
-            fontSize: { xs: 26, sm: 28, md: 36, lg: 42.5 },
+            fontSize: { xs: 'clamp(24px, 6.5vw, 28px)', sm: 28, md: 36, lg: 42.5 },
             letterSpacing: '-0.02em',
-            mb: { xs: 1.25, sm: 1.5, md: 2 },
+            mb: { xs: 0.75, sm: 1.5, md: 2 },
           }}
         >
           {activeStep === 0 ? 'Votre panier' : 'Finaliser la commande'}
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: 820 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 14, sm: 14 }, mb: { xs: 1, sm: 2.5, md: 3 }, maxWidth: 820 }}>
           Vérifiez vos informations de livraison et le mode de paiement avant de confirmer votre commande.
         </Typography>
         <Stepper
@@ -69,8 +71,9 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
             maxWidth: { xs: '100%', sm: 625 },
             '& .MuiStepLabel-label': {
               fontWeight: 600,
-              fontSize: { xs: 13, sm: 14.5, md: 16.25, lg: 17.5 },
+              fontSize: { xs: 12, sm: 14.5, md: 16.25, lg: 17.5 },
             },
+            '& .MuiStep-root': { px: { xs: 0.25, sm: 1 } },
             '& .MuiStepLabel-label.Mui-active': {
               color: brandBlue,
             },

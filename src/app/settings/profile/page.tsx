@@ -237,7 +237,7 @@ export default function ProfilePage() {
                             p: 2.5,
                             mb: 4,
                             borderRadius: 2,
-                            bgcolor: 'rgba(27, 79, 143, 0.06)',
+                            bgcolor: 'action.hover',
                         }}
                     >
                         <Avatar

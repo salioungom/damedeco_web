@@ -147,7 +147,7 @@ export function CategoryPage({
                     width: '100%',
                     height: { xs: 275, sm: 375, md: 475 },
                     overflow: 'hidden',
-                    bgcolor: '#0f1923', // fallback sombre si pas d'image
+                    bgcolor: 'primary.dark',
                 }}
             >
                 {/* Image de couverture — full-bleed */}
@@ -177,8 +177,8 @@ export function CategoryPage({
                         position: 'absolute',
                         inset: 0,
                         background: hasCover
-                            ? 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.10) 100%)'
-                            : 'linear-gradient(135deg, #042C53 0%, #185FA5 100%)',
+                            ? 'linear-gradient(to top, var(--theme-black-75) 0%, var(--theme-black-25) 50%, var(--theme-black-10) 100%)'
+                            : 'linear-gradient(135deg, var(--theme-primary-dark) 0%, var(--theme-primary-main) 100%)',
                     }}
                 />
 
@@ -200,23 +200,23 @@ export function CategoryPage({
                     <Breadcrumbs
                         sx={{
                             mb: 1.5,
-                            '& .MuiBreadcrumbs-separator': { color: 'rgba(255,255,255,0.5)' },
+                            '& .MuiBreadcrumbs-separator': { color: 'var(--theme-white-50)' },
                         }}
                     >
                         <Link
                             component="button"
                             onClick={() => router.back()}
                             sx={{
-                                color: 'rgba(255,255,255,0.7)',
+                                color: 'var(--theme-white-70)',
                                 textDecoration: 'none',
                                 fontSize: 16.25,
                                 cursor: 'pointer',
-                                '&:hover': { color: '#fff' },
+                                '&:hover': { color: 'primary.contrastText' },
                             }}
                         >
                             Boutique
                         </Link>
-                        <Typography sx={{ color: '#fff', fontSize: 16.25, fontWeight: 500 }}>
+                        <Typography sx={{ color: 'primary.contrastText', fontSize: 16.25, fontWeight: 500 }}>
                             {currentCategory.name}
                         </Typography>
                     </Breadcrumbs>
@@ -227,11 +227,11 @@ export function CategoryPage({
                         sx={{
                             fontSize: { xs: 32.5, sm: 42.5, md: 52.5 },
                             fontWeight: 700,
-                            color: '#fff',
+                            color: 'primary.contrastText',
                             lineHeight: 1.15,
                             letterSpacing: '-0.625px',
                             mb: 1,
-                            textShadow: '0 2px 12px rgba(0,0,0,0.4)',
+                            textShadow: '0 2px 12px var(--theme-black-40)',
                         }}
                     >
                         {currentCategory.name}
@@ -242,25 +242,25 @@ export function CategoryPage({
                         {currentCategory.description && (
                             <Typography
                                 sx={{
-                                    color: 'rgba(255,255,255,0.82)',
+                                    color: 'var(--theme-white-82)',
                                     fontSize: { xs: 16.25, md: 18.75 },
                                     lineHeight: 1.6,
                                     maxWidth: 750,
-                                    textShadow: '0 1px 6px rgba(0,0,0,0.3)',
+                                    textShadow: '0 1px 6px var(--theme-black-30)',
                                 }}
                             >
                                 {currentCategory.description}
                             </Typography>
                         )}
                         <Chip
-                            icon={<GridViewIcon sx={{ fontSize: '17.5px !important', color: '#fff !important' }} />}
+                            icon={<GridViewIcon sx={{ fontSize: '17.5px !important', color: 'var(--theme-white) !important' }} />}
                             label={`${filteredProducts.length} produit${filteredProducts.length > 1 ? 's' : ''}`}
                             size="small"
                             sx={{
-                                bgcolor: 'rgba(255,255,255,0.18)',
+                                bgcolor: 'var(--theme-white-18)',
                                 backdropFilter: 'blur(8px)',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                color: '#fff',
+                                border: '1px solid var(--theme-white-30)',
+                                color: 'primary.contrastText',
                                 fontWeight: 500,
                                 fontSize: 15,
                                 height: 35,
@@ -282,11 +282,11 @@ export function CategoryPage({
                         startIcon={<ChevronLeft />}
                         onClick={() => router.back()}
                         sx={{
-                            bgcolor: 'rgba(255,255,255,0.15)',
+                            bgcolor: 'var(--theme-white-15)',
                             backdropFilter: 'blur(10px)',
                             WebkitBackdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(255,255,255,0.3)',
-                            color: '#fff',
+                            border: '1px solid var(--theme-white-30)',
+                            color: 'primary.contrastText',
                             fontWeight: 500,
                             fontSize: 16.25,
                             px: 2,
@@ -294,7 +294,7 @@ export function CategoryPage({
                             borderRadius: '10px',
                             textTransform: 'none',
                             '&:hover': {
-                                bgcolor: 'rgba(255,255,255,0.28)',
+                                bgcolor: 'var(--theme-white-25)',
                             },
                         }}
                     >

@@ -16,17 +16,17 @@ import {
 import { Save as SaveIcon } from '@mui/icons-material';
 import { shippingAPI } from '@/lib/shipping';
 import type { ShippingSettings, ShippingSettingsCreate } from '@/lib/types/shipping';
-import { BRAND_BLUE } from '@/theme';
+import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
 
 const BRAND = {
-  primary: BRAND_BLUE,
-  dark: '#042C53',
-  white: '#FFFFFF',
-  light: '#E6F1FB',
-  surface: '#F5F9FE',
-  border: '#D4E8F7',
-  muted: '#5F6B7A',
+  primary: tokens.colors.brand.main,
+  dark: tokens.colors.surfaces.inverse,
+  white: tokens.colors.surfaces.paper,
+  light: tokens.colors.brand.soft,
+  surface: tokens.colors.surfaces.default,
+  border: tokens.colors.border.light,
+  muted: tokens.colors.text.secondary,
 } as const;
 
 const fieldSx = {

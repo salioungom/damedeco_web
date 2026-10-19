@@ -199,7 +199,7 @@ function VerifyOTPForm() {
                                 borderColor: 'divider',
                                 '&.Mui-selected': {
                                     bgcolor: 'primary.main',
-                                    color: '#fff',
+                                    color: 'primary.contrastText',
                                     '&:hover': {
                                         bgcolor: 'primary.dark',
                                     },

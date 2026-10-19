@@ -57,7 +57,7 @@ function orderItemsToCartItems(order: OrderResponse): CartItemWithProduct[] {
 
 function OrderLoadError({ message, onBackToOrders }: { message: string; onBackToOrders: () => void }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
         <Typography variant="h6" fontWeight={700} color="error.main" gutterBottom>
           Commande indisponible
@@ -88,7 +88,7 @@ function OrderFinalStateDisplay({
   onBackToOrders: () => void;
 }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
         <Typography variant="h6" fontWeight={700} color="error.main" gutterBottom>
           {status === 'refunded' ? 'Commande remboursée' : 'Commande annulée'}
@@ -128,7 +128,7 @@ function OrderFinalStateDisplay({
 
 function PaymentInProgressDisplay({ orderNumber, onBackToOrders }: { orderNumber: string; onBackToOrders: () => void }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
         <Typography variant="h6" fontWeight={700} color="warning.main" gutterBottom>
           Paiement en cours
@@ -444,7 +444,7 @@ function CheckoutFinalizeInner() {
 
   if (!initialLoadDone || (isOrderMode && orderLoading)) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{ textAlign: 'center' }}>
           <CircularProgress size={48} sx={{ mb: 2 }} />
           <Typography variant="body1" color="text.secondary">
@@ -456,7 +456,7 @@ function CheckoutFinalizeInner() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)' }}>
       <CheckoutHeader
         activeStep={1}
         onBack={() => isOrderMode ? router.push(`/account/orders/${orderId}`) : router.push('/checkout')}
@@ -483,7 +483,7 @@ function CheckoutFinalizeInner() {
 export default function CheckoutFinalizePage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{ textAlign: 'center' }}>
           <CircularProgress size={48} />
         </Box>

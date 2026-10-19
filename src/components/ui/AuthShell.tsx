@@ -22,7 +22,15 @@ export function AuthShell({
     children,
 }: AuthShellProps) {
     return (
-        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+        <Box
+            sx={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: 'background.default',
+                '&& .MuiOutlinedInput-root': { borderRadius: '8px' },
+            }}
+        >
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', py: { xs: 5, md: 8 } }}>
                 <Box sx={{ maxWidth: 1080, mx: 'auto', px: { xs: 3, sm: 4 }, width: '100%' }}>
                     <Grid container spacing={{ xs: 5, md: 8 }} sx={{ alignItems: 'center' }}>
