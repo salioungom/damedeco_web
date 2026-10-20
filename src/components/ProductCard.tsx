@@ -29,7 +29,7 @@ import { formatFcfa } from '@/lib/format';
 
 const StyledCard = muiStyled(Card, {
   shouldForwardProp: (prop: string) => !['elevationHover', 'isMobile'].includes(prop),
-})(({ theme, elevationHover = 8, isMobile = false }: any) => ({
+})<{ elevationHover?: number; isMobile?: boolean }>(({ theme, elevationHover = 8, isMobile = false }: any) => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
@@ -436,7 +436,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
 
           {userType === 'wholesale' && (
-            <Typography variant="caption" color="text.secondary" display="block">
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               {product.wholesale_price || product.cost_price
                 ? 'Prix spécial pour commandes en gros'
                 : 'Contactez-nous pour les prix de gros'}

@@ -1,8 +1,10 @@
 import * as React from "react";
 import { Divider, DividerProps } from "@mui/material";
 
-const Separator = React.forwardRef<HTMLHRElement, React.ComponentProps<typeof Divider>>(
-  ({ className, orientation = "horizontal", decorative = true, sx, ...props }, ref) => (
+const Separator = React.forwardRef<
+  HTMLHRElement,
+  React.ComponentProps<typeof Divider> & { decorative?: boolean }
+>(({ className, orientation = "horizontal", decorative = true, sx, ...props }, ref) => (
     <Divider
       ref={ref}
       orientation={orientation}

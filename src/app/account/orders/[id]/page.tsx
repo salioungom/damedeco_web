@@ -77,7 +77,9 @@ import {
 import { getImageUrl } from '@/lib/imageUtils';
 import { getPaymentMethodLabel } from '@/lib/delivery';
 import { stepConnectorClasses } from '@mui/material/StepConnector';
+import type { StepConnectorProps } from '@mui/material/StepConnector';
 import { styled, useTheme, alpha } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 
 interface ProductWithImage {
     id: number;
@@ -96,7 +98,7 @@ const orderSteps = [
     { label: 'Livrée', value: 'delivered', icon: <CheckCircleIcon /> },
 ];
 
-const ColorlibConnector = styled(StepConnector)(({ theme }: Record<string, any>) => ({
+const ColorlibConnector = styled(StepConnector)(({ theme }: StepConnectorProps & { theme: Theme }) => ({
     [`&.${stepConnectorClasses.alternativeLabel}`]: {
         top: 22,
     },
@@ -639,7 +641,7 @@ function OrderDetailContent() {
                             </Box>
                             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
                                 <Chip
-                                    icon={order && getStatusIcon(order.status)}
+                                    icon={order ? getStatusIcon(order.status) : undefined}
                                     label={order && getOrderStatusLabel({ orderStatus: order.status, paymentStatus: order.payment_status, payments })}
                                     size="small"
                                     sx={{
@@ -653,7 +655,7 @@ function OrderDetailContent() {
                                     }}
                                 />
                                 <Chip
-                                    icon={order && paymentDisplay && getPaymentDisplayIcon(paymentDisplay)}
+                                    icon={order && paymentDisplay ? getPaymentDisplayIcon(paymentDisplay) : undefined}
                                     label={order && paymentDisplay ? `Paiement : ${getPaymentDisplayLabel(paymentDisplay)}` : 'Paiement'}
                                     size="small"
                                     sx={{

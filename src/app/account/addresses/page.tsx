@@ -130,7 +130,7 @@ function AddressesPageContent() {
           <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
             Aucune adresse enregistrée
           </Typography>
-          <Typography variant="body1" color="text.disabled" paragraph>
+          <Typography variant="body1" color="text.disabled">
             Vous pouvez ajouter une adresse lors de votre prochaine commande.
           </Typography>
         </Paper>

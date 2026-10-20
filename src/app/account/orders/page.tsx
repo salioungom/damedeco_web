@@ -80,7 +80,7 @@ const STATUS_FILTERS = [
 
 type ChipTone = 'success' | 'warning' | 'info' | 'error' | 'default' | 'secondary';
 
-function orderBusinessBadge(businessState: OrderBusinessState): { tone: ChipTone; icon: React.ReactNode } {
+function orderBusinessBadge(businessState: OrderBusinessState): { tone: ChipTone; icon: React.ReactElement } {
     switch (businessState) {
         case 'pending':
             return { tone: 'warning', icon: <ScheduleIcon fontSize="small" /> };
@@ -105,7 +105,7 @@ function orderBusinessBadge(businessState: OrderBusinessState): { tone: ChipTone
     }
 }
 
-function paymentDisplayBadge(display: PaymentDisplayState): { tone: ChipTone; icon: React.ReactNode } {
+function paymentDisplayBadge(display: PaymentDisplayState): { tone: ChipTone; icon: React.ReactElement } {
     switch (display) {
         case 'paid':
             return { tone: 'success', icon: <CheckCircleIcon fontSize="small" /> };
@@ -152,13 +152,13 @@ function getItemImage(item: OrderItem): string {
     return getImageUrl(image?.image_url);
 }
 
-function StatusBadge({ label, tone, icon }: { label: string; tone: ChipTone; icon: React.ReactNode }) {
+function StatusBadge({ label, tone, icon }: { label: string; tone: ChipTone; icon: React.ReactElement | null }) {
     const theme = useTheme();
     const mainColor = tone === 'default' ? theme.palette.text.secondary : theme.palette[tone].main;
     return (
         <Chip
             size="small"
-            icon={icon}
+            icon={icon ?? undefined}
             label={label}
             sx={{
                 height: 26,
@@ -174,6 +174,7 @@ function StatusBadge({ label, tone, icon }: { label: string; tone: ChipTone; ico
 }
 
 function ProductThumb({ item }: { item: OrderItem }) {
+    const theme = useTheme();
     return (
         <Link href={`/product/${item.product.id}`} aria-label={`Voir le produit ${item.product.name}`}>
             <Box
@@ -934,11 +935,11 @@ function OrdersContent() {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                     labelRowsPerPage="Commandes par page:"
                     labelDisplayedRows={({ from, to }: { from: number; to: number }) => `${from}-${to}`}
+                    showFirstButton={false}
+                    showLastButton={false}
                     sx={{ borderTop: 1, borderColor: 'divider', '& .MuiTablePagination-toolbar': { minHeight: { xs: 40, sm: 52 } } }}
                     slotProps={{
                         actions: {
-                            showFirstButton: { sm: true },
-                            showLastButton: { sm: false },
                             nextButton: {
                                 size: 'small',
                                 disabled: !hasMore,

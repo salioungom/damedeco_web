@@ -95,11 +95,11 @@ function SelectValue({ placeholder }: { placeholder?: string }) {
 /* -------------------------------------------------------------------------- */
 /* Trigger – the select button                                                */
 /* -------------------------------------------------------------------------- */
-interface SelectTriggerProps extends React.ComponentProps<typeof MuiSelect> {
+type SelectTriggerProps = React.ComponentProps<typeof MuiSelect> & {
   size?: "small" | "medium"; // MUI uses small/medium
   children?: React.ReactNode;
   sx?: any;
-}
+};
 
 function SelectTrigger({ className, size = "medium", children, sx, ...props }: SelectTriggerProps) {
   const ctx = React.useContext(SelectContext);

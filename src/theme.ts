@@ -337,30 +337,6 @@ const theme = createTheme({
           padding: '15px 32px',
           fontSize: fontSize.md,
         },
-        containedPrimary: {
-          background: colors.brand.main,
-          boxShadow: '0 6px 16px rgba(20, 48, 92, 0.18)',
-          '&:hover': {
-            background: colors.brandDark,
-            transform: 'translateY(-2px)',
-          },
-          '&:active': {
-            background: colors.brandDark,
-          },
-          '&.Mui-disabled': {
-            background: colors.surfaces.alt,
-            color: colors.disabled,
-          },
-        },
-        outlinedPrimary: {
-          boxShadow: 'none',
-          borderColor: colors.brand.main,
-          color: colors.brand.main,
-          '&:hover': {
-            borderColor: colors.brandDark,
-            background: alpha(colors.brand.main, 0.06),
-          },
-        },
         outlined: {
           boxShadow: 'none',
           borderColor: colors.border.light,
@@ -368,13 +344,6 @@ const theme = createTheme({
           '&:hover': {
             borderColor: colors.brand.main,
             background: alpha(colors.brand.main, 0.05),
-          },
-        },
-        textPrimary: {
-          color: colors.brand.main,
-          '&:hover': {
-            boxShadow: 'none',
-            background: alpha(colors.brand.main, 0.08),
           },
         },
       },

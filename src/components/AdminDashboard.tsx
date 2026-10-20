@@ -29,6 +29,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import {
   Dashboard as LayoutDashboard,
   Inventory2 as Package,
@@ -433,7 +434,7 @@ export function AdminDashboard() {
               <Select
                 value={period}
                 label="Période"
-                onChange={(e: React.ChangeEvent<{ value: unknown }>) => setPeriod(e.target.value as 'all' | 'today' | '7d' | '30d')}
+                onChange={(e: SelectChangeEvent<'all' | 'today' | '7d' | '30d'>) => setPeriod(e.target.value as 'all' | 'today' | '7d' | '30d')}
                 sx={{ borderRadius: '10px', bgcolor: BRAND.white }}
               >
                 {PERIOD_OPTIONS.map((opt) => (
@@ -738,7 +739,7 @@ export function AdminDashboard() {
                 <Select
                   value={clientStatusFilter}
                   label="Statut"
-                  onChange={(e: React.ChangeEvent<{ value: unknown }>) => setClientStatusFilter(e.target.value as string)}
+                  onChange={(e: SelectChangeEvent<string>) => setClientStatusFilter(e.target.value as string)}
                   sx={{ borderRadius: '10px' }}
                 >
                   <MenuItem value="all">Tous les statuts</MenuItem>
