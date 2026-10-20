@@ -88,20 +88,12 @@ export const PasswordField = forwardRef<HTMLDivElement, PasswordFieldProps>(
           inputLabel: {
             ...(slotProps?.inputLabel ?? {}),
             shrink: true,
-            sx: {
-              ...staticLabelSx,
-              ...(slotProps?.inputLabel?.sx ?? {}),
-            },
           },
           htmlInput: {
             ...(slotProps?.htmlInput ?? {}),
             autoCapitalize: 'off',
             autoCorrect: 'off',
             spellCheck: false,
-            sx: {
-              ...staticInputSx,
-              ...(slotProps?.htmlInput?.sx ?? {}),
-            },
           },
           input: {
             ...(slotProps?.input ?? {}),
@@ -140,6 +132,8 @@ export const PasswordField = forwardRef<HTMLDivElement, PasswordFieldProps>(
         }}
         sx={{
           '& input::-ms-reveal': { display: 'none' },
+          '& .MuiInputLabel-root': staticLabelSx,
+          '& .MuiInputBase-input': staticInputSx,
           ...(sx ?? {}),
         }}
       />

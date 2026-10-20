@@ -234,7 +234,6 @@ export function ContactForm() {
             label={LABELS.message}
             multiline
             minRows={5}
-            maxLength={MESSAGE_MAX}
             name="message"
             value={values.message}
             error={Boolean(touched.message && errors.message)}
@@ -243,12 +242,15 @@ export function ContactForm() {
             onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValue('message', event.target.value)}
             slotProps={{
               htmlInput: {
-                sx: {
-                  height: 'auto',
-                  padding: '14px',
-                  lineHeight: 1.6,
-                  minHeight: 44,
-                },
+                maxLength: MESSAGE_MAX,
+              },
+            }}
+            sx={{
+              '& .MuiInputBase-input': {
+                height: 'auto',
+                padding: '14px',
+                lineHeight: 1.6,
+                minHeight: 44,
               },
             }}
           />

@@ -13,6 +13,7 @@ import {
   Chip,
   CircularProgress,
   MenuItem,
+  useMediaQuery,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -88,6 +89,9 @@ export function CheckoutFinalize({
 }: CheckoutFinalizeProps) {
   const theme = useTheme();
   const brandBlue = theme.palette.primary.main;
+  // Les variants de Typography ne sont pas responsives en MUI v9 : on selectionne
+  // la variante 'xs' sous le breakpoint 'sm' (equivalent de { xs, sm }).
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const {
     deliveryMode,
@@ -281,7 +285,7 @@ export function CheckoutFinalize({
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                   <LocalShippingOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                    <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Mode de livraison</Typography>
+                    <Typography variant={isSmallScreen ? 'subtitle1' : 'h6'} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Mode de livraison</Typography>
                 </Box>
                   <Box
                     sx={{
@@ -323,7 +327,7 @@ export function CheckoutFinalize({
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 }, minWidth: 0 }}>
                       <LocalShippingOutlined sx={{ color: deliveryMode === 'home_delivery' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'} sx={{ fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
+                      <Typography variant={isSmallScreen ? 'body2' : 'subtitle1'} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'} sx={{ fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
                         Livraison à la maison
                       </Typography>
                     </Box>
@@ -371,7 +375,7 @@ export function CheckoutFinalize({
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 }, minWidth: 0 }}>
                       <StoreOutlined sx={{ color: deliveryMode === 'store_pickup' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'} sx={{ fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
+                      <Typography variant={isSmallScreen ? 'body2' : 'subtitle1'} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'} sx={{ fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
                         Retrait en boutique
                       </Typography>
                     </Box>
@@ -406,7 +410,7 @@ export function CheckoutFinalize({
                 <Box sx={sectionSx} component="form" noValidate>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                     <LocationOn sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                    <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Informations de livraison</Typography>
+                    <Typography variant={isSmallScreen ? 'subtitle1' : 'h6'} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Informations de livraison</Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
@@ -552,7 +556,7 @@ export function CheckoutFinalize({
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                   <PaymentOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Mode de paiement</Typography>
+                  <Typography variant={isSmallScreen ? 'subtitle1' : 'h6'} sx={{ fontWeight: { xs: 600, lg: 700 } }}>Mode de paiement</Typography>
                 </Box>
 
                 <Box
@@ -618,7 +622,7 @@ export function CheckoutFinalize({
               }}
               aria-live="polite"
             >
-              <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} sx={{ mb: { xs: 1.5, sm: 3 }, fontWeight: { xs: 600, lg: 700 } }}>
+              <Typography variant={isSmallScreen ? 'subtitle1' : 'h6'} sx={{ mb: { xs: 1.5, sm: 3 }, fontWeight: { xs: 600, lg: 700 } }}>
                 Récapitulatif
               </Typography>
               <Stack spacing={2.5}>
@@ -687,7 +691,7 @@ export function CheckoutFinalize({
                           <Typography variant="caption" color="text.secondary" sx={{ minWidth: 0, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                             {item.quantity} x {formatFcfa(price || 0)}
                           </Typography>
-                          <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={700} color="primary" sx={{ whiteSpace: 'nowrap', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                          <Typography variant={isSmallScreen ? 'caption' : 'body2'} color="primary" sx={{ fontWeight: 700, whiteSpace: 'nowrap', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                             {formatFcfa(totalPrice)}
                           </Typography>
                         </Box>
@@ -775,7 +779,7 @@ export function CheckoutFinalize({
                   </Button>
                 </Box>
 
-                <Typography variant={{ xs: 'caption', sm: 'caption' }} align="center" color="text.secondary" sx={{ display: 'block', lineHeight: 1.5, fontSize: { xs: 11, sm: 12 } }}>
+                <Typography variant="caption" align="center" color="text.secondary" sx={{ display: 'block', lineHeight: 1.5, fontSize: { xs: 11, sm: 12 } }}>
                   En passant commande, vous acceptez nos conditions de vente
                 </Typography>
               </Stack>

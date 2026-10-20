@@ -39,10 +39,6 @@ export function StaticTextField({ slotProps, sx, ...rest }: ComponentProps<typeo
         inputLabel: {
           ...(slotProps?.inputLabel ?? {}),
           shrink: true,
-          sx: {
-            ...staticLabelSx,
-            ...(slotProps?.inputLabel?.sx ?? {}),
-          },
         },
         input: {
           ...(slotProps?.input ?? {}),
@@ -50,10 +46,6 @@ export function StaticTextField({ slotProps, sx, ...rest }: ComponentProps<typeo
         },
         htmlInput: {
           ...(slotProps?.htmlInput ?? {}),
-          sx: {
-            ...staticInputSx,
-            ...(slotProps?.htmlInput?.sx ?? {}),
-          },
         },
       }}
       sx={{
@@ -67,6 +59,8 @@ export function StaticTextField({ slotProps, sx, ...rest }: ComponentProps<typeo
             transition: 'background-color 9999s ease-in-out 0s',
           },
         },
+        '& .MuiInputLabel-root': staticLabelSx,
+        '& .MuiInputBase-input': staticInputSx,
         ...(sx ?? {}),
       }}
     />

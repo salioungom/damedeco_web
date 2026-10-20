@@ -259,7 +259,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     fullWidth
                     onClick={onContinue}
                     disabled={checkingAuth}
-                    endIcon={checkingAuth ? <CircularProgress size={{ xs: 18, sm: 20 }} color="inherit" /> : <ArrowForward sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
+                    endIcon={checkingAuth ? <CircularProgress sx={{ width: { xs: 18, sm: 20 }, height: { xs: 18, sm: 20 } }} color="inherit" /> : <ArrowForward sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
                     sx={{
                       borderRadius: { xs: 2, sm: 2.25, md: 2.5 },
                       py: { xs: 1.35, sm: 1.45, md: 1.6 },

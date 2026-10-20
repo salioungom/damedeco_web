@@ -104,10 +104,10 @@ export default function ShippingZonesList() {
               <TableCell>{zone.estimatedDaysMin}-{zone.estimatedDaysMax} jours</TableCell>
               <TableCell>{zone.isActive ? 'Oui' : 'Non'}</TableCell>
               <TableCell>
-                <Button variant="outline" size="sm" onClick={() => handleEdit(zone)} className="mr-2">
+                <Button variant="outlined" size="small" onClick={() => handleEdit(zone)} className="mr-2">
                   Modifier
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(zone.id)}>
+                <Button variant="contained" color="error" size="small" onClick={() => handleDelete(zone.id)}>
                   Supprimer
                 </Button>
               </TableCell>

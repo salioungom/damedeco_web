@@ -107,7 +107,7 @@ export default function ShippingMethodForm({ method, onClose }: Props) {
         <Input
           id="costMultiplier"
           type="number"
-          step="0.1"
+          slotProps={{ htmlInput: { step: '0.1' } }}
           value={formData.costMultiplier || ''}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, costMultiplier: Number(e.target.value) })}
         />
@@ -171,7 +171,7 @@ export default function ShippingMethodForm({ method, onClose }: Props) {
         <Button type="submit" disabled={saving}>
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}
         </Button>
-        <Button type="button" variant="outline" onClick={onClose}>
+        <Button type="button" variant="outlined" onClick={onClose}>
           Annuler
         </Button>
       </div>
