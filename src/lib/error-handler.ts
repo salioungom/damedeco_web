@@ -1,5 +1,4 @@
 import axios, { AxiosError } from 'axios';
-import { useState, useCallback, useEffect } from 'react';
 
 // Enhanced error types for better type safety
 export interface ApiError {
@@ -199,58 +198,9 @@ export async function safeApiCall<T>(
   return { data: null, error: apiError };
 }
 
-// React hook for safe API calls
-export interface UseApiState<T> {
-  data: T | null;
-  loading: boolean;
-  error: ApiError | null;
-  refetch: () => Promise<void>;
-}
-
-export function createSafeApiHook<T>(
-  apiCall: () => Promise<T>,
-  options?: {
-    customErrorHandler?: (error: unknown) => string;
-    retryCount?: number;
-    retryDelay?: number;
-    immediate?: boolean;
-  }
-) {
-  return function useSafeApi(): UseApiState<T> {
-    const [state, setState] = useState<{
-      data: T | null;
-      loading: boolean;
-      error: ApiError | null;
-    }>({
-      data: null,
-      loading: options?.immediate !== false,
-      error: null,
-    });
-
-    const execute = useCallback(async () => {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-      
-      const result = await safeApiCall(apiCall, options);
-      
-      setState({
-        data: result.data,
-        loading: false,
-        error: result.error,
-      });
-    }, []);
-
-    useEffect(() => {
-      if (options?.immediate !== false) {
-        execute();
-      }
-    }, [execute]);
-
-    return {
-      ...state,
-      refetch: execute,
-    };
-  };
-}
+// Le hook React `createSafeApiHook` vit dans `src/hooks/useSafeApi.ts` :
+// ce module-ci reste du code pur, importable depuis un Server Component
+// (la page d'accueil rendue cote serveur utilise ces services).
 
 // Export utilities for backward compatibility
 export const handleApiError = ApiErrorHandler.extractErrorMessage;

@@ -629,6 +629,11 @@ export const useStore = create<StoreState>()(
         {
             name: 'ecommerce-store',
             storage: createJSONStorage(() => localStorage),
+            // La relecture de localStorage est differee au montage (voir
+            // `StoreRehydrator` dans src/components/Providers.tsx) : sinon le
+            // premier rendu client differe de l'HTML rendu par le serveur et
+            // Next.js signale une erreur d'hydratation.
+            skipHydration: true,
             partialize: (state) => ({
                 user: state.user,
                 isAdmin: state.isAdmin,

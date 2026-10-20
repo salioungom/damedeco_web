@@ -37,6 +37,11 @@ export default function Reveal({
           : [element];
         if (targets.length === 0) return;
 
+        // L'état initial (opacity: 0) est posé par GSAP, jamais par le CSS :
+        // avec `immediateRender: false`, le tween n'applique son état « from »
+        // qu'au moment où il démarre réellement.
+        gsap.set(targets, { opacity: 0, y });
+
         gsap.fromTo(
           targets,
           { opacity: 0, y },
@@ -45,6 +50,7 @@ export default function Reveal({
             y: 0,
             delay,
             stagger,
+            immediateRender: false,
             scrollTrigger: {
               trigger: isContents ? targets[0] : element,
               start: 'top 80%',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -10,7 +10,6 @@ import {
   Stack,
   Paper,
   Chip,
-  Skeleton,
   alpha,
   useTheme,
 } from '@mui/material';
@@ -25,8 +24,6 @@ import {
   LocalOffer,
   SupportAgent,
 } from '@mui/icons-material';
-import { homeService } from '../services/home.service';
-import { productService } from '../services/product.service';
 import { getImageUrl } from '@/lib/imageUtils';
 import ProductCard from './ProductCard';
 import HeroSection from '@/features/home/hero/HeroSection';
@@ -43,7 +40,7 @@ import {
 import { Product, Category } from '../lib/types';
 import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
-import { ApiError } from '@/lib/error-handler';
+import type { ApiError } from '@/lib/error-handler';
 import { BRAND_BLUE, FONT_POPPINS } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import styles from './HomePage.module.css';
@@ -174,6 +171,10 @@ interface HomePageProps {
   userType: 'retail' | 'wholesale';
   favorites: string[];
   onToggleFavorite: (productId: string) => void;
+  /** Données récupérées côté serveur (Server Component `src/app/page.tsx`). */
+  categories: Category[];
+  popularProducts: Product[];
+  error: ApiError | null;
 }
 
 export function HomePage({
@@ -184,6 +185,9 @@ export function HomePage({
   userType,
   favorites,
   onToggleFavorite,
+  categories,
+  popularProducts,
+  error,
 }: HomePageProps) {
   const theme = useTheme();
   const mobileQuery = theme.breakpoints.down(768);
@@ -193,65 +197,14 @@ export function HomePage({
     stopOnInteraction: false,
     stopOnMouseEnter: true,
   }));
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ApiError | null>(null);
-  const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(new Map());
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const [categoriesResult, productsResult] = await Promise.all([
-        homeService.getActiveCategories(),
-        productService.getProducts({ limit: 8 }),
-      ]);
-
-      const categoryMap = new Map<number, string>();
-
-      if (categoriesResult.error) {
-        setError(categoriesResult.error);
-        setCategories([]);
-      } else {
-        const cats = categoriesResult.data || [];
-        setCategories(cats);
-        cats.forEach((cat: Category) => {
-          categoryMap.set(Number(cat.id), cat.name);
-        });
-        setCategoriesMap(categoryMap);
-      }
-
-      if (productsResult.error) {
-        if (!categoriesResult.error) setError(productsResult.error);
-        setPopularProducts([]);
-      } else {
-        const items = productsResult.data?.items || [];
-        setPopularProducts(
-          items.map((product: Product) => ({
-            ...product,
-            category_name: categoryMap.get(product.category_id) || undefined,
-          })),
-        );
-      }
-    } catch (err) {
-      console.error('Error loading home data:', err);
-      setError({
-        message: 'Erreur lors du chargement des données',
-        isNetworkError: false,
-        isTimeout: false,
-        isServerError: false,
-        isClientError: false,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const categoriesMap = useMemo(() => {
+    const map = new Map<number, string>();
+    categories.forEach((cat: Category) => {
+      map.set(Number(cat.id), cat.name);
+    });
+    return map;
+  }, [categories]);
 
   const handleNavigate = (path: string) => {
     if (onNavigate) {
@@ -287,7 +240,6 @@ export function HomePage({
         featuredProduct={featuredProduct}
         featuredDiscount={featuredDiscount}
         heroCategoryTags={heroCategoryTags}
-        loading={loading}
       />
       {/* Avantages */}
       <Box
@@ -518,20 +470,7 @@ export function HomePage({
             />
           </Reveal>
 
-          {loading ? (
-            <Carousel
-              opts={{ align: 'start', loop: false }}
-              sx={{ position: 'relative' }}
-            >
-              <CarouselContent>
-                {[1, 2, 3, 4].map((i) => (
-                  <CarouselItem key={i} sx={{ flex: { xs: '0 0 50%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' } }}>
-                    <Skeleton variant="rounded" sx={{ borderRadius: '22.5px', aspectRatio: '16/10' }} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-          ) : categories.length === 0 ? (
+          {categories.length === 0 ? (
             <Paper
               elevation={0}
               sx={{
@@ -731,13 +670,7 @@ export function HomePage({
             />
           </Reveal>
 
-          {loading ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} variant="rounded" height={475} sx={{ borderRadius: '17.5px' }} />
-              ))}
-            </Box>
-          ) : popularProducts.length === 0 ? (
+          {popularProducts.length === 0 ? (
             <Paper
               elevation={0}
               sx={{
