@@ -56,6 +56,18 @@ function CartInitializer() {
   return null;
 }
 
+function StoreRehydrator() {
+  useEffect(() => {
+    // Le store persiste son etat dans localStorage. On le rehydrate APRES le
+    // premier rendu : le HTML envoye par le serveur et le premier rendu client
+    // restent identiques (pas d'avertissement d'hydratation), l'etat persiste
+    // etant applique juste apres.
+    void useStore.persist.rehydrate();
+  }, []);
+
+  return null;
+}
+
 function FavoritesInitializer() {
   const setUser = useStore((s) => s.setUser);
   const loadFavorites = useStore((s) => s.loadFavorites);
@@ -109,6 +121,7 @@ export function Providers({ children }: ProvidersProps) {
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       autoHideDuration={4000}
     >
+      <StoreRehydrator />
       <CartInitializer />
       <FavoritesInitializer />
       <Box

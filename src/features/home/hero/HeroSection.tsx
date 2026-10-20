@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -10,7 +10,6 @@ import {
   Stack,
   Paper,
   Chip,
-  Skeleton,
   alpha,
   useTheme,
 } from '@mui/material';
@@ -58,7 +57,6 @@ interface HeroSectionProps {
   featuredProduct: Product | null;
   featuredDiscount: number | null;
   heroCategoryTags: Category[];
-  loading: boolean;
 }
 
 function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: string }) {
@@ -108,12 +106,30 @@ export default function HeroSection({
   featuredProduct,
   featuredDiscount,
   heroCategoryTags,
-  loading,
 }: HeroSectionProps) {
   const theme = useTheme();
   const mobileQuery = theme.breakpoints.down(768);
   const scope = useRef<HTMLDivElement>(null);
   const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT.md}px)`;
+
+  // Les donnees du hero sont desormais presentes au premier rendu (page rendue
+  // cote serveur). La timeline d'entree ne demarre que si elles le sont, sinon
+  // GSAP laisserait les elements en opacity: 0.
+  const hasHeroData = featuredProduct !== null || heroCategoryTags.length > 0;
+
+  // Au rechargement (ou a la premiere arrivee), le HTML du serveur est deja
+  // peint : le hero est donc present dans le document AVANT que React ne
+  // l'hydrate. Rejouer l'intro GSAP a ce moment-la ferait disappear le
+  // contenu une frame, pour le re-animer plusieurs secondes plus tard (le
+  // bundle n'etant pas encore charge) : le « motion » tardif est evite en
+  // reservant l'intro aux arrivees cote client, ou le hero n'est pas encore
+  // dans le document.
+  const wasServerRendered = useMemo(() => {
+    if (typeof document === 'undefined') return false;
+    return document.querySelector('[data-hero="title"]') !== null;
+  }, []);
+
+  const shouldPlayIntro = !wasServerRendered && hasHeroData;
 
   useGSAP(
     () => {
@@ -136,26 +152,33 @@ export default function HeroSection({
 
           if (!context.conditions?.fullMotion) return;
 
+          // Pas de donnees (backend indisponible) ou HTML deja peint (rechargement) :
+          // pas de timeline d'entree, on garantit un contenu visible.
+          if (!shouldPlayIntro) {
+            gsap.set(entranceTargets, { opacity: 1, y: 0 });
+            return;
+          }
+
           const intro = gsap.timeline({
             defaults: { duration: 0.8, ease: 'power3.out' },
           });
-          intro.fromTo(select('[data-hero="location"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0 });
-          intro.fromTo(select('[data-hero="title"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0 }, '<0.12');
-          intro.fromTo(select('[data-hero="paragraph"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0 }, '<0.12');
+          intro.fromTo(select('[data-hero="location"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false });
+          intro.fromTo(select('[data-hero="title"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false }, '<0.12');
+          intro.fromTo(select('[data-hero="paragraph"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false }, '<0.12');
           intro.fromTo(
             select('[data-hero="bullet"]'),
             { opacity: 0, y: 24 },
-            { opacity: 1, y: 0, stagger: 0.1 },
+            { opacity: 1, y: 0, stagger: 0.1, immediateRender: false },
             '<0.12',
           );
-          intro.fromTo(select('[data-hero="buttons"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0 }, '<0.12');
-          intro.fromTo(select('[data-hero="image"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0 }, '<0.12');
+          intro.fromTo(select('[data-hero="buttons"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false }, '<0.12');
+          intro.fromTo(select('[data-hero="image"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false }, '<0.12');
         },
       );
 
       return () => media.revert();
     },
-    { scope },
+    { scope, dependencies: [shouldPlayIntro], revertOnUpdate: true },
   );
 
   useGSAP(
@@ -170,6 +193,10 @@ export default function HeroSection({
         },
         (context) => {
           if (context.conditions?.reducedMotion || !context.conditions?.fullMotion) return;
+
+          // Meme raison que l'intro : sur un HTML deja peint (rechargement), on
+          // ne demarre pas les animations ambiantes plusieurs secondes plus tard.
+          if (wasServerRendered) return;
 
           gsap.to(select('[data-hero="featured-product"]'), {
             y: -7,
@@ -199,7 +226,7 @@ export default function HeroSection({
 
       return () => media.revert();
     },
-    { scope, dependencies: [featuredDiscount], revertOnUpdate: true },
+    { scope, dependencies: [featuredDiscount, wasServerRendered], revertOnUpdate: true },
   );
 
   return (
@@ -532,16 +559,7 @@ export default function HeroSection({
                   }),
                 }}
               >
-                {loading ? (
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <Skeleton variant="rounded" width={70} height={70} sx={{ borderRadius: '15px' }} />
-                    <Box sx={{ flex: 1 }}>
-                      <Skeleton width="50%" height={12.5} sx={{ mb: 1 }} />
-                      <Skeleton width="75%" height={20} sx={{ mb: 0.75 }} />
-                      <Skeleton width="35%" height={17.5} />
-                    </Box>
-                  </Stack>
-                ) : featuredProduct ? (
+                {featuredProduct ? (
                   <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
                     <HeroProductThumb name={featuredProduct.name} coverImage={featuredProduct.cover_image_url} />
                     <Box sx={{ minWidth: 0, flex: 1 }}>
