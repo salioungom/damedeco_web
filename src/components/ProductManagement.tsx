@@ -717,7 +717,7 @@ export function ProductManagement() {
                       }}
                     />
                     <ProductImageOverlay className="product-image-overlay">
-                      <Typography variant="h6" color="white" fontWeight="bold">
+                      <Typography variant="h6" color="white" sx={{ fontWeight: 'bold' }}>
                         {formatFcfa(product.price)}
                       </Typography>
                     </ProductImageOverlay>
@@ -738,7 +738,7 @@ export function ProductManagement() {
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       {getCategoryName(product.category_id)}
                     </Typography>
-                    <Typography variant="subtitle1" fontWeight={600} noWrap title={product.name}>
+                    <Typography variant="subtitle1" noWrap title={product.name} sx={{ fontWeight: 600 }}>
                       {product.name}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
@@ -877,7 +877,7 @@ export function ProductManagement() {
                   <Package sx={{ color: 'primary.main', fontSize: 25 }} />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                  <Typography variant="subtitle1" color="text.primary" sx={{ fontWeight: 700 }}>
                     Informations Générales
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -986,7 +986,7 @@ export function ProductManagement() {
                   }
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {formData.status === ProductStatus.ACTIVE ? "Actif" : "Brouillon"}
                       </Typography>
                       <Chip
@@ -1052,7 +1052,7 @@ export function ProductManagement() {
                   <Typography sx={{ color: 'success.main', fontSize: 25, fontWeight: 700 }}>FCFA</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                  <Typography variant="subtitle1" color="text.primary" sx={{ fontWeight: 700 }}>
                     Tarification
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -1084,7 +1084,7 @@ export function ProductManagement() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: Number(e.target.value) })}
                       slotProps={{
                         input: {
-                          endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="success.main">FCFA</Typography></InputAdornment>,
+                          endAdornment: <InputAdornment position="end"><Typography variant="body2" sx={{ fontWeight: 600 }} color="success.main">FCFA</Typography></InputAdornment>,
                         },
                       }}
                       required
@@ -1101,7 +1101,7 @@ export function ProductManagement() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, original_price: Number(e.target.value) })}
                       slotProps={{
                         input: {
-                          endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">FCFA</Typography></InputAdornment>,
+                          endAdornment: <InputAdornment position="end"><Typography variant="body2" sx={{ fontWeight: 600 }} color="text.secondary">FCFA</Typography></InputAdornment>,
                         },
                       }}
                       sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
@@ -1126,7 +1126,7 @@ export function ProductManagement() {
                   <ImageIcon sx={{ color: 'info.main', fontSize: 25 }} />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                  <Typography variant="subtitle1" color="text.primary" sx={{ fontWeight: 700 }}>
                     Médias
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -1138,7 +1138,7 @@ export function ProductManagement() {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: 'text.secondary' }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: 'text.secondary' }}>
                 Image de couverture *
               </Typography>
               <Paper
@@ -1222,7 +1222,7 @@ export function ProductManagement() {
                   >
                     <Upload sx={{ fontSize: 50, opacity: 0.6 }} />
                     <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="body2" fontWeight={600}>Cliquer pour uploader</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>Cliquer pour uploader</Typography>
                       <Typography variant="caption" color="text.disabled">PNG, JPG jusqu'à 5MB</Typography>
                     </Box>
                     <input type="file" hidden accept="image/*" onChange={(e: any) => handleFileSelect(e, 'cover')} />
@@ -1232,7 +1232,7 @@ export function ProductManagement() {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: 'text.secondary' }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: 'text.secondary' }}>
                 Galerie (Optionnel)
               </Typography>
               <Paper
@@ -1432,7 +1432,7 @@ export function ProductManagement() {
 
       <Dialog open={isViewDialogOpen} onClose={() => setIsViewDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" fontWeight={700} component="span">
+          <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
             {selectedProduct?.name}
           </Typography>
           <Chip label={selectedProduct?.status?.toUpperCase()} color={selectedProduct?.status === ProductStatus.ACTIVE ? "success" : "default"} size="small" />
@@ -1468,11 +1468,11 @@ export function ProductManagement() {
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Prix Public</Typography>
-                      <Typography variant="h6" color="primary.main" fontWeight={800}>{formatFcfa(selectedProduct.price)}</Typography>
+                      <Typography variant="h6" color="primary.main" sx={{ fontWeight: 800 }}>{formatFcfa(selectedProduct.price)}</Typography>
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Catégorie</Typography>
-                      <Typography variant="body1" fontWeight={600}>{selectedProduct.category_name || 'Sans catégorie'}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>{selectedProduct.category_name || 'Sans catégorie'}</Typography>
                     </Grid>
                   </Grid>
 

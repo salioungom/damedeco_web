@@ -56,7 +56,7 @@ export function OTPInput({ value, onChange, length = 6, disabled = false }: OTPI
       {Array.from({ length }, (_, index) => (
         <TextField
           key={index}
-          inputRef={(el: HTMLInputElement | null) => (inputRefs.current[index] = el)}
+          inputRef={(el: HTMLInputElement | null) => { inputRefs.current[index] = el; }}
           value={value[index] || ''}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(index, e.target.value)}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(index, e)}

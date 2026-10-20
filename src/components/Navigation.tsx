@@ -532,10 +532,10 @@ export function Navigation() {
               {getUserInitials(user.full_name, user.email)}
             </Avatar>
             <Box>
-              <Typography fontWeight={600} fontSize={{ xs: 15, sm: 17.5 }}>
+              <Typography sx={{ fontWeight: 600, fontSize: { xs: 15, sm: 17.5 } }}>
                 {user.full_name || user.email}
               </Typography>
-              <Typography fontSize={{ xs: 13, sm: 15 }} color="text.secondary">
+              <Typography color="text.secondary" sx={{ fontSize: { xs: 13, sm: 15 } }}>
                 {user.email}
               </Typography>
             </Box>
@@ -558,10 +558,10 @@ export function Navigation() {
               >
                 <PersonOutlined sx={{ fontSize: { xs: 24, sm: 27.5 } }} />
               </Box>
-              <Typography fontSize={{ xs: 15, sm: 17.5 }} fontWeight={700} color="text.primary">
+              <Typography color="text.primary" sx={{ fontSize: { xs: 15, sm: 17.5 }, fontWeight: 700 }}>
                 Bienvenue !
               </Typography>
-              <Typography fontSize={{ xs: 13, sm: 15 }} color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography color="text.secondary" sx={{ fontSize: { xs: 13, sm: 15 }, mt: 0.5 }}>
                 Suivez vos commandes et vos favoris
               </Typography>
             </Box>
@@ -875,19 +875,16 @@ export function Navigation() {
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
-                    fontSize={{ xs: 13, sm: 14, md: 15 }}
-                    fontWeight={700}
                     color="text.primary"
                     noWrap
-                    sx={{ lineHeight: 1.25 }}
+                    sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 700, lineHeight: 1.25 }}
                   >
                     {user.full_name || user.email}
                   </Typography>
                   <Typography
-                    fontSize={{ xs: 12, sm: 12.5, md: 13 }}
                     color="text.secondary"
                     noWrap
-                    sx={{ lineHeight: 1.35 }}
+                    sx={{ fontSize: { xs: 12, sm: 12.5, md: 13 }, lineHeight: 1.35 }}
                   >
                     {user.email}
                   </Typography>
@@ -942,17 +939,14 @@ export function Navigation() {
                 </Box>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
-                    fontSize={{ xs: 13, sm: 14, md: 15 }}
-                    fontWeight={700}
                     color="text.primary"
-                    sx={{ lineHeight: 1.25, mb: 0.2 }}
+                    sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 700, lineHeight: 1.25, mb: 0.2 }}
                   >
                     Bienvenue !
                   </Typography>
                   <Typography
-                    fontSize={{ xs: 12, sm: 12.5, md: 13 }}
                     color="text.secondary"
-                    sx={{ lineHeight: 1.35 }}
+                    sx={{ fontSize: { xs: 12, sm: 12.5, md: 13 }, lineHeight: 1.35 }}
                   >
                     Commandes, favoris et offres exclusives après connexion.
                   </Typography>

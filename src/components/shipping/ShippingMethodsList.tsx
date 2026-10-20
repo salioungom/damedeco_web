@@ -104,10 +104,10 @@ export default function ShippingMethodsList() {
               <TableCell>{method.isPickup ? 'Oui' : 'Non'}</TableCell>
               <TableCell>{method.isActive ? 'Oui' : 'Non'}</TableCell>
               <TableCell>
-                <Button variant="outline" size="sm" onClick={() => handleEdit(method)} className="mr-2">
+                <Button variant="outlined" size="small" onClick={() => handleEdit(method)} className="mr-2">
                   Modifier
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(method.id)}>
+                <Button variant="contained" color="error" size="small" onClick={() => handleDelete(method.id)}>
                   Supprimer
                 </Button>
               </TableCell>

@@ -80,7 +80,7 @@ const STATUS_FILTERS = [
 
 type ChipTone = 'success' | 'warning' | 'info' | 'error' | 'default' | 'secondary';
 
-function orderBusinessBadge(businessState: OrderBusinessState): { tone: ChipTone; icon: React.ReactNode } {
+function orderBusinessBadge(businessState: OrderBusinessState): { tone: ChipTone; icon: React.ReactElement } {
     switch (businessState) {
         case 'pending':
             return { tone: 'warning', icon: <ScheduleIcon fontSize="small" /> };
@@ -105,7 +105,7 @@ function orderBusinessBadge(businessState: OrderBusinessState): { tone: ChipTone
     }
 }
 
-function paymentDisplayBadge(display: PaymentDisplayState): { tone: ChipTone; icon: React.ReactNode } {
+function paymentDisplayBadge(display: PaymentDisplayState): { tone: ChipTone; icon: React.ReactElement } {
     switch (display) {
         case 'paid':
             return { tone: 'success', icon: <CheckCircleIcon fontSize="small" /> };
@@ -152,13 +152,13 @@ function getItemImage(item: OrderItem): string {
     return getImageUrl(image?.image_url);
 }
 
-function StatusBadge({ label, tone, icon }: { label: string; tone: ChipTone; icon: React.ReactNode }) {
+function StatusBadge({ label, tone, icon }: { label: string; tone: ChipTone; icon: React.ReactElement | null }) {
     const theme = useTheme();
     const mainColor = tone === 'default' ? theme.palette.text.secondary : theme.palette[tone].main;
     return (
         <Chip
             size="small"
-            icon={icon}
+            icon={icon ?? undefined}
             label={label}
             sx={{
                 height: 26,
@@ -174,6 +174,7 @@ function StatusBadge({ label, tone, icon }: { label: string; tone: ChipTone; ico
 }
 
 function ProductThumb({ item }: { item: OrderItem }) {
+    const theme = useTheme();
     return (
         <Link href={`/product/${item.product.id}`} aria-label={`Voir le produit ${item.product.name}`}>
             <Box
@@ -490,7 +491,7 @@ function OrdersContent() {
             </Breadcrumbs>
 
             <Box sx={{ mb: { xs: 2, sm: 4 } }}>
-                <Typography variant="h3" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold', fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                     Mes commandes
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
@@ -532,7 +533,7 @@ function OrdersContent() {
                     }}
                 >
                     <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                         {loadError.title}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 520, mx: 'auto' }}>
@@ -591,9 +592,9 @@ function OrdersContent() {
                                     component={Link}
                                     href={`/account/orders/${order.id}`}
                                     variant="subtitle1"
-                                    fontWeight={700}
                                     color="text.primary"
                                     sx={{
+                                        fontWeight: 700,
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: 1,
@@ -731,7 +732,7 @@ function OrdersContent() {
                                             </Tooltip>
                                         )}
                                         <Box sx={{ minWidth: 0, maxWidth: 260 }}>
-                                            <Typography variant="body2" fontWeight={600} noWrap sx={{ fontSize: '0.875rem' }}>
+                                            <Typography variant="body2" noWrap sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                                                 {previewItems[0]?.product.name}
                                             </Typography>
                                             {remainingItems > 0 && (
@@ -769,9 +770,8 @@ function OrdersContent() {
                                     </Typography>
                                     <Typography
                                         variant="subtitle1"
-                                        fontWeight={700}
                                         color="primary.main"
-                                        sx={{ fontSize: { xs: '0.95rem', sm: '1.05rem' }, lineHeight: 1.4 }}
+                                        sx={{ fontWeight: 700, fontSize: { xs: '0.95rem', sm: '1.05rem' }, lineHeight: 1.4 }}
                                     >
                                         {OrderService.formatAmount(order.total_amount, order.currency)}
                                     </Typography>
@@ -780,7 +780,7 @@ function OrdersContent() {
                                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 0.5, display: 'block' }}>
                                         Articles
                                     </Typography>
-                                    <Typography variant="body2" fontWeight={600}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                                         {itemCount}
                                     </Typography>
                                 </Box>
@@ -795,7 +795,7 @@ function OrdersContent() {
                                             ) : (
                                                 <LocalShippingIcon sx={{ fontSize: 14, color: 'text.disabled', flexShrink: 0 }} />
                                             )}
-                                            <Typography variant="body2" fontWeight={500} noWrap>
+                                            <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
                                                 {deliveryLabel}
                                             </Typography>
                                         </Box>
@@ -870,7 +870,7 @@ function OrdersContent() {
                     sx={{ textAlign: 'center', py: { xs: 6, sm: 8 }, px: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4 }}
                 >
                     <ShoppingBagIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-                    <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
+                    <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
                         {statusFilter
                             ? `Aucune commande avec le statut « ${OrderService.getStatusLabel(statusFilter)} »`
                             : "Vous n'avez pas encore de commandes"}
@@ -910,7 +910,7 @@ function OrdersContent() {
                     sx={{ textAlign: 'center', py: { xs: 6, sm: 8 }, px: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4 }}
                 >
                     <InfoIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                         Aucune commande sur cette page
                     </Typography>
                     <Button
@@ -935,11 +935,11 @@ function OrdersContent() {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                     labelRowsPerPage="Commandes par page:"
                     labelDisplayedRows={({ from, to }: { from: number; to: number }) => `${from}-${to}`}
+                    showFirstButton={false}
+                    showLastButton={false}
                     sx={{ borderTop: 1, borderColor: 'divider', '& .MuiTablePagination-toolbar': { minHeight: { xs: 40, sm: 52 } } }}
                     slotProps={{
                         actions: {
-                            showFirstButton: { sm: true },
-                            showLastButton: { sm: false },
                             nextButton: {
                                 size: 'small',
                                 disabled: !hasMore,
@@ -969,7 +969,7 @@ function OrdersContent() {
                         <CancelIcon sx={{ color: 'error.main', fontSize: 26 }} />
                     </Box>
                     <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                             Annuler la commande ?
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -990,7 +990,7 @@ function OrdersContent() {
                                     <Typography variant="body2" color="text.secondary">
                                         Montant
                                     </Typography>
-                                    <Typography variant="body2" fontWeight="700">
+                                    <Typography variant="body2" sx={{ fontWeight: '700' }}>
                                         {OrderService.formatAmount(selectedOrder.total_amount, selectedOrder.currency)}
                                     </Typography>
                                 </Box>
@@ -1040,7 +1040,7 @@ function OrdersContent() {
                         <LocalShippingIcon sx={{ color: 'success.main', fontSize: 26 }} />
                     </Box>
                     <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                             Confirmer la réception ?
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -1060,7 +1060,7 @@ function OrdersContent() {
                                     <Typography variant="body2" color="text.secondary">
                                         Montant
                                     </Typography>
-                                    <Typography variant="body2" fontWeight="700">
+                                    <Typography variant="body2" sx={{ fontWeight: '700' }}>
                                         {OrderService.formatAmount(selectedOrder.total_amount, selectedOrder.currency)}
                                     </Typography>
                                 </Box>

@@ -59,8 +59,14 @@ declare module '@mui/material/styles' {
   }
 }
 
+// Inter est une police VARIABLE : on ne doit pas demander plusieurs `weight`
+// (300, 400, …), sinon Google renvoie le même fichier pour chaque poids et
+// chaque URL apparaît plusieurs fois dans le CSS généré. Turbopack refuse alors
+// de résoudre le module de police (« next/font/google queries have exactly one
+// entry ») et le build échoue. Sans `weight`, on obtient la police variable
+// (100–900) : un seul fichier par subset, un rendu identique aux graisses
+// utilisées par le thème (400, 500, 600, 700).
 const inter = Inter({
-  weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
 });
@@ -319,7 +325,10 @@ const theme = createTheme({
         disableElevation: true,
       },
       styleOverrides: {
-        root: {
+        // Les cles de style par couple variante/couleur (containedPrimary,
+        // textPrimary) n'existent plus en MUI v9 : elles sont re-exprimees ici
+        // via ownerState, sur la regle "root".
+        root: ({ ownerState, theme }) => ({
           borderRadius: 10,
           fontWeight: 600,
           padding: '13px 24px',
@@ -328,7 +337,29 @@ const theme = createTheme({
             outline: focusRing,
             outlineOffset: '2px',
           },
-        },
+          ...(ownerState.variant === 'contained' && ownerState.color === 'primary' && {
+            background: theme.palette.primary.main,
+            boxShadow: '0 6px 16px rgba(20, 48, 92, 0.18)',
+            '&:hover': {
+              background: theme.palette.primary.dark,
+              transform: 'translateY(-2px)',
+            },
+            '&:active': {
+              background: theme.palette.primary.dark,
+            },
+            '&.Mui-disabled': {
+              background: theme.palette.background.cream,
+              color: colors.disabled,
+            },
+          }),
+          ...(ownerState.variant === 'text' && ownerState.color === 'primary' && {
+            color: theme.palette.primary.main,
+            '&:hover': {
+              boxShadow: 'none',
+              background: alpha(theme.palette.primary.main, 0.08),
+            },
+          }),
+        }),
         sizeSmall: {
           padding: '6px 14px',
           fontSize: fontSize.sm,
@@ -337,30 +368,6 @@ const theme = createTheme({
           padding: '15px 32px',
           fontSize: fontSize.md,
         },
-        containedPrimary: {
-          background: colors.brand.main,
-          boxShadow: '0 6px 16px rgba(20, 48, 92, 0.18)',
-          '&:hover': {
-            background: colors.brandDark,
-            transform: 'translateY(-2px)',
-          },
-          '&:active': {
-            background: colors.brandDark,
-          },
-          '&.Mui-disabled': {
-            background: colors.surfaces.alt,
-            color: colors.disabled,
-          },
-        },
-        outlinedPrimary: {
-          boxShadow: 'none',
-          borderColor: colors.brand.main,
-          color: colors.brand.main,
-          '&:hover': {
-            borderColor: colors.brandDark,
-            background: alpha(colors.brand.main, 0.06),
-          },
-        },
         outlined: {
           boxShadow: 'none',
           borderColor: colors.border.light,
@@ -368,13 +375,6 @@ const theme = createTheme({
           '&:hover': {
             borderColor: colors.brand.main,
             background: alpha(colors.brand.main, 0.05),
-          },
-        },
-        textPrimary: {
-          color: colors.brand.main,
-          '&:hover': {
-            boxShadow: 'none',
-            background: alpha(colors.brand.main, 0.08),
           },
         },
       },

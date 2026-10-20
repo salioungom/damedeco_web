@@ -52,8 +52,8 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
 
         <Typography
           variant="h3"
-          fontWeight={800}
           sx={{
+            fontWeight: 800,
             fontSize: { xs: 'clamp(24px, 6.5vw, 28px)', sm: 28, md: 36, lg: 42.5 },
             letterSpacing: '-0.02em',
             mb: { xs: 0.75, sm: 1.5, md: 2 },

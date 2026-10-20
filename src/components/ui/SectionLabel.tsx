@@ -1,13 +1,13 @@
 'use client';
 
 import { Typography } from '@mui/material';
-import type { SystemStyleObject, Theme } from '@mui/material/styles';
+import type { SxProps, Theme } from '@mui/material/styles';
 import type { ReactNode } from 'react';
 
 interface SectionLabelProps {
   children: ReactNode;
   onDark?: boolean;
-  sx?: SystemStyleObject<Theme>;
+  sx?: SxProps<Theme>;
 }
 
 export function SectionLabel({ children, onDark = false, sx }: SectionLabelProps) {

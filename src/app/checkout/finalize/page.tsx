@@ -59,7 +59,7 @@ function OrderLoadError({ message, onBackToOrders }: { message: string; onBackTo
   return (
     <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
-        <Typography variant="h6" fontWeight={700} color="error.main" gutterBottom>
+        <Typography variant="h6" color="error.main" gutterBottom sx={{ fontWeight: 700 }}>
           Commande indisponible
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.7 }}>
@@ -90,7 +90,7 @@ function OrderFinalStateDisplay({
   return (
     <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
-        <Typography variant="h6" fontWeight={700} color="error.main" gutterBottom>
+        <Typography variant="h6" color="error.main" gutterBottom sx={{ fontWeight: 700 }}>
           {status === 'refunded' ? 'Commande remboursée' : 'Commande annulée'}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
@@ -130,7 +130,7 @@ function PaymentInProgressDisplay({ orderNumber, onBackToOrders }: { orderNumber
   return (
     <div style={{ minHeight: '100vh', background: 'var(--theme-background-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
-        <Typography variant="h6" fontWeight={700} color="warning.main" gutterBottom>
+        <Typography variant="h6" color="warning.main" gutterBottom sx={{ fontWeight: 700 }}>
           Paiement en cours
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.7 }}>

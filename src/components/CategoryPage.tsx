@@ -93,7 +93,7 @@ export function CategoryPage({
     if (categoriesError || error) {
         return (
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
-                <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{categoriesError || error}</Alert>
+                <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{categoriesError ? categoriesError.message : error}</Alert>
                 <Button variant="outlined" startIcon={<ChevronLeft />} onClick={() => router.back()}>
                     Retour
                 </Button>

@@ -31,6 +31,25 @@ import Alert from '@mui/material/Alert';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 
+// jsdom n'implémente pas `window.matchMedia`. Or GSAP l'appelle dès
+// l'import de '@/lib/gsap' (enregistrement du plugin ScrollTrigger), ce qui
+// faisait échouer le chargement de toute suite important un composant animé
+// (ex. ProductDetailPage → motion/Reveal → lib/gsap). On installe donc une
+// implémentation minimale AVANT tout import applicatif, comme le fait un
+// navigateur. `matches` vaut false : aucune media query n'est active en test.
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+    window.matchMedia = ((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+}
+
 render(
     <Paper variant="outlined">
         <Alert severity="success" variant="outlined">Amorçage</Alert>

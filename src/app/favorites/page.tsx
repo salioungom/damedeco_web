@@ -173,8 +173,7 @@ gap: { xs: 1.5, sm: 2.5, lg: 4 },
                         </Box>
                         <Typography
                             variant="h4"
-                            fontWeight={700}
-                            sx={{ mb: 1.5, color: 'text.primary' }}
+                            sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary' }}
                         >
                             Connexion requise
                         </Typography>
@@ -240,8 +239,7 @@ gap: { xs: 1.5, sm: 2.5, lg: 4 },
                         </Box>
                         <Typography
                             variant="h4"
-                            fontWeight={700}
-                            sx={{ mb: 1.5, color: 'text.primary' }}
+                            sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary' }}
                         >
                             Aucun favori pour le moment
                         </Typography>
@@ -299,8 +297,8 @@ gap: { xs: 1.5, sm: 2.5, lg: 4 },
                         <Box>
                             <Typography
                                 variant="h3"
-                                fontWeight={800}
                                 sx={{
+                                    fontWeight: 800,
                                     fontSize: { xs: 28, md: 36 },
                                     letterSpacing: '-0.02em',
                                 }}
@@ -329,7 +327,7 @@ gap: { xs: 1.5, sm: 2.5, lg: 4 },
                                 }}
                             >
                                 <FavoriteRounded sx={{ fontSize: 20, color: brandBlue }} />
-                                <Typography fontWeight={700} fontSize={18} color={brandBlue}>
+                                <Typography color={brandBlue} sx={{ fontWeight: 700, fontSize: 18 }}>
                                     {productCount}
                                 </Typography>
                             </Box>

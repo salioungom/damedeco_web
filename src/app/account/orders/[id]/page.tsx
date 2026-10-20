@@ -77,7 +77,9 @@ import {
 import { getImageUrl } from '@/lib/imageUtils';
 import { getPaymentMethodLabel } from '@/lib/delivery';
 import { stepConnectorClasses } from '@mui/material/StepConnector';
+import type { StepConnectorProps } from '@mui/material/StepConnector';
 import { styled, useTheme, alpha } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 
 interface ProductWithImage {
     id: number;
@@ -96,7 +98,7 @@ const orderSteps = [
     { label: 'Livrée', value: 'delivered', icon: <CheckCircleIcon /> },
 ];
 
-const ColorlibConnector = styled(StepConnector)(({ theme }: Record<string, any>) => ({
+const ColorlibConnector = styled(StepConnector)(({ theme }: StepConnectorProps & { theme: Theme }) => ({
     [`&.${stepConnectorClasses.alternativeLabel}`]: {
         top: 22,
     },
@@ -517,7 +519,7 @@ function OrderDetailContent() {
                         }}
                     >
                         <CancelIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
-                        <Typography variant="h5" fontWeight="bold" gutterBottom>
+                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
                             {errorStatus === 403 ? 'Accès refusé' : 'Commande introuvable'}
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 480, mx: 'auto' }}>
@@ -629,7 +631,7 @@ function OrderDetailContent() {
                                     <ReceiptIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />
                                 </Avatar>
                                 <Box>
-                                    <Typography variant="h4" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}>
+                                    <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.75rem' } }}>
                                         Commande {order?.order_number}
                                     </Typography>
                                     <Typography variant="body1" sx={{ opacity: 0.85, mt: 0.25, fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>
@@ -639,7 +641,7 @@ function OrderDetailContent() {
                             </Box>
                             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
                                 <Chip
-                                    icon={order && getStatusIcon(order.status)}
+                                    icon={order ? getStatusIcon(order.status) : undefined}
                                     label={order && getOrderStatusLabel({ orderStatus: order.status, paymentStatus: order.payment_status, payments })}
                                     size="small"
                                     sx={{
@@ -653,7 +655,7 @@ function OrderDetailContent() {
                                     }}
                                 />
                                 <Chip
-                                    icon={order && paymentDisplay && getPaymentDisplayIcon(paymentDisplay)}
+                                    icon={order && paymentDisplay ? getPaymentDisplayIcon(paymentDisplay) : undefined}
                                     label={order && paymentDisplay ? `Paiement : ${getPaymentDisplayLabel(paymentDisplay)}` : 'Paiement'}
                                     size="small"
                                     sx={{
@@ -697,7 +699,7 @@ function OrderDetailContent() {
                                 <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', mb: 0.5 }}>
                                     Montant total
                                 </Typography>
-                                <Typography variant="h4" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' }, lineHeight: 1.1 }}>
+                                <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: { xs: '1.5rem', sm: '2rem' }, lineHeight: 1.1 }}>
                                     {order && OrderService.formatAmount(order.total_amount, order.currency)}
                                 </Typography>
                             </Box>
@@ -739,7 +741,7 @@ function OrderDetailContent() {
                         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: { xs: 2.5, sm: 3 } }}>
                             <CancelIcon sx={{ fontSize: 40, color: 'error.main' }} />
                             <Box sx={{ flex: 1 }}>
-                                <Typography variant="h6" fontWeight="bold" color="error" gutterBottom>
+                                <Typography variant="h6" color="error" gutterBottom sx={{ fontWeight: 'bold' }}>
                                     Commande annulée
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
@@ -765,7 +767,7 @@ function OrderDetailContent() {
                                 </Avatar>
                             }
                             title={
-                                <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.15rem' } }}>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.15rem' } }}>
                                     Articles commandés ({order?.items?.length || 0})
                                 </Typography>
                             }
@@ -865,7 +867,7 @@ function OrderDetailContent() {
                                             )}
                                             <Box sx={{ flex: 1, minWidth: 0 }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                                    <Typography variant="subtitle1" fontWeight="600" noWrap sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                                    <Typography variant="subtitle1" noWrap sx={{ fontWeight: '600', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                                         {item.product.name}
                                                     </Typography>
                                                     {isModified && (
@@ -924,7 +926,7 @@ function OrderDetailContent() {
                                                 </Box>
                                             </Box>
                                             <Box sx={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5, flexShrink: 0 }}>
-                                                <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ fontSize: { xs: '0.9rem', sm: '1.05rem' } }}>
+                                                <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '0.9rem', sm: '1.05rem' } }}>
                                                     {order && OrderService.formatAmount(
                                                         isEditing
                                                             ? (parseFloat(item.unit_price) * (editingQuantities[item.id] || item.quantity)).toFixed(2)
@@ -972,7 +974,7 @@ function OrderDetailContent() {
                                 <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                                         <Box>
-                                            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                                            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
                                                 {isEditing ? 'Modification de la commande' : 'Commande en attente'}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
@@ -1050,7 +1052,7 @@ function OrderDetailContent() {
                                 <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                                         <Box>
-                                            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                                            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
                                                 Votre commande est en préparation
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
@@ -1087,7 +1089,7 @@ function OrderDetailContent() {
                                 <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                                         <Box>
-                                            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                                            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
                                                 Votre commande a été expédiée
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
@@ -1131,7 +1133,7 @@ function OrderDetailContent() {
                                     <ReceiptIcon sx={{ fontSize: 20 }} />
                                 </Avatar>
                             }
-                            title={<Typography variant="subtitle1" fontWeight="bold">Récapitulatif</Typography>}
+                            title={<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Récapitulatif</Typography>}
                             subheader="Détails financiers"
                             sx={{ pb: 1 }}
                         />
@@ -1142,7 +1144,7 @@ function OrderDetailContent() {
                                     <Typography variant="body2" color="text.secondary">
                                         Sous-total
                                     </Typography>
-                                    <Typography variant="body2" fontWeight="600">
+                                    <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                         {order && order.shipping_amount != null
                                             ? OrderService.formatAmount(Math.max(0, Number(order.total_amount) - Number(order.shipping_amount)), order.currency)
                                             : order && (order.items?.length || 0) > 0
@@ -1154,7 +1156,7 @@ function OrderDetailContent() {
                                     <Typography variant="body2" color="text.secondary">
                                         Livraison
                                     </Typography>
-                                    <Typography variant="body2" fontWeight="600">
+                                    <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                         {order && order.shipping_amount != null
                                             ? OrderService.formatAmount(order.shipping_amount, order.currency)
                                             : order?.mode === 'store_pickup'
@@ -1164,10 +1166,10 @@ function OrderDetailContent() {
                                 </Box>
                                 <Divider />
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="subtitle1" fontWeight="bold">
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                         Total
                                     </Typography>
-                                    <Typography variant="h6" color="primary" fontWeight="bold">
+                                    <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
                                         {order && OrderService.formatAmount(order.total_amount, order.currency)}
                                     </Typography>
                                 </Box>
@@ -1205,7 +1207,7 @@ function OrderDetailContent() {
                                         <HomeIcon sx={{ fontSize: 20 }} />
                                     </Avatar>
                                 }
-                                title={<Typography variant="subtitle1" fontWeight="bold">Retrait en boutique</Typography>}
+                                title={<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Retrait en boutique</Typography>}
                                 subheader="Votre commande sera disponible au point de retrait"
                                 sx={{ pb: 1 }}
                             />
@@ -1238,7 +1240,7 @@ function OrderDetailContent() {
                                         <ShippingIcon sx={{ fontSize: 20 }} />
                                     </Avatar>
                                 }
-                                title={<Typography variant="subtitle1" fontWeight="bold">Adresse de livraison</Typography>}
+                                title={<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Adresse de livraison</Typography>}
                                 subheader="Où sera livrée votre commande"
                                 sx={{ pb: 1 }}
                             />
@@ -1248,7 +1250,7 @@ function OrderDetailContent() {
                                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
                                         <LocationIcon color="action" sx={{ fontSize: 20, mt: 0.3, flexShrink: 0 }} />
                                         <Box>
-                                            <Typography variant="body2" fontWeight="600">
+                                            <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                                 {order.shipping_address.first_name} {order.shipping_address.last_name}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
@@ -1276,7 +1278,7 @@ function OrderDetailContent() {
                                         <PaymentIcon sx={{ fontSize: 20 }} />
                                     </Avatar>
                                 }
-                                title={<Typography variant="subtitle1" fontWeight="bold">Paiement</Typography>}
+                                title={<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Paiement</Typography>}
                                 subheader="Échec du chargement des transactions"
                                 sx={{ pb: 1 }}
                             />
@@ -1301,7 +1303,7 @@ function OrderDetailContent() {
                                         <PaymentIcon sx={{ fontSize: 20 }} />
                                     </Avatar>
                                 }
-                                title={<Typography variant="subtitle1" fontWeight="bold">Paiement</Typography>}
+                                title={<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Paiement</Typography>}
                                 subheader="Détails de la transaction"
                                 sx={{ pb: 1 }}
                             />
@@ -1326,7 +1328,7 @@ function OrderDetailContent() {
                                                 <Typography variant="body2" color="text.secondary">
                                                     Montant
                                                 </Typography>
-                                                <Typography variant="body2" fontWeight="600">
+                                                <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                                     {OrderService.formatAmount(payment.amount, payment.currency)}
                                                 </Typography>
                                             </Box>
@@ -1379,7 +1381,7 @@ function OrderDetailContent() {
                         <CancelIcon sx={{ fontSize: 20 }} />
                     </Avatar>
                     <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                             Annuler la commande ?
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -1394,7 +1396,7 @@ function OrderDetailContent() {
                                 <Typography variant="body2" color="text.secondary">
                                     Commande
                                 </Typography>
-                                <Typography variant="body2" fontWeight="600">
+                                <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                     {OrderService.formatAmount(order.total_amount, order.currency)}
                                 </Typography>
                             </Box>
@@ -1402,7 +1404,7 @@ function OrderDetailContent() {
                                 <Typography variant="body2" color="text.secondary">
                                     Articles
                                 </Typography>
-                                <Typography variant="body2" fontWeight="600">
+                                <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                     {order.items?.length || 0}
                                 </Typography>
                             </Box>
@@ -1447,7 +1449,7 @@ function OrderDetailContent() {
                         <ShippingIcon sx={{ fontSize: 20 }} />
                     </Avatar>
                     <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                             Confirmer la réception ?
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -1466,7 +1468,7 @@ function OrderDetailContent() {
                                 <Typography variant="body2" color="text.secondary">
                                     Montant
                                 </Typography>
-                                <Typography variant="body2" fontWeight="600">
+                                <Typography variant="body2" sx={{ fontWeight: '600' }}>
                                     {OrderService.formatAmount(order.total_amount, order.currency)}
                                 </Typography>
                             </Box>
