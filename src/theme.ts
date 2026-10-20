@@ -59,8 +59,14 @@ declare module '@mui/material/styles' {
   }
 }
 
+// Inter est une police VARIABLE : on ne doit pas demander plusieurs `weight`
+// (300, 400, …), sinon Google renvoie le même fichier pour chaque poids et
+// chaque URL apparaît plusieurs fois dans le CSS généré. Turbopack refuse alors
+// de résoudre le module de police (« next/font/google queries have exactly one
+// entry ») et le build échoue. Sans `weight`, on obtient la police variable
+// (100–900) : un seul fichier par subset, un rendu identique aux graisses
+// utilisées par le thème (400, 500, 600, 700).
 const inter = Inter({
-  weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
 });
