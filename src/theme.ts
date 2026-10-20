@@ -319,7 +319,10 @@ const theme = createTheme({
         disableElevation: true,
       },
       styleOverrides: {
-        root: {
+        // Les cles de style par couple variante/couleur (containedPrimary,
+        // textPrimary) n'existent plus en MUI v9 : elles sont re-exprimees ici
+        // via ownerState, sur la regle "root".
+        root: ({ ownerState, theme }) => ({
           borderRadius: 10,
           fontWeight: 600,
           padding: '13px 24px',
@@ -328,7 +331,29 @@ const theme = createTheme({
             outline: focusRing,
             outlineOffset: '2px',
           },
-        },
+          ...(ownerState.variant === 'contained' && ownerState.color === 'primary' && {
+            background: theme.palette.primary.main,
+            boxShadow: '0 6px 16px rgba(20, 48, 92, 0.18)',
+            '&:hover': {
+              background: theme.palette.primary.dark,
+              transform: 'translateY(-2px)',
+            },
+            '&:active': {
+              background: theme.palette.primary.dark,
+            },
+            '&.Mui-disabled': {
+              background: theme.palette.background.cream,
+              color: colors.disabled,
+            },
+          }),
+          ...(ownerState.variant === 'text' && ownerState.color === 'primary' && {
+            color: theme.palette.primary.main,
+            '&:hover': {
+              boxShadow: 'none',
+              background: alpha(theme.palette.primary.main, 0.08),
+            },
+          }),
+        }),
         sizeSmall: {
           padding: '6px 14px',
           fontSize: fontSize.sm,
