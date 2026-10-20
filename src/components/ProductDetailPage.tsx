@@ -407,7 +407,7 @@ export function ProductDetailPage({
               boxShadow: `0 12px 40px ${alpha(C.dark, 0.06)}`,
             }}
           >
-            <Stack direction="row" gap={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: { xs: 1.5, sm: 2 } }}>
+            <Stack direction="row" sx={{ gap: { xs: 0.75, sm: 1 }, alignItems: 'center', flexWrap: 'wrap', mb: { xs: 1.5, sm: 2 } }}>
               {(product.popular || product.is_featured) && (
                 <Chip
                   label="Populaire"
@@ -720,7 +720,7 @@ export function ProductDetailPage({
           {loadingSimilar ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} variant="rounded" height={{ xs: 350, sm: 400, md: 450 }} sx={{ borderRadius: { xs: '15px', sm: '16px', md: '17.5px' } }} />
+                <Skeleton key={i} variant="rounded" sx={{ height: { xs: 350, sm: 400, md: 450 }, borderRadius: { xs: '15px', sm: '16px', md: '17.5px' } }} />
               ))}
             </Box>
           ) : similarProducts.length > 0 ? (

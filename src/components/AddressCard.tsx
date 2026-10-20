@@ -34,7 +34,7 @@ export function AddressCard({ address, onSetDefault, onEdit, onDelete }: Address
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <LocationOn sx={{ color: 'primary.main', fontSize: 25 }} />
-            <Typography variant="h6" fontWeight={700}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
               {address.address_type === 'billing' ? 'Adresse de facturation' : 'Adresse de livraison'}
             </Typography>
           </Box>
@@ -50,7 +50,7 @@ export function AddressCard({ address, onSetDefault, onEdit, onDelete }: Address
         </Box>
 
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
             {AddressService.formatFullName(address)}
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>

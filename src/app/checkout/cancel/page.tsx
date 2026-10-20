@@ -158,7 +158,7 @@ function CheckoutCancelInner() {
               <ErrorIcon sx={{ fontSize: 48, color: accent }} />
             )}
           </Box>
-          <Typography variant="h4" fontWeight={800} gutterBottom>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 800 }}>
             {title}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7 }}>

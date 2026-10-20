@@ -52,7 +52,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             }}
           >
             <ErrorOutlined sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
-            <Typography variant="h5" fontWeight={700} gutterBottom>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
               Une erreur est survenue
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>

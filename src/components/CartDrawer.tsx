@@ -110,7 +110,7 @@ export function CartDrawer() {
           }}
         >
           <Box>
-            <Typography variant="h6" fontWeight={700}>Panier</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Panier</Typography>
             <Typography variant="body2" color="text.secondary">
               {itemCount} article{itemCount > 1 ? 's' : ''}
             </Typography>
@@ -122,7 +122,7 @@ export function CartDrawer() {
 
         {cartError && (
           <Box sx={{ px: 2.5, py: 1.5, bgcolor: alpha(theme.palette.error.main, 0.08) }}>
-            <Typography variant="body2" color="error" fontWeight={500}>{cartError}</Typography>
+            <Typography variant="body2" color="error" sx={{ fontWeight: 500 }}>{cartError}</Typography>
           </Box>
         )}
 
@@ -141,7 +141,7 @@ export function CartDrawer() {
             >
               <ShoppingBag sx={{ fontSize: 45, color: theme.palette.primary.main }} />
             </Box>
-            <Typography variant="body1" fontWeight={600}>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
               {cartLoading ? 'Chargement...' : 'Votre panier est vide'}
             </Typography>
             {!cartLoading && (
@@ -235,8 +235,8 @@ export function CartDrawer() {
                       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', [mobileQuery]: { minHeight: 64, gap: '4px' } }}>
                         <Typography
                           variant="subtitle2"
-                          fontWeight={600}
                           sx={{
+                            fontWeight: 600,
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -252,7 +252,7 @@ export function CartDrawer() {
                         >
                           {item.product ? item.product.name : `Produit #${item.product_id}`}
                         </Typography>
-                        <Typography variant="body2" fontWeight={700} color="primary" sx={{ mt: 0.25, [mobileQuery]: { mt: 0, fontSize: '13px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>
+                        <Typography variant="body2" color="primary" sx={{ fontWeight: 700, mt: 0.25, [mobileQuery]: { mt: 0, fontSize: '13px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>
                           {formatFcfa(price)}
                         </Typography>
                         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mt: 0.75, [mobileQuery]: { mt: 0, gap: '22px' } }}>
@@ -400,12 +400,12 @@ export function CartDrawer() {
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', [mobileQuery]: { alignItems: 'baseline' } }}>
                   <Typography color="text.secondary" sx={{ [mobileQuery]: { fontSize: '14px', lineHeight: 1.4 } }}>Sous-total</Typography>
-                  <Typography fontWeight={700} sx={{ [mobileQuery]: { fontSize: '14px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>{formatFcfa(subtotal)}</Typography>
+                  <Typography sx={{ fontWeight: 700, [mobileQuery]: { fontSize: '14px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>{formatFcfa(subtotal)}</Typography>
                 </Box>
                 <Box className="cart-drawer-delivery" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', [mobileQuery]: { flexWrap: 'wrap', gap: '4px 8px' } }}>
                   <Typography color="text.secondary" sx={{ [mobileQuery]: { fontSize: '13px', lineHeight: 1.4, minWidth: 0 } }}>Livraison</Typography>
                   {subtotal >= FREE_SHIPPING_THRESHOLD ? (
-                    <Typography variant="body2" fontWeight={700} color="success.main">
+                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 700 }}>
                       Gratuite
                     </Typography>
                   ) : (
@@ -429,15 +429,15 @@ export function CartDrawer() {
                     <Typography variant="caption" color="text.secondary" sx={{ [mobileQuery]: { fontSize: '12px', lineHeight: 1.4, flex: '0 1 auto' } }}>
                       Les frais seront gratuits pour les commandes supérieures à
                     </Typography>
-                    <Typography variant="caption" fontWeight={700} color="warning.main" sx={{ [mobileQuery]: { fontSize: '12px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>
+                    <Typography variant="caption" color="warning.main" sx={{ fontWeight: 700, [mobileQuery]: { fontSize: '12px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>
                        {formatFcfa(FREE_SHIPPING_THRESHOLD)}
                     </Typography>
                   </Box>
                 )}
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', [mobileQuery]: { alignItems: 'baseline' } }}>
-                  <Typography variant="subtitle1" fontWeight={800} sx={{ [mobileQuery]: { fontSize: '15px', lineHeight: 1.4 } }}>Total</Typography>
-                  <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ [mobileQuery]: { fontSize: '15px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, [mobileQuery]: { fontSize: '15px', lineHeight: 1.4 } }}>Total</Typography>
+                  <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 800, [mobileQuery]: { fontSize: '15px', lineHeight: 1.4, whiteSpace: 'nowrap' } }}>
                     {formatFcfa(subtotal)}
                   </Typography>
                 </Box>

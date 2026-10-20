@@ -323,7 +323,7 @@ export function CheckoutFinalize({
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 }, minWidth: 0 }}>
                       <LocalShippingOutlined sx={{ color: deliveryMode === 'home_delivery' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'} sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'} sx={{ fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
                         Livraison à la maison
                       </Typography>
                     </Box>
@@ -371,7 +371,7 @@ export function CheckoutFinalize({
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 }, minWidth: 0 }}>
                       <StoreOutlined sx={{ color: deliveryMode === 'store_pickup' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'} sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'} sx={{ fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
                         Retrait en boutique
                       </Typography>
                     </Box>
@@ -586,15 +586,15 @@ export function CheckoutFinalize({
                     Vous serez redirigé vers PayTech pour choisir votre moyen de paiement.
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                    <Typography variant="caption" fontWeight={600} color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Wave
                     </Typography>
                     <Typography variant="caption" color="text.secondary">•</Typography>
-                    <Typography variant="caption" fontWeight={600} color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Orange Money
                     </Typography>
                     <Typography variant="caption" color="text.secondary">•</Typography>
-                    <Typography variant="caption" fontWeight={600} color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Carte bancaire
                     </Typography>
                   </Stack>
@@ -649,8 +649,8 @@ export function CheckoutFinalize({
                       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <Typography
                           variant="body2"
-                          fontWeight={600}
                           sx={{
+                            fontWeight: 600,
                             mb: 0.5,
                             minWidth: 0,
                             lineHeight: 1.35,
@@ -700,7 +700,7 @@ export function CheckoutFinalize({
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">Sous-total</Typography>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {formatFcfa(subtotal)}
                   </Typography>
                 </Box>
@@ -725,8 +725,8 @@ export function CheckoutFinalize({
                 <Divider />
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" fontWeight={800}>Total</Typography>
-                  <Typography variant="subtitle1" fontWeight={800} color="primary">
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Total</Typography>
+                  <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 800 }}>
                     {formatFcfa(displayTotal)}
                   </Typography>
                 </Box>
@@ -734,7 +734,7 @@ export function CheckoutFinalize({
                 <Box>
                   {error && (
                       <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.error.main, 0.08), borderRadius: 2, border: `1px solid ${alpha(theme.palette.error.main, 0.15)}` }} role="alert">
-                        <Typography variant="body2" color="error" fontWeight={500}>{error}</Typography>
+                        <Typography variant="body2" color="error" sx={{ fontWeight: 500 }}>{error}</Typography>
                       </Box>
                     )}
                   <Button

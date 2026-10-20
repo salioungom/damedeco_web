@@ -152,7 +152,7 @@ function OrderConfirmationInner() {
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Box sx={{ textAlign: 'center' }}>
                     <CircularProgress size={56} sx={{ color: brandBlue }} />
-                    <Typography variant="h6" fontWeight={600} sx={{ mt: 3, color: 'text.secondary' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mt: 3, color: 'text.secondary' }}>
                         Vérification de votre paiement...
                     </Typography>
                 </Box>
@@ -226,7 +226,7 @@ function OrderConfirmationInner() {
                             <ErrorIcon sx={{ fontSize: 48, color: accent }} />
                         )}
                     </Box>
-                    <Typography variant="h4" fontWeight={800} gutterBottom>
+                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 800 }}>
                         {title}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: phase === 'paid' ? 1 : 4, lineHeight: 1.7 }}>
@@ -251,7 +251,7 @@ function OrderConfirmationInner() {
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
                                 <StoreOutlined sx={{ color: brandBlue, fontSize: 22 }} />
-                                <Typography variant="subtitle1" fontWeight={700}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                                     Prochaines étapes
                                 </Typography>
                             </Box>

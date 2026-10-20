@@ -64,10 +64,10 @@ export default function CartPage() {
         return (
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', [mobileQuery]: { minHeight: '100dvh' } }}>
                 <Container maxWidth="lg" sx={{ pt: { xs: 10, sm: 11, md: 14 }, pb: 8, [mobileQuery]: { pt: '16px', pb: '16px', px: '16px' } }}>
-                    <Skeleton variant="rounded" width={{ xs: 160, sm: 200, md: 240 }} height={{ xs: 32, md: 40 }} sx={{ mb: 1.5, borderRadius: 2 }} />
-                    <Skeleton variant="rounded" width={{ xs: 120, md: 160 }} height={{ xs: 20, md: 24 }} sx={{ mb: { xs: 3, md: 5 }, borderRadius: 2 }} />
+                    <Skeleton variant="rounded" sx={{ width: { xs: 160, sm: 200, md: 240 }, height: { xs: 32, md: 40 }, mb: 1.5, borderRadius: 2 }} />
+                    <Skeleton variant="rounded" sx={{ width: { xs: 120, md: 160 }, height: { xs: 20, md: 24 }, mb: { xs: 3, md: 5 }, borderRadius: 2 }} />
                     {[1, 2, 3].map((i) => (
-                        <Skeleton key={i} variant="rounded" height={{ xs: 85, sm: 90, md: 100 }} sx={{ mb: 1.5, borderRadius: 3 }} />
+                        <Skeleton key={i} variant="rounded" sx={{ height: { xs: 85, sm: 90, md: 100 }, mb: 1.5, borderRadius: 3 }} />
                     ))}
                 </Container>
             </Box>
@@ -104,7 +104,7 @@ export default function CartPage() {
                         >
                             <ShoppingBagOutlined sx={{ fontSize: { xs: 32, sm: 38, md: 44 }, color: brandBlue }} />
                         </Box>
-                        <Typography variant="h4" fontWeight={700} sx={{ mb: 1.5, fontSize: { xs: 20, sm: 24, md: 28 } }}>
+                        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1.5, fontSize: { xs: 20, sm: 24, md: 28 } }}>
                             Votre panier est vide
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 440, mx: 'auto', mb: { xs: 3, sm: 3.5, md: 4 }, lineHeight: 1.7, fontSize: { xs: 14, sm: 15, md: 16 } }}>
@@ -150,8 +150,7 @@ export default function CartPage() {
                         <Box>
                             <Typography
                                 variant="h3"
-                                fontWeight={800}
-                                sx={{ fontSize: { xs: 24, sm: 26, md: 32, lg: 36 }, letterSpacing: '-0.02em', [mobileQuery]: { fontSize: '20px', lineHeight: 1.2 } }}
+                                sx={{ fontWeight: 800, fontSize: { xs: 24, sm: 26, md: 32, lg: 36 }, letterSpacing: '-0.02em', [mobileQuery]: { fontSize: '20px', lineHeight: 1.2 } }}
                             >
                                 Mon Panier
                             </Typography>
@@ -173,7 +172,7 @@ export default function CartPage() {
                             }}
                         >
                             <ShoppingBagOutlined sx={{ fontSize: { xs: 18, sm: 19, md: 20 }, color: brandBlue }} />
-                            <Typography fontWeight={700} fontSize={{ xs: 16, sm: 17, md: 18 }} color={brandBlue}>
+                            <Typography color={brandBlue} sx={{ fontWeight: 700, fontSize: { xs: 16, sm: 17, md: 18 } }}>
                                 {itemCount}
                             </Typography>
                         </Box>
@@ -235,7 +234,7 @@ export default function CartPage() {
 
                                 <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', [mobileQuery]: { minHeight: 64, gap: '4px' } }}>
                                     <Box>
-                                        <Typography variant="subtitle1" fontWeight={600} sx={{ fontSize: { xs: 14, sm: 15, md: 16 }, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0, lineHeight: 1.3, [mobileQuery]: { fontSize: '13px' } }}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: 14, sm: 15, md: 16 }, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0, lineHeight: 1.3, [mobileQuery]: { fontSize: '13px' } }}>
                                             {item.product?.name || `Produit #${item.product_id}`}
                                         </Typography>
                                         <Chip
@@ -256,7 +255,7 @@ export default function CartPage() {
 
                                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: { xs: 0.75, sm: 1 }, mt: { xs: 0.75, sm: 1 }, [mobileQuery]: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gridTemplateRows: 'auto auto', alignItems: 'center', columnGap: '8px', rowGap: 0, mt: '4px' } }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.35, sm: 0.5 }, [mobileQuery]: { display: 'contents', minWidth: 0 } }}>
-                                            <Typography variant="body2" fontWeight={700} color="primary" sx={{ mr: { xs: 0.5, sm: 0.75, md: 1 }, fontSize: { xs: 13, sm: 14, md: 15 }, whiteSpace: 'nowrap', [mobileQuery]: { gridColumn: 1, gridRow: 1, fontSize: '13px', mr: 0 } }}>
+                                            <Typography variant="body2" color="primary" sx={{ fontWeight: 700, mr: { xs: 0.5, sm: 0.75, md: 1 }, fontSize: { xs: 13, sm: 14, md: 15 }, whiteSpace: 'nowrap', [mobileQuery]: { gridColumn: 1, gridRow: 1, fontSize: '13px', mr: 0 } }}>
                                                 {formatFcfa(price)}
                                             </Typography>
                                             <Box
@@ -318,7 +317,7 @@ export default function CartPage() {
                                         </Box>
 
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' }, gap: { xs: 1, sm: 1.25, md: 1.5 }, [mobileQuery]: { display: 'contents', gap: '8px', flexShrink: 0 } }}>
-                                            <Typography variant="subtitle2" fontWeight={700} sx={{ fontSize: { xs: 14, sm: 14, md: 15 }, whiteSpace: 'nowrap', [mobileQuery]: { gridColumn: 2, gridRow: 1, fontSize: '13px', justifySelf: 'end' } }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 14, md: 15 }, whiteSpace: 'nowrap', [mobileQuery]: { gridColumn: 2, gridRow: 1, fontSize: '13px', justifySelf: 'end' } }}>
                                                 {formatFcfa(itemTotal)}
                                             </Typography>
                                             <IconButton
@@ -373,7 +372,7 @@ export default function CartPage() {
                                 <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: 14, sm: 15, md: 16 }, [mobileQuery]: { fontSize: '14px' } }}>
                                     Sous-total
                                 </Typography>
-                                <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: 22, sm: 28, md: 32 }, [mobileQuery]: { fontSize: '16px', lineHeight: 1.3 } }}>
+                                <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: 22, sm: 28, md: 32 }, [mobileQuery]: { fontSize: '16px', lineHeight: 1.3 } }}>
                                     {formatFcfa(subtotal)}
                                 </Typography>
                             </Box>

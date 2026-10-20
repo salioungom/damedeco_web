@@ -182,7 +182,7 @@ function AccountPageContent() {
                         {user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </Avatar>
                     <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                        <Typography variant="h3" gutterBottom fontWeight={800} sx={{ textShadow: `0 2px 10px ${alpha(theme.palette.common.black, 0.1)}`, fontSize: { xs: '2rem', md: '3rem' } }}>
+                        <Typography variant="h3" gutterBottom sx={{ fontWeight: 800, textShadow: `0 2px 10px ${alpha(theme.palette.common.black, 0.1)}`, fontSize: { xs: '2rem', md: '3rem' } }}>
                             Bonjour, {user?.full_name || user?.email?.split('@')[0] || 'Cher client'}
                         </Typography>
                         <Typography variant="body1" sx={{ opacity: 0.9, fontWeight: 400, maxWidth: 600, fontSize: { xs: 14, sm: 15, md: 16 }, lineHeight: 1.6 }}>
@@ -219,20 +219,20 @@ function AccountPageContent() {
                             <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
                                 <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
                                     <Box>
-                                        <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ fontSize: '0.75rem', letterSpacing: 1.2 }}>
+                                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: 1.2 }}>
                                             {stat.title}
                                         </Typography>
                                         {typeof stat.value === 'string' && stat.value.includes('FCFA') ? (
                                             <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
-                                                <Typography variant="h4" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
+                                                <Typography variant="h4" color="text.primary" sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
                                                     {stat.value.replace(/\s*FCFA$/, '')}
                                                 </Typography>
-                                                <Typography fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
+                                                <Typography color="text.primary" sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
                                                     FCFA
                                                 </Typography>
                                             </Box>
                                         ) : (
-                                            <Typography variant="h4" fontWeight={800} color="text.primary" mt={0.5} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
+                                            <Typography variant="h4" color="text.primary" sx={{ fontWeight: 800, mt: 0.5, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
                                                 {stat.value}
                                             </Typography>
                                         )}
@@ -289,7 +289,7 @@ function AccountPageContent() {
                                 <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 } }}>
                                     <Inventory2 sx={{ fontSize: { xs: 18, md: 20 } }} />
                                 </Avatar>
-                                <Typography variant="h5" fontWeight={700} sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: 16, sm: 18, md: 20 } }}>
                                     Commandes Récentes
                                 </Typography>
                             </Box>
@@ -311,10 +311,10 @@ function AccountPageContent() {
                                     <Avatar sx={{ width: { xs: 72, sm: 86, md: 100 }, height: { xs: 72, sm: 86, md: 100 }, mx: 'auto', mb: { xs: 2, sm: 2.5, md: 3 }, bgcolor: alpha(theme.palette.text.disabled, 0.05), color: theme.palette.text.secondary }}>
                                         <ShoppingBag sx={{ fontSize: { xs: 36, sm: 43, md: 50 }, opacity: 0.5 }} />
                                     </Avatar>
-                                    <Typography variant="h6" color="text.secondary" fontWeight={600} gutterBottom sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }}>
+                                    <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 600, fontSize: { xs: 16, sm: 18, md: 20 } }}>
                                         Aucune commande trouvée
                                     </Typography>
-                                    <Typography variant="body1" color="text.disabled" mb={{ xs: 2.5, sm: 3, md: 4 }} sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
+                                    <Typography variant="body1" color="text.disabled" sx={{ mb: { xs: 2.5, sm: 3, md: 4 }, fontSize: { xs: 14, sm: 15, md: 16 } }}>
                                         Votre historique de commandes est vide.
                                     </Typography>
                                     <Button variant="contained" size="large" disableElevation onClick={() => router.push('/shop')} sx={{ borderRadius: 3, px: { xs: 3.5, sm: 4.5, md: 5 }, py: { xs: 1.25, sm: 1.35, md: 1.5 }, fontWeight: 700, textTransform: 'none', fontSize: { xs: 14, sm: 15, md: 16 } }}>
@@ -349,7 +349,7 @@ function AccountPageContent() {
                                                             N° Commande
                                                         </Typography>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                            <Typography variant="body1" fontWeight={700}>
+                                                            <Typography variant="body1" sx={{ fontWeight: 700 }}>
                                                                 {order.orderNumber || `${order.id}`}
                                                             </Typography>
                                                             {order.productImages && order.productImages.length > 0 && (
@@ -381,7 +381,7 @@ function AccountPageContent() {
                                                         <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Date
                                                         </Typography>
-                                                        <Typography variant="body2" fontWeight={500} color="text.secondary">
+                                                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                                                             {order.createdAt ? new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Non disponible'}
                                                         </Typography>
                                                     </Grid>
@@ -389,7 +389,7 @@ function AccountPageContent() {
                                                         <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Montant
                                                         </Typography>
-                                                        <Typography variant="body1" fontWeight={800} color="text.primary">
+                                                        <Typography variant="body1" color="text.primary" sx={{ fontWeight: 800 }}>
                                                             {order.totalAmount ? StatsService.formatAmount(order.totalAmount, 'FCFA') : 'Non disponible'}
                                                         </Typography>
                                                     </Grid>
@@ -450,7 +450,7 @@ function AccountPageContent() {
                             <Box sx={{ p: { xs: 1.5, sm: 1.75, md: 2 }, borderRadius: '50%', bgcolor: 'background.paper', mb: { xs: 1.5, sm: 1.75, md: 2 }, color: 'info.main', boxShadow: theme.shadows[3], position: 'relative', zIndex: 1 }}>
                                 <HeadsetMic sx={{ fontSize: { xs: 32, sm: 36, md: 40 } }} />
                             </Box>
-                            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ position: 'relative', zIndex: 1, fontSize: { xs: 16, sm: 17, md: 18 } }}>
+                            <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, position: 'relative', zIndex: 1, fontSize: { xs: 16, sm: 17, md: 18 } }}>
                                 Besoin d'assistance ?
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 4, position: 'relative', zIndex: 1, maxWidth: 280 }}>

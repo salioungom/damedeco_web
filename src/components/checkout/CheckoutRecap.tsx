@@ -71,7 +71,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
       <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{ textAlign: 'center', px: 2 }}>
           <ShoppingCartOutlined sx={{ fontSize: { xs: 60, sm: 70, md: 80 }, color: 'text.disabled', mb: { xs: 1.5, sm: 2 } }} />
-          <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }}>
+          <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 600, fontSize: { xs: 18, sm: 20, md: 22 } }}>
             Votre panier est vide
           </Typography>
           <Button variant="contained" onClick={onBackToCart} sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, mt: { xs: 1, sm: 1.25 }, fontSize: { xs: 14, sm: 15, md: 16 } }}>
@@ -88,7 +88,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: { xs: 3, sm: 3.5, md: 4 } }}>
           {/* Liste des articles */}
           <Box>
-            <Typography variant="h6" fontWeight={700} sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 18, sm: 19, md: 20 } }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 18, sm: 19, md: 20 } }}>
               {items.length} article{items.length > 1 ? 's' : ''}
             </Typography>
 
@@ -138,7 +138,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: { xs: 0.75, sm: 1 } }}>
                         <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="subtitle1" fontWeight={600} noWrap sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
+                          <Typography variant="subtitle1" noWrap sx={{ fontWeight: 600, fontSize: { xs: 14, sm: 15, md: 16 } }}>
                             {item.product.name}
                           </Typography>
                         </Box>
@@ -176,7 +176,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                               <Remove fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
                             </IconButton>
                           </ClientOnly>
-                          <Typography variant="body2" fontWeight={600} sx={{ px: { xs: 1, sm: 1.25, md: 1.5 }, minWidth: { xs: 24, sm: 27, md: 30 }, textAlign: 'center', fontSize: { xs: 13, sm: 14, md: 15 } }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, px: { xs: 1, sm: 1.25, md: 1.5 }, minWidth: { xs: 24, sm: 27, md: 30 }, textAlign: 'center', fontSize: { xs: 13, sm: 14, md: 15 } }}>
                             {item.quantity}
                           </Typography>
                           <ClientOnly>
@@ -191,7 +191,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                           </ClientOnly>
                         </Box>
 
-                        <Typography variant="subtitle1" fontWeight={700} color="primary" sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
+                        <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 15, md: 16 } }}>
                           {formatFcfa(lineTotal)}
                         </Typography>
                       </Box>
@@ -214,7 +214,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                 top: { lg: 100 },
               }}
             >
-              <Typography variant="h6" fontWeight={700} sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 18, sm: 19, md: 20 } }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 18, sm: 19, md: 20 } }}>
                 Résumé
               </Typography>
 
@@ -223,7 +223,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                   <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }}>
                     Sous-total
                   </Typography>
-                  <Typography variant="body2" fontWeight={600} sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: 13, sm: 14, md: 15 } }}>
                     {formatFcfa(subtotal)}
                   </Typography>
                 </Box>
@@ -231,10 +231,10 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                 <Divider />
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" fontWeight={800} sx={{ fontSize: { xs: 16, sm: 17, md: 18 } }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 17, md: 18 } }}>
                     Total
                   </Typography>
-                  <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ fontSize: { xs: 16, sm: 17, md: 18 } }}>
+                  <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 17, md: 18 } }}>
                     {formatFcfa(total)}
                   </Typography>
                 </Box>

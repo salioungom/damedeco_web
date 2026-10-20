@@ -586,10 +586,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
-                  <Typography variant="h4" fontWeight={700}>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {state.pagination.total}
                   </Typography>
-                  <Typography variant="body2" opacity={0.9}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Total catégories
                   </Typography>
                 </CardContent>
@@ -598,10 +598,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'success.main', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
-                  <Typography variant="h4" fontWeight={700}>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {state.categories.filter(c => c.is_active).length}
                   </Typography>
-                  <Typography variant="body2" opacity={0.9}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Catégories actives
                   </Typography>
                 </CardContent>
@@ -610,10 +610,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'text.secondary', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
-                  <Typography variant="h4" fontWeight={700}>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {state.categories.filter(c => !c.is_active).length}
                   </Typography>
-                  <Typography variant="body2" opacity={0.9}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Catégories inactives
                   </Typography>
                 </CardContent>
@@ -622,10 +622,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'primary.dark', color: 'primary.contrastText', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
-                  <Typography variant="h4" fontWeight={700}>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {state.categories.filter(c => c.cover_image_url).length}
                   </Typography>
-                  <Typography variant="body2" opacity={0.9}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Avec images
                   </Typography>
                 </CardContent>
@@ -715,7 +715,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 }
                 label={
                   <Box>
-                    <Typography variant="body2" fontWeight={500}>Actives uniquement</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>Actives uniquement</Typography>
                     <Typography variant="caption" color="text.secondary">Afficher seulement les catégories actives</Typography>
                   </Box>
                 }
@@ -844,7 +844,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     >
                       <ImageIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
                     </Box>
-                    <Typography variant="subtitle2" fontWeight={700}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                       Image
                     </Typography>
                   </Box>
@@ -875,7 +875,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     >
                       <CategoryIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
                     </Box>
-                    <Typography variant="subtitle2" fontWeight={700}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                       Nom
                     </Typography>
                   </Box>
@@ -906,7 +906,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     >
                       <SortIcon fontSize="small" sx={{ color: theme.palette.info.main }} />
                     </Box>
-                    <Typography variant="subtitle2" fontWeight={700} sx={{ color: theme.palette.info.main }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
                       Slug
                     </Typography>
                   </Box>
@@ -937,7 +937,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     >
                       <VisibilityIcon fontSize="small" sx={{ color: theme.palette.success.main }} />
                     </Box>
-                    <Typography variant="subtitle2" fontWeight={700} sx={{ color: theme.palette.success.main }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
                       Statut
                     </Typography>
                   </Box>
@@ -957,7 +957,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   textAlign: 'right',
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'flex-end' }}>
-                    <Typography variant="subtitle2" fontWeight={700}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                       Actions
                     </Typography>
                     <Box
@@ -983,8 +983,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     <TableCell><Skeleton variant="circular" width={56} height={56} /></TableCell>
                     <TableCell><Skeleton variant="text" width="80%" /></TableCell>
                     <TableCell><Skeleton variant="text" width="60%" /></TableCell>
-                    <TableCell><Skeleton variant="rectangular" width={80} height={24} rx={12} /></TableCell>
-                    <TableCell><Skeleton variant="rectangular" width={200} height={32} rx={4} /></TableCell>
+                    <TableCell><Skeleton variant="rectangular" sx={{ width: 80, height: 24 }} /></TableCell>
+                    <TableCell><Skeleton variant="rectangular" sx={{ width: 200, height: 32 }} /></TableCell>
                   </TableRow>
                 ))
               ) : state.categories.length === 0 ? (
@@ -992,7 +992,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <Box>
                       <CategoryIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-                      <Typography variant="h6" color="text.secondary" mb={1}>
+                      <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                         Aucune catégorie trouvée
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -1047,7 +1047,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     </TableCell>
                     <TableCell>
                       <Box>
-                        <Typography fontWeight={600} color="text.primary">
+                        <Typography color="text.primary" sx={{ fontWeight: 600 }}>
                           {category.name}
                         </Typography>
                         {category.description && (
@@ -1323,7 +1323,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
           <Typography>
             Êtes-vous sûr de vouloir supprimer la catégorie "{selectedCategory?.name}" ?
             {selectedCategory && (
-              <Box component="span" color="error.main" display="block" mt={1}>
+              <Box component="span" sx={{ color: 'error.main', display: 'block', mt: 1 }}>
                 Attention : cette action est irréversible et échouera si des produits sont associés à cette catégorie.
               </Box>
             )}

@@ -105,7 +105,7 @@ function AddressesPageContent() {
       </Breadcrumbs>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" fontWeight={700}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Mes Adresses
         </Typography>
       </Box>
@@ -127,7 +127,7 @@ function AddressesPageContent() {
             borderColor: 'divider',
           }}
         >
-          <Typography variant="h6" color="text.secondary" gutterBottom fontWeight={600}>
+          <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
             Aucune adresse enregistrée
           </Typography>
           <Typography variant="body1" color="text.disabled" paragraph>
