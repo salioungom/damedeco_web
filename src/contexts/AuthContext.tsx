@@ -11,6 +11,7 @@ import { createContext, useContext, useState, useEffect, useMemo, useCallback, u
 import { useRouter } from 'next/navigation';
 import { api, apiUtils } from '@/lib/api';
 import { useCartSync } from '@/hooks/useCartSync';
+import { StatsService } from '@/services/stats.service';
 
 // Types pour l'authentification
 interface User {
@@ -336,6 +337,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Silent fail on logout
         } finally {
             clearStoredTokens();
+            // Les commandes du compte qui vient d'être fermé ne doivent plus
+            // servir de cache pour la session suivante.
+            StatsService.clearOrdersFeedCache();
             updateAuthState({
                 user: null,
                 accessToken: null,

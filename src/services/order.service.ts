@@ -11,6 +11,7 @@ import { formatFcfa } from '@/lib/format';
 import { Order, CartItem } from '@/lib/types';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/delivery';
+import { StatsService } from './stats.service';
 
 // Réexport du contrat partagé (livraison / paiement).
 export type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/delivery';
@@ -353,6 +354,9 @@ export class OrderService {
       // Une commande fraîchement créée n'a jamais été contrôlée : on vide le
       // cache pour que son apparition dans la liste soit vue sans délai.
       resetOwnershipCache();
+      // Les statistiques du tableau de bord sont recalculées à partir de la
+      // liste des commandes : elle vient de changer, le cache doit suivre.
+      StatsService.clearOrdersFeedCache();
       return order;
     } catch (error) {
       throw error;
@@ -365,6 +369,8 @@ export class OrderService {
   static async cancelCustomerOrder(orderId: string | number): Promise<OrderResponse> {
     try {
       const cancelledOrder = await cancelOrder(orderId);
+      // La commande annulée ne doit plus compter comme commande en cours.
+      StatsService.clearOrdersFeedCache();
       return cancelledOrder;
     } catch (error) {
       console.error('Erreur annulation commande:', error);

@@ -79,7 +79,7 @@ const handleApiError = (error: unknown): never => {
 
 export const productService = {
     // Récupérer les produits avec pagination et filtres
-    async getProducts(params?: ProductFilters): Promise<{ data: ProductPaginatedResponse | null; error: any }> {
+    async getProducts(params?: ProductFilters, signal?: AbortSignal): Promise<{ data: ProductPaginatedResponse | null; error: any }> {
         return safeApiCall(async () => {
             // Construire les paramètres de manière sécurisée
             const requestParams: any = {};
@@ -99,6 +99,10 @@ export const productService = {
             if (params?.status) {
                 requestParams.status = params.status;
             }
+
+            if (params?.is_featured !== undefined && params?.is_featured !== null) {
+                requestParams.is_featured = params.is_featured;
+            }
             
             // Test: essayer avec include simple d'abord
             requestParams.include = 'category'; // Seulement la catégorie, pas les images pour le moment
@@ -113,6 +117,7 @@ export const productService = {
                 {
                     ...getAuthHeader(),
                     params: requestParams,
+                    signal,
                 }
             );
             
