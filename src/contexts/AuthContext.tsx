@@ -74,8 +74,12 @@ function isTokenExpired(token: string): boolean {
  * pas. Portée module pour la même raison que `isTokenExpired` — ni `useRouter`
  * ni `redirect()` ne sont disponibles hors d'un composant.
  * `replace` évite de laisser la page expirée dans l'historique.
+ *
+ * `returnPath` permet de revenir à la page d'origine après connexion : il est
+ * transmis à /login via le paramètre `?redirect=`, déjà lu par
+ * src/app/login/page.tsx et filtré par `sanitizeRedirect`.
  */
-function redirectToLogin(): void {
+function redirectToLogin(returnPath?: string): void {
     if (typeof window === 'undefined') {
         return;
     }
@@ -83,7 +87,9 @@ function redirectToLogin(): void {
     if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
         return;
     }
-    window.location.replace(window.location.origin + '/login');
+    const target = returnPath ?? pathname;
+    const query = target && target !== '/' ? `?redirect=${encodeURIComponent(target)}` : '';
+    window.location.replace(window.location.origin + '/login' + query);
 }
 
 // Provider principal
@@ -194,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: 'unauthenticated',
             });
             setLoading(false);
-            redirectToLogin();
+            redirectToLogin(window.location.pathname + window.location.search);
             return;
         }
         

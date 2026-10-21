@@ -1506,7 +1506,7 @@ function OrderDetailContent() {
 
 export default function OrderDetailPage() {
     return (
-        <RequireRole allowedRoles={['client']}>
+        <RequireRole allowedRoles={['client']} variant="dashboard">
             <OrderDetailContent />
         </RequireRole>
     );
