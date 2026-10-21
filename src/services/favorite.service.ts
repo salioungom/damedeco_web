@@ -36,9 +36,14 @@ export interface FavoritesList {
 }
 
 export class FavoriteService {
-  static async getUserFavorites(skip: number = 0, limit: number = 20): Promise<FavoritesList> {
+  /**
+   * Liste des favoris de l'utilisateur.
+   * `signal` permet d'annuler la requête lorsque le bloc qui la consomme
+   * est démonté.
+   */
+  static async getUserFavorites(skip: number = 0, limit: number = 20, signal?: AbortSignal): Promise<FavoritesList> {
     try {
-      const response = await api.get<FavoritesList>(`/api/v1/favorites/?skip=${skip}&limit=${limit}`);
+      const response = await api.get<FavoritesList>(`/api/v1/favorites/?skip=${skip}&limit=${limit}`, { signal });
       return response.data;
     } catch (error) {
       console.error('Erreur récupération favoris:', error);
@@ -81,9 +86,9 @@ export class FavoriteService {
     }
   }
 
-  static async getFavoritesCount(): Promise<number> {
+  static async getFavoritesCount(signal?: AbortSignal): Promise<number> {
     try {
-      const favorites = await this.getUserFavorites(0, 1);
+      const favorites = await this.getUserFavorites(0, 1, signal);
       return favorites.total;
     } catch (error) {
       return 0;

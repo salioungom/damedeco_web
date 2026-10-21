@@ -59,12 +59,6 @@ const SOCIALS = [
   { Icon: WhatsApp, label: 'WhatsApp', href: '#' },
 ];
 
-const LEGAL_LINKS = [
-  { label: 'Mentions légales', href: '/mentions-legales' },
-  { label: 'CGV', href: '/cgv' },
-  { label: 'Confidentialité', href: '/confidentialite' },
-];
-
 const linkSx = {
   fontSize: { xs: 14.5, sm: 16, md: 17.5 },
   color: LINK,
@@ -93,15 +87,6 @@ const headingSx = {
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
   mb: { xs: 1.5, sm: 2, md: 2.5 },
-};
-
-const legalLinkSx = {
-  ...linkSx,
-  color: MUTED,
-  '&:hover': {
-    ...linkSx['&:hover'],
-    color: WHITE,
-  },
 };
 
 export function Footer() {
@@ -213,7 +198,7 @@ export function Footer() {
             borderTop: `1px solid ${RULE}`,
             py: { xs: 2, sm: 2.5, md: 3, lg: 4 },
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr auto 1fr' },
+            gridTemplateColumns: { xs: '1fr', md: '1fr auto' },
             alignItems: 'center',
             gap: { xs: 2, sm: 2.25, md: 2 },
           }}
@@ -222,7 +207,7 @@ export function Footer() {
               © {new Date().getFullYear()} DameDéco · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
-          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ justifyContent: 'center' }}>
+          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ justifyContent: { xs: 'center', md: 'flex-end' } }}>
             {SOCIALS.map(({ Icon, label, href }) => (
               <IconButton
                 key={label}
@@ -247,18 +232,6 @@ export function Footer() {
               >
                 <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 } }} />
               </IconButton>
-            ))}
-          </Stack>
-
-          <Stack
-            direction="row"
-            spacing={{ xs: 1.5, sm: 2, md: 2.5 }}
-            sx={{ justifyContent: { xs: 'center', md: 'flex-end' }, flexWrap: 'wrap' }}
-          >
-            {LEGAL_LINKS.map((l) => (
-              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...legalLinkSx, fontSize: { xs: 13, sm: 14, md: 15 } }}>
-                {l.label}
-              </MuiLink>
             ))}
           </Stack>
       </Box>

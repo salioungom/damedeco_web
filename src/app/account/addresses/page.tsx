@@ -159,7 +159,7 @@ function AddressesPageContent() {
 
 export default function AddressesPage() {
   return (
-    <RequireRole allowedRoles={['client']}>
+    <RequireRole allowedRoles={['client']} variant="dashboard">
       <AddressesPageContent />
     </RequireRole>
   );

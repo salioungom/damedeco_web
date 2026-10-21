@@ -1111,7 +1111,7 @@ function OrdersContent() {
 
 export default function OrdersPage() {
     return (
-        <RequireRole allowedRoles={['client']}>
+        <RequireRole allowedRoles={['client']} variant="dashboard">
             <OrdersContent />
         </RequireRole>
     );

@@ -476,7 +476,7 @@ function AccountPageContent() {
 
 export default function AccountPage() {
     return (
-        <RequireRole allowedRoles={['client']}>
+        <RequireRole allowedRoles={['client']} variant="dashboard">
             <AccountPageContent />
         </RequireRole>
     );

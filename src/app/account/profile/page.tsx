@@ -103,7 +103,7 @@ function ProfileContent() {
 
 export default function UserProfile() {
     return (
-        <RequireRole allowedRoles={['client', 'admin', 'superadmin']}>
+        <RequireRole allowedRoles={['client', 'admin', 'superadmin']} variant="dashboard">
             <ProfileContent />
         </RequireRole>
     );
