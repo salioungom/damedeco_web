@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { productService } from '@/services/product.service';
 import { ApiError, ApiErrorHandler } from '@/lib/error-handler';
+import { isCanceledRequest } from '@/lib/api';
 import type { Product } from '@/types/product';
 
 export interface UseRecommendationsResult {
@@ -44,7 +45,8 @@ export function useRecommendations(limit = 8): UseRecommendationsResult {
         }
         setData(result.data?.items ?? []);
       } catch (err) {
-        if (signal.aborted) {
+        // Requête annulée (démontage, remontage) : ce n'est pas une panne.
+        if (signal.aborted || isCanceledRequest(err)) {
           return;
         }
         setData([]);

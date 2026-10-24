@@ -86,7 +86,9 @@ interface StoreState {
 
     loadCart: (silent?: boolean) => Promise<void>;
     loadFavorites: () => Promise<void>;
-    addToCart: (product: Product, quantity?: number) => Promise<void>;
+    /** Le produit n'est utilisé que par son identifiant : on accepte la forme
+     *  minimale pour pouvoir ajouter un favori au panier. */
+    addToCart: (product: { id: number | string }, quantity?: number) => Promise<void>;
     removeFromCart: (productId: string) => Promise<void>;
     updateQuantity: (productId: string, quantity: number) => Promise<void>;
     clearCart: () => Promise<void>;

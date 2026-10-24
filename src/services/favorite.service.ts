@@ -5,7 +5,7 @@
  * @author DameDéco Team
  */
 
-import { api } from '@/lib/api';
+import { api, isCanceledRequest } from '@/lib/api';
 
 export interface ProductInfo {
   id: number;
@@ -13,8 +13,17 @@ export interface ProductInfo {
   price: number;
   imageUrl: string | null;
   stock: number;
-  original_price?: number;
-  compare_price?: number;
+  /**
+   * Prix d'origine (prix barré).
+   * L'API l'expose sous `compare_price` (nom du modèle produit) ; les alias
+   * camelCase sont aussi acceptés car le résumé produit des favoris est
+   * sérialisé en camelCase (`imageUrl`). Les montants peuvent arriver en
+   * chaîne : ils sont convertis à la lecture (cf. `@/lib/pricing`).
+   */
+  compare_price?: number | string | null;
+  original_price?: number | string | null;
+  comparePrice?: number | string | null;
+  originalPrice?: number | string | null;
   pieces?: number;
 }
 
@@ -46,6 +55,10 @@ export class FavoriteService {
       const response = await api.get<FavoritesList>(`/api/v1/favorites/?skip=${skip}&limit=${limit}`, { signal });
       return response.data;
     } catch (error) {
+      // Requête annulée : comportement normal, pas une panne.
+      if (isCanceledRequest(error)) {
+        throw error;
+      }
       console.error('Erreur récupération favoris:', error);
       throw new Error('Impossible de récupérer les favoris');
     }
