@@ -41,6 +41,26 @@ const getApiConfig = () => {
   };
 };
 
+/**
+ * Détecte une requête annulée (AbortController : démontage d'un composant,
+ * double montage de React en développement).
+ *
+ * Une annulation est un comportement normal, pas une panne : elle ne doit
+ * jamais être loguée comme une erreur ni transformée en erreur structurée.
+ */
+export function isCanceledRequest(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const candidate = error as { code?: string; message?: string; name?: string };
+  return (
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.message === 'canceled'
+  );
+}
+
 // Création de l'instance Axios
 const createApiInstance = (): AxiosInstance => {
   const config = getApiConfig();
@@ -193,6 +213,12 @@ const createApiInstance = (): AxiosInstance => {
       return response;
     },
     async (error: AxiosError) => {
+      // Requête annulée (démontage / StrictMode) : ni log ni erreur
+      // structurée, l'erreur d'origine est simplement propagée.
+      if (isCanceledRequest(error)) {
+        return Promise.reject(error);
+      }
+
       const originalRequest = error.config as any;
       const startTime = originalRequest?.metadata?.startTime;
       const duration = startTime ? Date.now() - startTime : undefined;

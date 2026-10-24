@@ -36,4 +36,46 @@ export function formatFcfa(amount: string | number | null | undefined): string {
   return `${FCFA_NUMBER_FMT.format(numeric)} FCFA`;
 }
 
+/** Format de date long français : « 21 octobre 2026 ». */
+const FR_DATE_FMT = new Intl.DateTimeFormat('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** Format de date et heure français : « 21 octobre 2026 à 14:05 ». */
+const FR_DATETIME_FMT = new Intl.DateTimeFormat('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+function toDate(value: string | number | Date | null | undefined): Date | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Formate une date au format français long (« 21 octobre 2026 »).
+ * Retourne « — » si la date est absente ou illisible.
+ */
+export function formatDateFr(value: string | number | Date | null | undefined): string {
+  const date = toDate(value);
+  return date ? FR_DATE_FMT.format(date) : '—';
+}
+
+/**
+ * Formate une date et l'heure au format français (« 21 octobre 2026 à 14:05 »).
+ * Retourne « — » si la date est absente ou illisible.
+ */
+export function formatDateTimeFr(value: string | number | Date | null | undefined): string {
+  const date = toDate(value);
+  return date ? FR_DATETIME_FMT.format(date) : '—';
+}
+
 export default formatFcfa;

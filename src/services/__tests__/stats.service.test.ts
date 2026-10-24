@@ -191,6 +191,41 @@ describe('StatsService — tableau de bord client', () => {
       expect(second[0].id).toBe(2);
     });
 
+    it('relance une requête neuve après l’annulation de la requête partagée', async () => {
+      // La 1ʳᵉ requête reste en attente jusqu'à l'annulation (comme le fait
+      // axios), la 2ᵉ aboutit.
+      let call = 0;
+      mockedGet.mockImplementation((_url: string, config?: { signal?: AbortSignal }) => {
+        call += 1;
+        if (call > 1) {
+          return Promise.resolve({ data: [makeOrder()] });
+        }
+        return new Promise((_resolve, reject) => {
+          config?.signal?.addEventListener(
+            'abort',
+            () => {
+              const error = new Error('canceled');
+              error.name = 'CanceledError';
+              reject(error);
+            },
+            { once: true },
+          );
+        });
+      });
+
+      const controller = new AbortController();
+      const annulee = StatsService.getCustomerOrdersFeed('user-12', 100, controller.signal);
+      controller.abort();
+      await expect(annulee).rejects.toBeTruthy();
+
+      // Le remontage du composant (React StrictMode) doit repartir d'une
+      // requête neuve, pas récupérer l'erreur de la requête annulée.
+      const orders = await StatsService.getCustomerOrdersFeed('user-12', 100);
+
+      expect(mockedGet).toHaveBeenCalledTimes(2);
+      expect(orders).toHaveLength(1);
+    });
+
     it('vide le cache d’un utilisateur sans toucher aux autres', async () => {
       mockedGet.mockResolvedValue({ data: [makeOrder()] });
 

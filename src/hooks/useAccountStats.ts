@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StatsService, type AccountStats } from '@/services/stats.service';
 import { ApiError, ApiErrorHandler } from '@/lib/error-handler';
+import { isCanceledRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface UseAccountStatsResult {
@@ -44,7 +45,8 @@ export function useAccountStats(): UseAccountStatsResult {
       }
       setData(stats);
     } catch (err) {
-      if (signal.aborted) {
+      // Requête annulée (démontage, remontage) : ce n'est pas une panne.
+      if (signal.aborted || isCanceledRequest(err)) {
         return;
       }
       setData(null);

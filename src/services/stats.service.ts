@@ -5,7 +5,7 @@
  * @author DameDéco Team
  */
 
-import { api } from '@/lib/api';
+import { api, isCanceledRequest } from '@/lib/api';
 import { formatFcfa } from '@/lib/format';
 import { getImageUrl } from '@/lib/imageUtils';
 import type { Order } from '@/lib/types';
@@ -249,7 +249,15 @@ export class StatsService {
       released = true;
       pending.waiters -= 1;
       if (pending.waiters <= 0) {
+        // Plus aucun bloc n'attend cette requête : elle est annulée et
+        // retirée IMMÉDIATEMENT du pool. Sans cette retrait, un appelant
+        // suivant (remontage du composant) se rattacherait à la requête
+        // annulée et récupérerait son erreur au lieu de déclencher un
+        // nouveau chargement.
         pending.controller.abort();
+        if (ordersFeedPending.get(userId) === pending) {
+          ordersFeedPending.delete(userId);
+        }
       }
     };
     const onAbort = () => release();
@@ -308,8 +316,11 @@ export class StatsService {
 
     let totalFavorites = 0;
     try {
-      totalFavorites = await FavoriteService.getFavoritesCount();
-    } catch {
+      totalFavorites = await FavoriteService.getFavoritesCount(signal);
+    } catch (error) {
+      if (isCanceledRequest(error)) {
+        throw error;
+      }
       totalFavorites = 0;
     }
 

@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StatsService, type OrderTracking } from '@/services/stats.service';
 import { ApiError, ApiErrorHandler } from '@/lib/error-handler';
+import { isCanceledRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface UseOrderTrackingResult {
@@ -42,7 +43,8 @@ export function useOrderTracking(): UseOrderTrackingResult {
       }
       setData(trackings);
     } catch (err) {
-      if (signal.aborted) {
+      // Requête annulée (démontage, remontage) : ce n'est pas une panne.
+      if (signal.aborted || isCanceledRequest(err)) {
         return;
       }
       setData([]);
