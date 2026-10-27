@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+.git
+.gitignore
+.env*
+!.env.example
+Dockerfile*
+docker-compose*.yml
+frontend-cli
+*.log
+coverage
+.DS_Store
+.github
+.vscode
+.devin

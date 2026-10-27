@@ -1,0 +1,18 @@
+name: damedeco-frontend
+
+services:
+  frontend:
+    image: ghcr.io/salioungom/damedeco_web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - damedeco-frontend-net
+
+networks:
+  damedeco-frontend-net:
+    external: true
