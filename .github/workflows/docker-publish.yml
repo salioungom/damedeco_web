@@ -49,6 +49,12 @@ jobs:
       - name: Normaliser le nom de l'image en minuscules
         run: echo "IMAGE=${IMAGE,,}" >> "$GITHUB_ENV"
 
+      - name: Vérifier la disponibilité de l'API
+        env:
+          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+        run: |
+          curl -fsS --retry 3 --retry-delay 2 --max-time 10 "$API_URL/health/ready"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
