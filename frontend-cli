@@ -1,0 +1,137 @@
+#!/bin/bash
+set -e
+
+# Couleurs ANSI
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Détection de Docker Compose
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+elif docker compose version &> /dev/null 2>&1; then
+    COMPOSE_CMD="docker compose"
+else
+    echo -e "${RED}Erreur: docker-compose ou docker compose n'est pas installé${NC}"
+    exit 1
+fi
+
+# Fonction d'affichage de l'aide
+show_help() {
+    echo "Usage: ./frontend-cli <commande>"
+    echo ""
+    echo "Commandes disponibles:"
+    echo "  start          Démarrer les services en arrière-plan"
+    echo "  dev            Démarrer les services au premier plan"
+    echo "  stop           Arrêter les services"
+    echo "  logs           Afficher les logs en temps réel"
+    echo "  rebuild        Reconstruire et redémarrer"
+    echo "  build-prod     Construire l'image de production"
+    echo "  help           Afficher cette aide"
+    echo ""
+    echo "Exemples:"
+    echo "  ./frontend-cli start"
+    echo "  ./frontend-cli build-prod http://localhost:8000"
+}
+
+# Commande start
+cmd_start() {
+    echo -e "${CYAN}Construction et démarrage des services...${NC}"
+    $COMPOSE_CMD -f docker-compose.yml up -d --build
+    echo ""
+    echo -e "${GREEN}=== Accès aux services ===${NC}"
+    echo -e "${GREEN}Frontend: ${CYAN}http://localhost:3000${NC}"
+    echo -e "${GREEN}API:      ${CYAN}http://localhost:8000${NC}"
+}
+
+# Commande dev
+cmd_dev() {
+    echo -e "${CYAN}Démarrage des services au premier plan...${NC}"
+    $COMPOSE_CMD -f docker-compose.yml up --build
+}
+
+# Commande stop
+cmd_stop() {
+    echo -e "${CYAN}Arrêt des services...${NC}"
+    $COMPOSE_CMD -f docker-compose.yml stop
+}
+
+# Commande logs
+cmd_logs() {
+    $COMPOSE_CMD -f docker-compose.yml logs -f frontend
+}
+
+# Commande rebuild
+cmd_rebuild() {
+    echo -e "${CYAN}Arrêt et reconstruction des services...${NC}"
+    $COMPOSE_CMD -f docker-compose.yml down
+    $COMPOSE_CMD -f docker-compose.yml up -d --build
+    echo ""
+    echo -e "${GREEN}=== Accès aux services ===${NC}"
+    echo -e "${GREEN}Frontend: ${CYAN}http://localhost:3000${NC}"
+    echo -e "${GREEN}API:      ${CYAN}http://localhost:8000${NC}"
+}
+
+# Commande build-prod
+cmd_build_prod() {
+    if [ -z "$1" ]; then
+        echo -e "${RED}Erreur: l'URL de l'API est requise${NC}"
+        echo "Usage: ./frontend-cli build-prod <URL_API>"
+        echo "Exemple: ./frontend-cli build-prod http://localhost:8000"
+        exit 1
+    fi
+
+    local API_URL="$1"
+
+    # Validation : l'URL doit commencer par http:// ou https://
+    if [[ ! "$API_URL" =~ ^https?:// ]]; then
+        echo -e "${RED}Erreur: l'URL doit commencer par http:// ou https://${NC}"
+        exit 1
+    fi
+
+    # Avertissement pour localhost (tests locaux acceptés)
+    if [[ "$API_URL" =~ localhost ]]; then
+        echo -e "${CYAN}Attention: l'URL contient 'localhost'. Ceci est acceptable pour les tests locaux.${NC}"
+    fi
+
+    echo -e "${CYAN}Construction de l'image de production avec NEXT_PUBLIC_API_URL=$API_URL...${NC}"
+    docker buildx build --load \
+        --build-arg NEXT_PUBLIC_API_URL="$API_URL" \
+        -t damedeco_web:latest \
+        -t ghcr.io/salioungom/damedeco_web:latest \
+        -f Dockerfile \
+        .
+    echo -e "${GREEN}Image construite avec succès${NC}"
+}
+
+# Routage des commandes
+case "$1" in
+    start)
+        cmd_start
+        ;;
+    dev)
+        cmd_dev
+        ;;
+    stop)
+        cmd_stop
+        ;;
+    logs)
+        cmd_logs
+        ;;
+    rebuild)
+        cmd_rebuild
+        ;;
+    build-prod)
+        cmd_build_prod "$2"
+        ;;
+    help|--help|-h|"")
+        show_help
+        ;;
+    *)
+        echo -e "${RED}Commande inconnue: $1${NC}"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac

@@ -1,0 +1,77 @@
+name: Docker Image Publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # GHCR exige un nom d'image en minuscules ; normalisé à l'étape dédiée ci-dessous.
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Vérifier NEXT_PUBLIC_API_URL
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_API_URL" ]; then
+            echo "::error::La variable de dépôt NEXT_PUBLIC_API_URL est vide ou non définie. Renseignez-la dans Settings > Secrets and variables > Actions > Variables."
+            exit 1
+          fi
+          case "$NEXT_PUBLIC_API_URL" in
+            https://*) ;;
+            *)
+              echo "::error::NEXT_PUBLIC_API_URL doit commencer par https:// (valeur reçue : $NEXT_PUBLIC_API_URL)."
+              exit 1
+              ;;
+          esac
+          case "$NEXT_PUBLIC_API_URL" in
+            *localhost*)
+              echo "::error::NEXT_PUBLIC_API_URL ne doit pas contenir localhost pour une image de production."
+              exit 1
+              ;;
+          esac
+          echo "NEXT_PUBLIC_API_URL valide pour la production."
+
+      - name: Normaliser le nom de l'image en minuscules
+        run: echo "IMAGE=${IMAGE,,}" >> "$GITHUB_ENV"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
