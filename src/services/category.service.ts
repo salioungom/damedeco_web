@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { safeApiCall, ApiErrorHandler } from '@/lib/error-handler';
+import { API_URL } from '@/lib/api-url';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''; // Utiliser le proxy Next.js
+const API_BASE_URL = API_URL;
 
 export interface Category {
   id: number;

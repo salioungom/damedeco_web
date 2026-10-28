@@ -9,6 +9,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 import { Product, Category, Order, Customer, DeliveryOption, PromoCodeValidation, PromoCodeRequest } from './types';
 import type { DeliveryMode, PaymentMethod, ShippingAddress } from './delivery';
 import { getCsrfHeader, CSRF_HEADER } from './csrf';
+import { API_URL } from './api-url';
 
 // Types pour les logs structurés
 interface ApiLogData {
@@ -27,12 +28,10 @@ interface ApiResponse<T = any> {
   status: number;
 }
 
-// Configuration de l'environnement avec fallback sécurisé
+// Configuration de l'environnement (URL centralisée dans lib/api-url)
 const getApiConfig = () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
   return {
-    baseURL: apiUrl,
+    baseURL: API_URL,
     timeout: 15000,
     headers: {
       'Content-Type': 'application/json',

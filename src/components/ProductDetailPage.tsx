@@ -42,6 +42,7 @@ import Reveal from './motion/Reveal';
 import { PaymentIcons } from './PaymentIcons';
 import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
+import { API_URL } from '@/lib/api-url';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 const C = {
@@ -63,7 +64,7 @@ const C = {
 
 const formatPrice = (amount: number) => formatFcfa(amount);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE_URL = API_URL;
 
 interface ProductDetailPageProps {
   product: Product;
