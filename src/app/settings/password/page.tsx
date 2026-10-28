@@ -14,12 +14,13 @@ import apiClient from '@/lib/api-client';
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter';
 import { SettingsTabs } from '@/components/ui/SettingsTabs';
 import { PasswordField } from '@/components/ui/PasswordField';
+import { RequireRole } from '@/components/RequireRole';
 import { tokens } from '@/theme/tokens';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDashboardPath } from '@/utils/roleRoutes';
 
-export default function PasswordPage() {
+function PasswordPageContent() {
     const router = useRouter();
     const { user } = useAuth();
     const [userId, setUserId] = useState<number | null>(null);
@@ -201,5 +202,13 @@ export default function PasswordPage() {
                 </Paper>
             </Container>
         </Box>
+    );
+}
+
+export default function PasswordPage() {
+    return (
+        <RequireRole allowedRoles={['client', 'admin', 'superadmin']}>
+            <PasswordPageContent />
+        </RequireRole>
     );
 }
