@@ -26,10 +26,10 @@ import { ApiErrorHandler } from '@/lib/error-handler';
 import { resolveSuccessPhase, wasPaymentConfirmed } from '@/lib/payment-status';
 import { useStore } from '@/store/useStore';
 
-type Phase = 'checking' | 'paid' | 'pending' | 'failed' | 'error' | 'order_cancelled' | 'order_refunded';
+type Phase = 'checking' | 'paid' | 'pending' | 'processing' | 'failed' | 'error' | 'order_cancelled' | 'order_refunded';
 
-const MAX_ATTEMPTS = 6;
-const POLL_INTERVAL_MS = 2000;
+const POLL_INTERVAL_MS = 3000;
+const MAX_POLL_DURATION_MS = 60_000;
 
 function OrderConfirmationInner() {
     const theme = useTheme();
@@ -50,11 +50,32 @@ function OrderConfirmationInner() {
     useEffect(() => {
         let cancelled = false;
         let timer: ReturnType<typeof setTimeout> | undefined;
+        // Fenêtre d'interrogation : un essai toutes les 3 s, 60 s au total.
+        const startedAt = Date.now();
 
-        const run = async (attempt: number) => {
+        const scheduleNextPoll = () => {
+            if (cancelled) return;
+            if (Date.now() - startedAt >= MAX_POLL_DURATION_MS) {
+                // Délai épuisé : le paiement reste « en cours de traitement »,
+                // jamais présenté comme un échec.
+                setPhase('pending');
+                return;
+            }
+            timer = setTimeout(run, POLL_INTERVAL_MS);
+        };
+
+        async function run() {
+            if (cancelled) return;
+
             if (!orderId) {
-                setPhase('error');
-                setError('Référence de commande manquante.');
+                // Sans référence de commande, le retour de paiement reste neutre :
+                // aucune erreur, aucun vidage du panier.
+                setPhase('processing');
+                return;
+            }
+
+            if (Date.now() - startedAt >= MAX_POLL_DURATION_MS) {
+                setPhase('pending');
                 return;
             }
 
@@ -107,12 +128,8 @@ function OrderConfirmationInner() {
                 }
 
                 // pending / processing / résultat inconnu : on interroge jusqu'à
-                // la confirmation backend ; sinon « vérification en cours ».
-                if (attempt < MAX_ATTEMPTS) {
-                    timer = setTimeout(() => run(attempt + 1), POLL_INTERVAL_MS);
-                } else {
-                    setPhase('pending');
-                }
+                // la confirmation backend, dans la limite des 60 s.
+                scheduleNextPoll();
             } catch (err) {
                 if (cancelled) return;
 
@@ -129,17 +146,13 @@ function OrderConfirmationInner() {
                     return;
                 }
 
-                if (attempt < MAX_ATTEMPTS) {
-                    timer = setTimeout(() => run(attempt + 1), POLL_INTERVAL_MS);
-                } else {
-                    setPhase('error');
-                    // Timeout/réseau : résultat inconnu, jamais interprété comme paiement échoué.
-                    setError(ApiErrorHandler.getOrderError(err, 'check'));
-                }
+                // Timeout/réseau : on réessaie jusqu'à la fin de la fenêtre, puis
+                // « en cours de traitement » — jamais un échec de paiement.
+                scheduleNextPoll();
             }
-        };
+        }
 
-        run(0);
+        run();
 
         return () => {
             cancelled = true;
@@ -179,7 +192,9 @@ function OrderConfirmationInner() {
                   ? 'Commande annulée'
                   : phase === 'order_refunded'
                     ? 'Commande remboursée'
-                    : 'Paiement en cours de vérification';
+                    : phase === 'processing'
+                      ? 'Merci, votre paiement est en cours de traitement'
+                      : 'Paiement en cours de traitement';
 
     const description =
         phase === 'paid'
@@ -192,7 +207,7 @@ function OrderConfirmationInner() {
                   ? 'Cette commande a été annulée et ne peut plus être payée ni relancée.'
                   : phase === 'order_refunded'
                     ? 'Cette commande a été remboursée et ne peut plus être payée.'
-                    : 'Votre paiement est en cours de traitement. La confirmation définitive interviendra dès réception de la validation du service de paiement.';
+                    : 'Votre paiement est en cours de traitement. Vous recevrez un e-mail de confirmation dès que le service de paiement aura validé la transaction.';
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -221,7 +236,9 @@ function OrderConfirmationInner() {
                         }}
                     >
                         {phase === 'paid' && <CheckCircleIcon sx={{ fontSize: 48, color: accent }} />}
-                        {phase === 'pending' && <HourglassIcon sx={{ fontSize: 48, color: accent }} />}
+                        {(phase === 'pending' || phase === 'processing') && (
+                            <HourglassIcon sx={{ fontSize: 48, color: accent }} />
+                        )}
                         {(phase === 'failed' || phase === 'error' || isOrderFinal) && (
                             <ErrorIcon sx={{ fontSize: 48, color: accent }} />
                         )}
@@ -286,9 +303,9 @@ function OrderConfirmationInner() {
                     )}
 
                     {phase === 'pending' && (
-                        <Alert severity="warning" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
-                            Le service de paiement n'a pas encore confirmé la transaction. Vous pouvez consulter
-                            le statut de votre commande à tout moment dans votre espace.
+                        <Alert severity="info" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
+                            Le service de paiement n'a pas encore confirmé la transaction. Vous recevrez un
+                            e-mail de confirmation dès validation. Vous pouvez suivre son statut dans votre espace.
                         </Alert>
                     )}
 
@@ -326,6 +343,18 @@ function OrderConfirmationInner() {
                                     fontWeight: 700,
                                     boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
                                 }}
+                            >
+                                Voir mes commandes
+                            </Button>
+                        )}
+
+                        {phase === 'processing' && (
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={() => router.push('/account/orders')}
+                                startIcon={<ShoppingBagIcon />}
+                                sx={{ flex: 1, borderRadius: 2, py: 1.5, fontWeight: 700 }}
                             >
                                 Voir mes commandes
                             </Button>
