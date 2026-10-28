@@ -176,6 +176,10 @@ const createApiInstance = (): AxiosInstance => {
       localStorage.removeItem('refreshToken');
     } catch { /* noop */ }
     if (window.location.pathname !== '/login') {
+      // La page de retour de paiement affiche elle-même le 401 (message +
+      // lien de connexion avec chemin de retour) : ne pas la démonter par une
+      // redirection dure avant qu'elle puisse l'afficher.
+      if (window.location.pathname === '/checkout/success') return;
       // Navigation dure volontaire : le provider React garde l'état authentifié
       // en mémoire, seul un rechargement complet le purge. `replace` évite de
       // laisser la page expirée dans l'historique (le retour navigateur ne doit

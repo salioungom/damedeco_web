@@ -19,6 +19,7 @@ import {
     StoreOutlined,
     HourglassEmpty as HourglassIcon,
     ErrorOutlined as ErrorIcon,
+    LockOutlined as LockIcon,
     Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import OrderService, { Payment } from '@/services/order.service';
@@ -26,7 +27,7 @@ import { ApiErrorHandler } from '@/lib/error-handler';
 import { resolveSuccessPhase, wasPaymentConfirmed } from '@/lib/payment-status';
 import { useStore } from '@/store/useStore';
 
-type Phase = 'checking' | 'paid' | 'pending' | 'processing' | 'failed' | 'error' | 'order_cancelled' | 'order_refunded';
+type Phase = 'checking' | 'paid' | 'pending' | 'processing' | 'unauthenticated' | 'failed' | 'error' | 'order_cancelled' | 'order_refunded';
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_DURATION_MS = 60_000;
@@ -134,6 +135,13 @@ function OrderConfirmationInner() {
                 if (cancelled) return;
 
                 const classified = ApiErrorHandler.classifyError(err);
+                // 401 = session absente/expirée après la tentative de refresh de
+                // l'intercepteur : erreur définitive, aucun nouvel essai.
+                if (classified.status === 401) {
+                    setPhase('unauthenticated');
+                    setError('Connectez-vous pour voir le statut de votre commande');
+                    return;
+                }
                 // 404 = commande inexistante, 403 = commande étrangère au client :
                 // deux erreurs définitives, inutile de continuer à interroger.
                 if (classified.status === 404 || classified.status === 403) {
@@ -192,9 +200,11 @@ function OrderConfirmationInner() {
                   ? 'Commande annulée'
                   : phase === 'order_refunded'
                     ? 'Commande remboursée'
-                    : phase === 'processing'
-                      ? 'Merci, votre paiement est en cours de traitement'
-                      : 'Paiement en cours de traitement';
+                    : phase === 'unauthenticated'
+                      ? 'Connexion requise'
+                      : phase === 'processing'
+                        ? 'Merci, votre paiement est en cours de traitement'
+                        : 'Paiement en cours de traitement';
 
     const description =
         phase === 'paid'
@@ -203,11 +213,19 @@ function OrderConfirmationInner() {
               ? 'Le paiement n\'a pas abouti. Aucun montant n\'a été débité définitivement.'
               : phase === 'error'
                 ? error || 'Nous n\'avons pas pu vérifier le statut de votre paiement.'
-                : phase === 'order_cancelled'
-                  ? 'Cette commande a été annulée et ne peut plus être payée ni relancée.'
-                  : phase === 'order_refunded'
-                    ? 'Cette commande a été remboursée et ne peut plus être payée.'
-                    : 'Votre paiement est en cours de traitement. Vous recevrez un e-mail de confirmation dès que le service de paiement aura validé la transaction.';
+                : phase === 'unauthenticated'
+                  ? 'Connectez-vous pour voir le statut de votre commande'
+                  : phase === 'order_cancelled'
+                    ? 'Cette commande a été annulée et ne peut plus être payée ni relancée.'
+                    : phase === 'order_refunded'
+                      ? 'Cette commande a été remboursée et ne peut plus être payée.'
+                      : 'Votre paiement est en cours de traitement. Vous recevrez un e-mail de confirmation dès que le service de paiement aura validé la transaction.';
+
+    // Valeur de retour encodée : après connexion, l'utilisateur revient sur
+    // cette page avec la même référence de commande.
+    const loginHref = orderId
+        ? `/login?redirect=${encodeURIComponent(`/checkout/success?orderId=${orderId}`)}`
+        : `/login?redirect=${encodeURIComponent('/checkout/success')}`;
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -239,6 +257,7 @@ function OrderConfirmationInner() {
                         {(phase === 'pending' || phase === 'processing') && (
                             <HourglassIcon sx={{ fontSize: 48, color: accent }} />
                         )}
+                        {phase === 'unauthenticated' && <LockIcon sx={{ fontSize: 48, color: accent }} />}
                         {(phase === 'failed' || phase === 'error' || isOrderFinal) && (
                             <ErrorIcon sx={{ fontSize: 48, color: accent }} />
                         )}
@@ -345,6 +364,18 @@ function OrderConfirmationInner() {
                                 }}
                             >
                                 Voir mes commandes
+                            </Button>
+                        )}
+
+                        {phase === 'unauthenticated' && (
+                            <Button
+                                variant="contained"
+                                size="large"
+                                href={loginHref}
+                                startIcon={<LockIcon />}
+                                sx={{ flex: 1, borderRadius: 2, py: 1.5, fontWeight: 700 }}
+                            >
+                                Se connecter
                             </Button>
                         )}
 
