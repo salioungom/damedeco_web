@@ -1,18 +1,11 @@
 import type { NextConfig } from "next";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_URL } from "./src/lib/api-url";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   images: {
     remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8000',
-        pathname: '/media/**',
-      },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
@@ -29,11 +22,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${API_BASE}/api/:path*`,
+        destination: `${API_URL}/api/:path*`,
       },
       {
         source: '/media/:path*',
-        destination: `${API_BASE}/media/:path*`,
+        destination: `${API_URL}/media/:path*`,
       },
     ];
   },

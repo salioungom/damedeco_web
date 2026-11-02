@@ -20,6 +20,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { tokens } from '@/theme/tokens';
+import { API_URL } from '@/lib/api-url';
 
 interface TOTPSetup {
     secret: string;
@@ -49,7 +50,7 @@ export default function Setup2FAPage() {
 
     const fetchStatus = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/2fa/status`);
+            const response = await fetch(`${API_URL}/api/v1/auth/2fa/status`);
             const data = await response.json();
 
             if (response.ok) {
@@ -73,7 +74,7 @@ export default function Setup2FAPage() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/2fa/totp/setup`);
+            const response = await fetch(`${API_URL}/api/v1/auth/2fa/totp/setup`);
             const data = await response.json();
 
             if (response.ok) {
@@ -96,7 +97,7 @@ export default function Setup2FAPage() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/2fa/totp/enable`, {
+            const response = await fetch(`${API_URL}/api/v1/auth/2fa/totp/enable`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -130,7 +131,7 @@ export default function Setup2FAPage() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/2fa/totp/disable`, {
+            const response = await fetch(`${API_URL}/api/v1/auth/2fa/totp/disable`, {
                 method: 'POST',
             });
 
@@ -252,7 +253,7 @@ export default function Setup2FAPage() {
                                 onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                                     if (e.target.checked) {
                                         try {
-                                            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/2fa/email/send`);
+                                            const response = await fetch(`${API_URL}/api/v1/auth/2fa/email/send`);
                                             const data = await response.json();
 
                                             if (response.ok) {

@@ -2,7 +2,7 @@ name: damedeco-frontend
 
 services:
   frontend:
-    image: ghcr.io/salioungom/damedeco_web:${IMAGE_TAG:-latest}
+    image: ghcr.io/salioungom/damedeco_web:${IMAGE_TAG:?IMAGE_TAG requis}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]

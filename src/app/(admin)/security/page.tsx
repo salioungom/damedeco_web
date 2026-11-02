@@ -45,7 +45,7 @@ export default function AdminSecurityPage() {
   }
 
   // Rediriger vers le vrai dashboard admin
-  router.push('/admin/dashboard');
+  router.push('/dashboard');
   
   return (
     <Container>
