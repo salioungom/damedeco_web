@@ -17,6 +17,7 @@ const { getProducts } = vi.hoisted(() => ({ getProducts: vi.fn() }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
   useParams: () => ({ id: '8' }),
+  usePathname: () => '/product/8',
 }));
 
 vi.mock('@/services/product.service', () => ({

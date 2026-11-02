@@ -8,6 +8,7 @@ const push = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace, push, prefetch: vi.fn() }),
   useSearchParams: () => new URLSearchParams('orderId=123'),
+  usePathname: () => '/',
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({

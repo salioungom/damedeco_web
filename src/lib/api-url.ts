@@ -10,7 +10,10 @@
 
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-if (process.env.NODE_ENV === 'production' && !rawApiUrl) {
+// Validation uniquement pour le build réel, pas pour typegen ou autres commandes
+const isRealBuild = process.argv?.some(arg => arg.includes('next') && arg.includes('build'));
+
+if (process.env.NODE_ENV === 'production' && !rawApiUrl && isRealBuild) {
   throw new Error(
     'NEXT_PUBLIC_API_URL est obligatoire pour un build de production. ' +
       'Définissez-la (URL https, sans localhost) avant `next build`.',
