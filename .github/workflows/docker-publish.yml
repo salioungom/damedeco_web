@@ -25,33 +25,34 @@ jobs:
 
       - name: Vérifier NEXT_PUBLIC_API_URL
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_API_URL: https://api-staging.damedeco.shop/
         run: |
-          if [ -z "$NEXT_PUBLIC_API_URL" ]; then
-            echo "::error::La variable de dépôt NEXT_PUBLIC_API_URL est vide ou non définie. Renseignez-la dans Settings > Secrets and variables > Actions > Variables."
+          API_URL="$NEXT_PUBLIC_API_URL"
+          if [ -z "$API_URL" ]; then
+            echo "::error::La variable NEXT_PUBLIC_API_URL est vide ou non définie."
             exit 1
           fi
-          case "$NEXT_PUBLIC_API_URL" in
+          case "$API_URL" in
             https://*) ;;
             *)
-              echo "::error::NEXT_PUBLIC_API_URL doit commencer par https:// (valeur reçue : $NEXT_PUBLIC_API_URL)."
+              echo "::error::NEXT_PUBLIC_API_URL doit commencer par https:// (valeur reçue : $API_URL)."
               exit 1
               ;;
           esac
-          case "$NEXT_PUBLIC_API_URL" in
+          case "$API_URL" in
             *localhost*)
               echo "::error::NEXT_PUBLIC_API_URL ne doit pas contenir localhost pour une image de production."
               exit 1
               ;;
           esac
-          echo "NEXT_PUBLIC_API_URL valide pour la production."
+          echo "NEXT_PUBLIC_API_URL valide pour la production ($API_URL)."
 
       - name: Normaliser le nom de l'image en minuscules
         run: echo "IMAGE=${IMAGE,,}" >> "$GITHUB_ENV"
 
       - name: Vérifier la disponibilité de l'API
         env:
-          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          API_URL: https://api-staging.damedeco.shop/
         run: |
           curl -fsS --retry 3 --retry-delay 2 --max-time 10 "$API_URL/health/ready"
 
@@ -80,6 +81,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_API_URL=https://api-staging.damedeco.shop/
           cache-from: type=gha
           cache-to: type=gha,mode=max
