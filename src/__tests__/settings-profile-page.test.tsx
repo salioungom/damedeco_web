@@ -25,6 +25,7 @@ const { push, replace, updateProfile, getCurrentProfile, saveProfileAddress, get
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace, prefetch: vi.fn() }),
+  usePathname: () => '/',
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({

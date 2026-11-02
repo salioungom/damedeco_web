@@ -17,6 +17,7 @@ const { push, currentUser, post, get } = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace: vi.fn(), prefetch: vi.fn() }),
+  usePathname: () => '/',
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({
