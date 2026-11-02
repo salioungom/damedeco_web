@@ -73,6 +73,12 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=${{ github.ref_name }},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
+      - name: Set up Docker Buildx (docker-container)
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          driver-opts: image=moby/buildkit:latest
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
