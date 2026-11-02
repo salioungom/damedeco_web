@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Button, Alert } from '@mui/material';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { PasswordField } from '@/components/ui/PasswordField';
+import { API_URL } from '@/lib/api-url';
 
 function ResetPasswordForm() {
     const [password, setPassword] = useState('');
@@ -57,7 +58,7 @@ function ResetPasswordForm() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/reset-password-confirm`, {
+            const response = await fetch(`${API_URL}/api/v1/auth/reset-password-confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

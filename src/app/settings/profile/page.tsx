@@ -19,11 +19,12 @@ import { validatePhone } from '@/utils/phoneValidation';
 import { getDashboardPath } from '@/utils/roleRoutes';
 import { SettingsTabs } from '@/components/ui/SettingsTabs';
 import { StaticTextField } from '@/components/ui/StaticTextField';
+import { RequireRole } from '@/components/RequireRole';
 import { tokens } from '@/theme/tokens';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function ProfilePage() {
+function ProfileContent() {
     const router = useRouter();
     const { user } = useAuth();
     const isSuperAdmin = user?.role === 'superadmin';
@@ -338,5 +339,13 @@ export default function ProfilePage() {
                 </Paper>
             </Container>
         </Box>
+    );
+}
+
+export default function ProfilePage() {
+    return (
+        <RequireRole allowedRoles={['client', 'admin', 'superadmin']}>
+            <ProfileContent />
+        </RequireRole>
     );
 }

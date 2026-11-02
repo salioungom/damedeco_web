@@ -13,6 +13,7 @@ import {
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { OTPInput } from '@/components/auth/OTPInput';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
+import { API_URL } from '@/lib/api-url';
 import { AuthShell } from '@/components/ui/AuthShell';
 
 function VerifyOTPForm() {
@@ -41,7 +42,7 @@ function VerifyOTPForm() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/verify-otp`, {
+            const response = await fetch(`${API_URL}/api/v1/auth/verify-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +103,7 @@ function VerifyOTPForm() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/resend-otp`, {
+            const response = await fetch(`${API_URL}/api/v1/auth/resend-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

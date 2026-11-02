@@ -3,6 +3,8 @@
  * Utilise les variables d'environnement pour la sécurité
  */
 
+import { API_URL } from './api-url';
+
 /**
  * Construit l'URL complète d'une image
  * @param imageUrl - URL de l'image (relative ou absolue)
@@ -17,10 +19,9 @@ export function getImageUrl(imageUrl?: string): string {
     return imageUrl;
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-  if (cleanPath.startsWith('/media/')) return `${baseUrl}${cleanPath}`;
-  return `${baseUrl}/media${cleanPath}`;
+  if (cleanPath.startsWith('/media/')) return `${API_URL}${cleanPath}`;
+  return `${API_URL}/media${cleanPath}`;
 }
 
 /**
@@ -29,8 +30,7 @@ export function getImageUrl(imageUrl?: string): string {
  * @returns URL complète de l'API
  */
 export function getApiUrl(endpoint: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  return `${baseUrl}${endpoint}`;
+  return `${API_URL}${endpoint}`;
 }
 
 /**

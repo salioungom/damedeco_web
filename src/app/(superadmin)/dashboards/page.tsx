@@ -59,6 +59,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { safeApiCall } from '@/lib/error-handler';
+import { API_URL } from '@/lib/api-url';
 import { tokens } from '@/theme/tokens';
 import { SuperAdminService, type SuperAdminStats } from '@/services/superadmin.service';
 
@@ -290,7 +291,7 @@ export default function SuperAdminDashboardPage() {
         return;
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = API_URL;
 
       const result = await safeApiCall(async () => {
         const response = await fetch(`${apiUrl}/api/v1/users/`, {
@@ -398,7 +399,7 @@ export default function SuperAdminDashboardPage() {
         is_active: editForm.is_active,
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToEdit.id}`, {
+      const res = await fetch(`${API_URL}/api/v1/users/${userToEdit.id}`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -440,7 +441,7 @@ export default function SuperAdminDashboardPage() {
         throw new Error('Non authentifié');
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToDelete.id}`, {
+      const res = await fetch(`${API_URL}/api/v1/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -760,7 +761,7 @@ export default function SuperAdminDashboardPage() {
                   </Typography>
                   <Stack spacing={2}>
                     {[
-                      { label: 'Backend API', value: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' },
+                      { label: 'Backend API', value: API_URL },
                       { label: 'Votre rôle', value: 'SuperAdmin' },
                       { label: 'Session', value: isAuthenticated ? 'Connectée' : 'Non connectée' },
                       { label: 'Dernière synchro', value: usersLoading ? 'En cours…' : 'À jour' },

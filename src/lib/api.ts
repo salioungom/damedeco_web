@@ -9,6 +9,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 import { Product, Category, Order, Customer, DeliveryOption, PromoCodeValidation, PromoCodeRequest } from './types';
 import type { DeliveryMode, PaymentMethod, ShippingAddress } from './delivery';
 import { getCsrfHeader, CSRF_HEADER } from './csrf';
+import { API_URL } from './api-url';
 
 // Types pour les logs structurés
 interface ApiLogData {
@@ -27,12 +28,10 @@ interface ApiResponse<T = any> {
   status: number;
 }
 
-// Configuration de l'environnement avec fallback sécurisé
+// Configuration de l'environnement (URL centralisée dans lib/api-url)
 const getApiConfig = () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
   return {
-    baseURL: apiUrl,
+    baseURL: API_URL,
     timeout: 15000,
     headers: {
       'Content-Type': 'application/json',
@@ -177,6 +176,10 @@ const createApiInstance = (): AxiosInstance => {
       localStorage.removeItem('refreshToken');
     } catch { /* noop */ }
     if (window.location.pathname !== '/login') {
+      // La page de retour de paiement affiche elle-même le 401 (message +
+      // lien de connexion avec chemin de retour) : ne pas la démonter par une
+      // redirection dure avant qu'elle puisse l'afficher.
+      if (window.location.pathname === '/checkout/success') return;
       // Navigation dure volontaire : le provider React garde l'état authentifié
       // en mémoire, seul un rechargement complet le purge. `replace` évite de
       // laisser la page expirée dans l'historique (le retour navigateur ne doit

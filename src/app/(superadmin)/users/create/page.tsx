@@ -27,6 +27,7 @@ import {
 import { RequireRole } from '@/components/RequireRole';
 import { useAuth } from '@/contexts/AuthContext';
 import { validatePhone } from '@/utils/phoneValidation';
+import { API_URL } from '@/lib/api-url';
 import { tokens } from '@/theme/tokens';
 
 const C = tokens.colors;
@@ -123,7 +124,7 @@ export default function CreateAdminPage() {
         throw new Error('Non authentifié');
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = API_URL;
 
       const userData = {
         full_name: formData.full_name.trim(),

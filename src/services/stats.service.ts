@@ -6,6 +6,7 @@
  */
 
 import { api, isCanceledRequest } from '@/lib/api';
+import { API_URL } from '@/lib/api-url';
 import { formatFcfa } from '@/lib/format';
 import { getImageUrl } from '@/lib/imageUtils';
 import type { Order } from '@/lib/types';
@@ -429,8 +430,8 @@ export class StatsService {
           if (!rawUrl) return null;
           if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
           const cleanPath = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
-          if (cleanPath.startsWith('/media/')) return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${cleanPath}`;
-          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/media${cleanPath}`;
+          if (cleanPath.startsWith('/media/')) return `${API_URL}${cleanPath}`;
+          return `${API_URL}/media${cleanPath}`;
         }).filter(Boolean).slice(0, 4) || [];
         
         return {

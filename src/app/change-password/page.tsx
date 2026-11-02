@@ -5,10 +5,11 @@ import { Box, Button, Alert } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { RequireRole } from '@/components/RequireRole';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { PasswordField } from '@/components/ui/PasswordField';
 
-export default function ChangePasswordPage() {
+function ChangePasswordContent() {
     const [userId, setUserId] = useState<number | null>(null);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -195,5 +196,13 @@ export default function ChangePasswordPage() {
                 </Button>
             </Box>
         </AuthShell>
+    );
+}
+
+export default function ChangePasswordPage() {
+    return (
+        <RequireRole allowedRoles={['client', 'admin', 'superadmin']}>
+            <ChangePasswordContent />
+        </RequireRole>
     );
 }
