@@ -2,9 +2,9 @@ import axios from 'axios';
 import { Category } from '@/lib/types';
 import { safeApiCall } from '@/lib/error-handler';
 import { getImageUrl } from '@/lib/imageUtils';
-import { API_URL } from '@/lib/api-url';
+import { API_URL_SERVER } from '@/lib/api-url';
 
-const API_BASE_URL = API_URL;
+const API_BASE_URL = API_URL_SERVER;
 
 const getAuthHeader = () => {
   if (typeof window === 'undefined') {
