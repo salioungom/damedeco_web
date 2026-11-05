@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import { FONT_FRAUNCES } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 
 export interface EditorialItem {
@@ -31,9 +31,9 @@ export function EditorialList({ items }: EditorialListProps) {
         >
           <Typography
             sx={{
-              fontFamily: FONT_FRAUNCES,
+              fontFamily: FONT_DISPLAY,
               fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
-              fontWeight: 600,
+              fontWeight: 400,
               lineHeight: 1.2,
               color: tokens.colors.accent.onLight,
             }}

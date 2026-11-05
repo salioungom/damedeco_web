@@ -11,7 +11,7 @@
 
 import { Box, Container, Skeleton, Stack } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { NAVBAR_HEIGHT } from '@/components/Navigation';
+import { NAVBAR_HEIGHT, CONTENT_CONTAINER_SX } from '@/components/Navigation';
 import { tokens } from '@/theme/tokens';
 
 const C = {
@@ -32,14 +32,18 @@ export default function Loading() {
         }}
       >
         <Container
-          maxWidth="xl"
+          maxWidth={false}
+          disableGutters
           sx={{
+            ...CONTENT_CONTAINER_SX,
             position: 'relative',
             zIndex: 1,
-            px: { xs: 2, sm: 3, md: 4 },
-            pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 10, md: 11, lg: 13 },
-            pb: { xs: 4, sm: 5, lg: 6 },
-            maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
+            pt: 6,
+            pb: 6,
+            minHeight: { lg: heroMinHeight },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
           }}
         >
           <Grid
@@ -148,7 +152,7 @@ export default function Loading() {
 
       {/* ── Produits populaires ──────────────────────────────────────────── */}
       <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: 'background.paper' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Skeleton variant="text" sx={{ fontSize: 12, width: 110, mb: { xs: 1, sm: 1.25 } }} />
           <Skeleton
             variant="text"

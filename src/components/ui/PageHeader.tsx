@@ -2,7 +2,7 @@
 
 import { Box, Container, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import { FONT_FRAUNCES } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 
 interface EyebrowProps {
@@ -57,9 +57,9 @@ export function PageHeader({ eyebrow, title, subtitle, id = 'page-title' }: Page
             id={id}
             component="h1"
             sx={{
-              fontFamily: FONT_FRAUNCES,
+              fontFamily: FONT_DISPLAY,
               fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
-              fontWeight: 600,
+              fontWeight: 400,
               lineHeight: 1.1,
               letterSpacing: '-0.02em',
               color: 'text.primary',

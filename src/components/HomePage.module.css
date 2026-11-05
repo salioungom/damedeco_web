@@ -56,20 +56,22 @@
   }
 }
 
-.featureCard:focus-within {
-  --feature-card-bg: var(--theme-card-hover-bg);
-  --feature-card-border: var(--theme-card-hover-bg);
-  --feature-card-color: var(--theme-white);
-  --feature-icon-bg: var(--theme-white);
-  --feature-icon-border: var(--theme-white);
-  --feature-icon-color: var(--theme-card-hover-bg);
-  --feature-number-color: var(--theme-secondary-light);
-  --feature-title-color: var(--theme-white);
-  --feature-body-color: var(--theme-on-inverse-light);
-  --feature-divider-color: var(--theme-gold-soft);
-  --feature-payment-label: var(--theme-on-inverse-light);
-  --feature-payment-bg: var(--theme-white-10);
-  --feature-payment-border: var(--theme-white-25);
+@media (hover: hover) {
+  .featureCard:focus-within {
+    --feature-card-bg: var(--theme-card-hover-bg);
+    --feature-card-border: var(--theme-card-hover-bg);
+    --feature-card-color: var(--theme-white);
+    --feature-icon-bg: var(--theme-white);
+    --feature-icon-border: var(--theme-white);
+    --feature-icon-color: var(--theme-card-hover-bg);
+    --feature-number-color: var(--theme-secondary-light);
+    --feature-title-color: var(--theme-white);
+    --feature-body-color: var(--theme-on-inverse-light);
+    --feature-divider-color: var(--theme-gold-soft);
+    --feature-payment-label: var(--theme-on-inverse-light);
+    --feature-payment-bg: var(--theme-white-10);
+    --feature-payment-border: var(--theme-white-25);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -83,5 +85,43 @@
   .featurePaymentLabel,
   .featurePaymentMethods {
     transition: none;
+  }
+}
+
+/* État actif sur mobile/tactile (pas de hover) */
+@media (hover: none), (max-width: 767px) {
+  .featureCard[data-active='true'] {
+    --feature-card-bg: var(--theme-card-hover-bg);
+    --feature-card-border: var(--theme-card-hover-bg);
+    --feature-card-color: var(--theme-white);
+    --feature-icon-bg: var(--theme-white);
+    --feature-icon-border: var(--theme-white);
+    --feature-icon-color: var(--theme-card-hover-bg);
+    --feature-number-color: var(--theme-secondary-light);
+    --feature-title-color: var(--theme-white);
+    --feature-body-color: var(--theme-on-inverse-light);
+    --feature-divider-color: var(--theme-gold-soft);
+    --feature-payment-label: var(--theme-on-inverse-light);
+    --feature-payment-bg: var(--theme-white-10);
+    --feature-payment-border: var(--theme-white-25);
+  }
+}
+
+/* Desktop : première carte bleue par défaut */
+@media (min-width: 768px) and (hover: hover) {
+  .featureCard[data-index='0'] {
+    --feature-card-bg: var(--theme-card-hover-bg);
+    --feature-card-border: var(--theme-card-hover-bg);
+    --feature-card-color: var(--theme-white);
+    --feature-icon-bg: var(--theme-white);
+    --feature-icon-border: var(--theme-white);
+    --feature-icon-color: var(--theme-card-hover-bg);
+    --feature-number-color: var(--theme-secondary-light);
+    --feature-title-color: var(--theme-white);
+    --feature-body-color: var(--theme-on-inverse-light);
+    --feature-divider-color: var(--theme-gold-soft);
+    --feature-payment-label: var(--theme-on-inverse-light);
+    --feature-payment-bg: var(--theme-white-10);
+    --feature-payment-border: var(--theme-white-25);
   }
 }

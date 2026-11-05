@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Box, Button, Typography } from '@mui/material';
 import NextLink from 'next/link';
-import { FONT_FRAUNCES } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 
 export default function NotFoundPage() {
@@ -38,9 +38,9 @@ export default function NotFoundPage() {
 
         <Typography
           sx={{
-            fontFamily: FONT_FRAUNCES,
+            fontFamily: FONT_DISPLAY,
             fontSize: { xs: 110, sm: 140, md: 170 },
-            fontWeight: 600,
+            fontWeight: 400,
             lineHeight: 0.95,
             letterSpacing: '-0.03em',
             color: 'text.primary',

@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import StaticTextField from './StaticTextField';
-import { FONT_FRAUNCES } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 
 const MESSAGE_MAX = 1000;
@@ -124,7 +124,7 @@ export function ContactForm() {
       <Box role="status" aria-live="polite" sx={{ bgcolor: 'background.paper', border: `1px solid ${tokens.colors.border.light}`, borderRadius: 2, p: { xs: 3, sm: 5 } }}>
         <Typography
           component="h3"
-          sx={{ fontFamily: FONT_FRAUNCES, fontSize: 28, fontWeight: 600, color: 'text.primary', mb: 1.5 }}
+          sx={{ fontFamily: FONT_DISPLAY, fontSize: 28, fontWeight: 400, color: 'text.primary', mb: 1.5 }}
         >
           Message envoyé.
         </Typography>
@@ -148,7 +148,7 @@ export function ContactForm() {
       <Typography
         component="h2"
         id="contact-form"
-        sx={{ fontFamily: FONT_FRAUNCES, fontSize: 28, fontWeight: 600, color: 'text.primary', mb: 1 }}
+        sx={{ fontFamily: FONT_DISPLAY, fontSize: 28, fontWeight: 400, color: 'text.primary', mb: 1 }}
       >
         Envoyez-nous un message
       </Typography>

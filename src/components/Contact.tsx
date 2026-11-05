@@ -13,7 +13,7 @@ import { ExpandMore } from '@mui/icons-material';
 import { PageHeader, Eyebrow } from '@/components/ui/PageHeader';
 import ContactList from '@/components/ui/ContactList';
 import ContactForm from '@/components/ui/ContactForm';
-import { FONT_FRAUNCES } from '@/theme';
+import { FONT_DISPLAY, FONT_FRAUNCES } from '@/theme';
 import { tokens } from '@/theme/tokens';
 
 const CITY = 'Dakar, Sénégal';

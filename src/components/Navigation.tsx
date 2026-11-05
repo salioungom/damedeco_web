@@ -25,36 +25,35 @@ import {
   Typography,
   Stack,
   Avatar,
-  Chip,
   Menu,
   MenuItem,
   alpha,
 } from '@mui/material';
-import {
-  ShoppingCartOutlined,
-  PersonOutlined,
-  Menu as MenuIcon,
-  Search as SearchIcon,
-  Close as CloseIcon,
-  AdminPanelSettingsOutlined,
-  DashboardOutlined,
-  LogoutOutlined,
-  AccountCircleOutlined,
-  FavoriteBorder,
-  StorefrontOutlined,
-  HomeOutlined,
-  InfoOutlined,
-  EmailOutlined,
-} from '@mui/icons-material';
+import { FavoriteBorder, PersonOutlined, Menu as MenuIcon, Search as SearchIcon, Close as CloseIcon, AdminPanelSettingsOutlined, DashboardOutlined, LogoutOutlined, AccountCircleOutlined, ShoppingCartOutlined } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
 import { BrandMark } from './ui/BrandMark';
 import { tokens } from '@/theme/tokens';
+import { FONT_INTER, FONT_FRAUNCES } from '@/theme';
 
 /** Hauteur fixe de la navbar — utilisée pour le padding du layout */
 export const NAVBAR_HEIGHT = { xs: 64, sm: 68, md: 74 };
 
-const ACTION_SIZE = { xs: 38, sm: 40, md: 42 };
-const ICON_SIZE = { xs: 21, sm: 22.5, md: 24 };
+/**
+ * Conteneur de contenu partagé — header, hero et sections qui suivent.
+ * Identique partout : max-width 1280px, padding horizontal 24px (mobile) /
+ * 40px (à partir de lg). Alignement strict header ↔ hero ↔ sections.
+ */
+export const CONTENT_MAX_WIDTH = 1280;
+export const CONTENT_CONTAINER_SX = {
+  width: '100%',
+  maxWidth: `${CONTENT_MAX_WIDTH}px`,
+  mx: 'auto',
+  px: { xs: 2.4, sm: 2.4, md: 2.4, lg: 4 },
+};
+
+/** Taille des actions (boutons icônes) — 44px, cible tactile ≥ 44px */
+const ACTION_SIZE = 44;
+const ICON_SIZE = 20;
 
 function getUserInitials(fullName?: string, email?: string): string {
   const nameParts = fullName?.trim().split(/\s+/).filter(Boolean) ?? [];
@@ -64,13 +63,13 @@ function getUserInitials(fullName?: string, email?: string): string {
   return (nameParts[0]?.[0] || email?.trim()[0] || 'U').toLocaleUpperCase('fr');
 }
 
-type NavItem = { label: string; path: string; icon: React.ReactNode };
+type NavItem = { label: string; path: string };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Accueil', path: '/', icon: <HomeOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
-  { label: 'Boutique', path: '/shop', icon: <StorefrontOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
-  { label: 'À propos', path: '/about', icon: <InfoOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
-  { label: 'Contact', path: '/contact', icon: <EmailOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'Accueil', path: '/' },
+  { label: 'Boutique', path: '/shop' },
+  { label: 'À propos', path: '/about' },
+  { label: 'Contact', path: '/contact' },
 ];
 
 /** Bouton d'action à taille fixe — évite tout décalage au clic / hover */
@@ -87,25 +86,29 @@ const NavActionButton = memo(function NavActionButton({
   ariaLabel: string;
   active?: boolean;
 }) {
-  const theme = useTheme();
-
   const sx = {
-    width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-    height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-    minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-    minHeight: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    width: ACTION_SIZE,
+    height: ACTION_SIZE,
+    minWidth: ACTION_SIZE,
+    minHeight: ACTION_SIZE,
     p: 0,
-    borderRadius: 1,
-    border: '1px solid',
-    borderColor: 'divider',
-    bgcolor: active ? 'action.selected' : 'transparent',
-    color: active ? theme.palette.text.primary : theme.palette.text.secondary,
+    borderRadius: '10px',
+    border: 'none',
+    bgcolor: 'transparent',
+    color: active ? tokens.colors.text.primary : tokens.colors.text.secondary,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     flexShrink: 0,
-    transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+    transition: 'background-color 0.15s ease, color 0.15s ease',
     '&:hover': {
-      bgcolor: 'action.hover',
-      color: theme.palette.text.primary,
-      borderColor: theme.palette.text.secondary,
+      bgcolor: tokens.colors.surfaces.alt,
+      color: tokens.colors.text.primary,
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${tokens.colors.status.focus}`,
+      outlineOffset: '2px',
+      borderRadius: '10px',
     },
     '& .MuiTouchRipple-root': { display: 'none' },
     '&:active': { transform: 'none' },
@@ -137,8 +140,35 @@ const NavActionButton = memo(function NavActionButton({
   );
 });
 
+/** Badge du panier — petit rond bleu (token `surfaces.inverse`) + texte blanc 11px */
+function CartBadge({ count }: { count: number }) {
+  return (
+    <Badge
+      badgeContent={count > 0 ? count : undefined}
+      overlap="circular"
+      sx={{
+        '& .MuiBadge-badge': {
+          position: 'absolute',
+          top: 4,
+          right: 4,
+          height: 18,
+          minWidth: 18,
+          borderRadius: '50%',
+          padding: 0,
+          fontSize: 11,
+          fontWeight: 700,
+          lineHeight: 1,
+          bgcolor: tokens.colors.surfaces.inverse,
+          color: tokens.colors.white,
+        },
+      }}
+    >
+      <ShoppingCartOutlined sx={{ fontSize: ICON_SIZE }} strokeWidth={1.5} />
+    </Badge>
+  );
+}
+
 const Brand = memo(function Brand() {
-  const theme = useTheme();
   return (
     <Stack
       direction="row"
@@ -149,30 +179,69 @@ const Brand = memo(function Brand() {
       <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
         <Typography
           sx={{
+            fontFamily: FONT_FRAUNCES,
+            fontWeight: 500,
             fontSize: { sm: 17, md: 18.75 },
-            fontWeight: 700,
-            color: theme.palette.text.primary,
+            color: tokens.colors.text.primary,
             lineHeight: 1.2,
             letterSpacing: '-0.02em',
           }}
         >
-              DameDéco
+          DameDéco
         </Typography>
         <Typography
           sx={{
-            fontSize: { sm: 11.5, md: 12.5 },
-            color: theme.palette.text.secondary,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
+            fontFamily: FONT_INTER,
             fontWeight: 500,
+            fontSize: { xs: 10, sm: 11 },
+            color: tokens.colors.text.disabled,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
           }}
         >
-          Import & Commerce
+          Import &amp; Commerce
         </Typography>
       </Box>
     </Stack>
   );
 });
+
+const navLinkBaseSx = {
+  position: 'relative',
+  borderRadius: '10px',
+  px: { xs: 1.25, md: 1.75 },
+  py: { xs: 0.75, md: 1 },
+  fontFamily: FONT_INTER,
+  fontSize: 15,
+  fontWeight: 500,
+  lineHeight: 1.5,
+  textTransform: 'none',
+  color: tokens.colors.text.primary,
+  bgcolor: 'transparent',
+  minWidth: 'auto',
+  flexShrink: 0,
+  transition: 'color 0.15s ease, textDecorationColor 0.15s ease',
+  '&:hover': {
+    bgcolor: 'transparent',
+    color: tokens.colors.text.primary,
+    textDecoration: 'underline',
+    textDecorationColor: tokens.colors.text.primary,
+    textDecorationThickness: '2px',
+    textUnderlineOffset: '8px',
+  },
+  '&:focus-visible': {
+    outline: `2px solid ${tokens.colors.status.focus}`,
+    outlineOffset: '2px',
+  },
+};
+
+const navLinkActiveSx = {
+  ...navLinkBaseSx,
+  textDecoration: 'underline',
+  textDecorationColor: tokens.colors.text.primary,
+  textDecorationThickness: '2px',
+  textUnderlineOffset: '8px',
+};
 
 const NavLink = memo(function NavLink({
   item,
@@ -181,47 +250,13 @@ const NavLink = memo(function NavLink({
   item: NavItem;
   active: boolean;
 }) {
-  const theme = useTheme();
-  const primary = theme.palette.primary.main;
-
   return (
     <Button
       component={Link}
       href={item.path}
       disableRipple
-      sx={{
-        position: 'relative',
-        borderRadius: 1,
-        px: { xs: 1.25, md: 1.75 },
-        py: { xs: 0.75, md: 1 },
-        fontSize: { xs: 15, md: 17.5 },
-        fontWeight: active ? 600 : 500,
-        textTransform: 'none',
-        color: active ? primary : theme.palette.text.secondary,
-        bgcolor: 'transparent',
-        minWidth: 'auto',
-        flexShrink: 0,
-        transition: 'color 0.15s ease',
-        '&:hover': { bgcolor: 'action.hover', color: theme.palette.text.primary },
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          bottom: { xs: 3, md: 4 },
-          left: '50%',
-          transform: active ? 'translateX(-50%) scaleX(1)' : 'translateX(-50%) scaleX(0)',
-          width: '60%',
-          height: { xs: 2, md: 2.5 },
-          borderRadius: 1.25,
-          bgcolor: primary,
-          transition: 'transform 0.15s ease',
-        },
-        '& .MuiButton-startIcon': {
-          mr: { xs: 0.5, md: 0.75 },
-          ml: 0,
-          '& svg': { fontSize: { xs: 18, md: 22.5 } },
-        },
-      }}
-      startIcon={item.icon}
+      aria-current={active ? 'page' : undefined}
+      sx={active ? navLinkActiveSx : navLinkBaseSx}
     >
       {item.label}
     </Button>
@@ -241,46 +276,40 @@ const SearchField = memo(function SearchField({
   autoFocus?: boolean;
   fullWidth?: boolean;
 }) {
-  const theme = useTheme();
-
   return (
     <Box
       component="form"
       onSubmit={onSubmit}
-      sx={{ width: fullWidth ? '100%' : { sm: 200, md: 275, lg: 325 } }}
+      sx={{ width: fullWidth ? '100%' : { sm: 240 }, maxWidth: fullWidth ? '100%' : 240 }}
     >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: { xs: 0.75, sm: 1 },
-          height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-          px: { xs: 1, sm: 1.25, md: 1.5 },
-          borderRadius: 1,
-          bgcolor: 'action.hover',
-          border: '1px solid',
-          borderColor: 'divider',
-          transition: 'border-color 0.15s ease',
+          height: ACTION_SIZE,
+          px: 2,
+          borderRadius: '10px',
+          bgcolor: tokens.colors.surfaces.alt,
           '&:focus-within': {
-            borderColor: theme.palette.primary.main,
             outline: `2px solid ${tokens.colors.status.focus}`,
             outlineOffset: '2px',
           },
         }}
       >
-        <SearchIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: theme.palette.text.secondary, flexShrink: 0 }} />
+        <SearchIcon sx={{ fontSize: ICON_SIZE, color: tokens.colors.text.secondary, flexShrink: 0 }} strokeWidth={1.5} />
         <InputBase
           placeholder="Rechercher un produit…"
           value={value}
           autoFocus={autoFocus}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+          inputProps={{ 'aria-label': 'Rechercher un produit' }}
           sx={{
             flex: 1,
-            fontSize: { xs: 14, sm: 15, md: 16.25 },
+            fontSize: 15,
             fontWeight: 500,
-            color: theme.palette.text.primary,
+            color: tokens.colors.text.primary,
             '& input::placeholder': {
-              color: theme.palette.text.disabled,
+              color: tokens.colors.text.disabled,
               opacity: 1,
             },
           }}
@@ -294,7 +323,7 @@ export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down(768));
 
   const { user, logout, loading: authLoading } = useAuth();
   const isAdmin = useStore((s) => s.isAdmin);
@@ -307,6 +336,7 @@ export function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   const cartCount = useMemo(
     () => (cart || []).reduce((acc, item) => acc + item.quantity, 0),
@@ -316,6 +346,13 @@ export function Navigation() {
   const favoriteCount = favorites?.length ?? 0;
 
   const profileMenuOpen = Boolean(profileAnchor);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 0);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     setProfileAnchor(null);
@@ -366,7 +403,7 @@ export function Navigation() {
   }, [user]);
 
   const drawer = (
-    <Box sx={{ width: { xs: '85%', sm: 320, md: 375 }, maxWidth: 375, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
+    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
       <Box
         sx={{
           px: 2.5,
@@ -380,7 +417,7 @@ export function Navigation() {
       >
         <Brand />
         <NavActionButton ariaLabel="Fermer le menu" onClick={() => setMobileOpen(false)}>
-          <CloseIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
+          <CloseIcon sx={{ fontSize: ICON_SIZE }} strokeWidth={1.5} />
         </NavActionButton>
       </Box>
 
@@ -404,22 +441,34 @@ export function Navigation() {
                   href={item.path}
                   onClick={() => setMobileOpen(false)}
                   sx={{
-                    mx: { xs: 1, sm: 1.5 },
-                    borderRadius: '12.5px',
-                    py: { xs: 1, sm: 1.25 },
-                    mb: 0.25,
-                    bgcolor: active ? 'action.selected' : 'transparent',
-                    color: active ? 'primary.main' : 'text.secondary',
+                    mx: 2,
+                    borderRadius: '10px',
+                    py: 2,
+                    bgcolor: 'transparent',
+                    color: tokens.colors.text.primary,
+                    transition: 'background-color 0.15s ease',
+                    '&:hover': { bgcolor: tokens.colors.surfaces.alt },
+                    '&:focus-visible': { outline: `2px solid ${tokens.colors.status.focus}`, outlineOffset: '2px' },
+                    ...(active
+                      ? {
+                          textDecoration: 'underline',
+                          textDecorationColor: tokens.colors.text.primary,
+                          textDecorationThickness: '2px',
+                          textUnderlineOffset: '8px',
+                        }
+                      : { textDecoration: 'none' }),
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
                   <ListItemText
                     primary={item.label}
                     slotProps={{
                       primary: {
                         sx: {
-                          fontSize: { xs: 16, sm: 17.5 },
-                          fontWeight: active ? 600 : 500,
+                          fontFamily: FONT_FRAUNCES,
+                          fontSize: 28,
+                          fontWeight: 500,
+                          lineHeight: 1.2,
+                          color: tokens.colors.text.primary,
                         },
                       },
                     }}
@@ -440,9 +489,9 @@ export function Navigation() {
                     toggleAdmin?.();
                     setMobileOpen(false);
                   }}
-                  sx={{ mx: 1.5, borderRadius: '12.5px' }}
+                  sx={{ mx: 2, borderRadius: '10px' }}
                 >
-                  <ListItemIcon sx={{ minWidth: 36, color: 'error.main' }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
                     <AdminPanelSettingsOutlined fontSize="small" />
                   </ListItemIcon>
                   <ListItemText
@@ -470,15 +519,15 @@ export function Navigation() {
               href="/favorites"
               onClick={() => setMobileOpen(false)}
               sx={{
-                mx: { xs: 1, sm: 1.5 },
-                borderRadius: '12.5px',
-                py: { xs: 0.85, sm: 1 },
-                mb: 0.25,
-                color: 'text.secondary',
+                mx: 2,
+                borderRadius: '10px',
+                py: 2,
+                bgcolor: 'transparent',
+                color: tokens.colors.text.secondary,
               }}
             >
               <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
-                <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />
+                <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} strokeWidth={1.5} />
               </ListItemIcon>
               <ListItemText
                 primary="Mes favoris"
@@ -499,15 +548,15 @@ export function Navigation() {
               href={user ? '/account' : '/login'}
               onClick={() => setMobileOpen(false)}
               sx={{
-                mx: { xs: 1, sm: 1.5 },
-                borderRadius: '12.5px',
-                py: { xs: 0.85, sm: 1 },
-                mb: 0.25,
-                color: 'text.secondary',
+                mx: 2,
+                borderRadius: '10px',
+                py: 2,
+                bgcolor: 'transparent',
+                color: tokens.colors.text.secondary,
               }}
             >
               <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
-                <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />
+                <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} strokeWidth={1.5} />
               </ListItemIcon>
               <ListItemText
                 primary={user ? 'Mon compte' : 'Suivre ma commande'}
@@ -623,20 +672,24 @@ export function Navigation() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-        minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
-        height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        width: ACTION_SIZE,
+        minWidth: ACTION_SIZE,
+        height: ACTION_SIZE,
         p: 0,
-        border: '1px solid',
-        borderColor: profileMenuOpen ? theme.palette.primary.main : 'divider',
-        borderRadius: 1,
-        bgcolor: profileMenuOpen ? 'action.selected' : 'transparent',
+        borderRadius: '10px',
+        border: 'none',
+        bgcolor: 'transparent',
         cursor: 'pointer',
         flexShrink: 0,
         transition: 'background-color 0.15s ease, border-color 0.15s ease',
         '&:hover': {
-          bgcolor: 'action.hover',
-          borderColor: theme.palette.text.secondary,
+          bgcolor: tokens.colors.surfaces.alt,
+          borderColor: tokens.colors.text.secondary,
+        },
+        '&:focus-visible': {
+          outline: `2px solid ${tokens.colors.status.focus}`,
+          outlineOffset: '2px',
+          borderRadius: '10px',
         },
       }}
     >
@@ -650,7 +703,7 @@ export function Navigation() {
           {getUserInitials(user.full_name, user.email)}
         </Avatar>
       ) : (
-        <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE }, color: 'text.secondary' }} />
+        <PersonOutlined sx={{ fontSize: ICON_SIZE, color: 'text.secondary' }} strokeWidth={1.5} />
       )}
     </Box>
   );
@@ -658,39 +711,32 @@ export function Navigation() {
   return (
     <>
       <AppBar
-        position="fixed"
+        position="sticky"
         elevation={0}
         sx={{
-          height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
-          justifyContent: 'center',
-          bgcolor: 'background.paper',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          transition: 'background-color 0.15s ease',
+          position: 'sticky',
+          top: 0,
           zIndex: theme.zIndex.appBar,
+          height: { xs: NAVBAR_HEIGHT.xs, sm: NAVBAR_HEIGHT.sm, md: NAVBAR_HEIGHT.md },
+          bgcolor: tokens.colors.surfaces.default,
+          borderBottom: '1px solid',
+          borderColor: tokens.colors.border.light,
+          backdropFilter: scrolled ? 'blur(8px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(8px)' : 'none',
+          transition: 'background-color 0.15s ease, backdrop-filter 0.2s ease',
         }}
       >
-        <Container maxWidth="xl" sx={{ height: '100%', px: { xs: 1.5, sm: 2, md: 3 } }}>
+        <Container maxWidth={false} disableGutters sx={{ ...CONTENT_CONTAINER_SX, height: '100%' }}>
           <Toolbar
             disableGutters
             sx={{
-              height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
-              minHeight: `${typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT.md : NAVBAR_HEIGHT}px !important`,
+              height: NAVBAR_HEIGHT,
               justifyContent: 'space-between',
               gap: { xs: 1.5, sm: 1.5, md: 2 },
             }}
           >
-            {/* Gauche */}
+            {/* Gauche — logo */}
             <Stack direction="row" spacing={{ xs: 1, sm: 1 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
-              <Box sx={{ display: { lg: 'none' } }}>
-                <NavActionButton
-                  ariaLabel="Ouvrir le menu"
-                  onClick={() => setMobileOpen(true)}
-                  active={mobileOpen}
-                >
-                  <MenuIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
-                </NavActionButton>
-              </Box>
               <Button
                 component={Link}
                 href="/"
@@ -702,100 +748,74 @@ export function Navigation() {
             </Stack>
 
             {/* Centre — desktop */}
-            <Stack
-              direction="row"
-              spacing={0.5}
-              sx={{ display: { xs: 'none', lg: 'flex' }, flex: 1, alignItems: 'center', justifyContent: 'center' }}
-            >
-              {NAV_ITEMS.map((item) => (
-                <NavLink key={item.path} item={item} active={pathname === item.path} />
-              ))}
-            </Stack>
-
-            {/* Droite — slots fixes */}
-            <Stack
-              direction="row"
-              spacing={{ xs: 1, sm: 0.75 }}
-              sx={{ flexShrink: 0, minWidth: { xs: 'auto', sm: 'auto', md: 280 }, alignItems: 'center' }}
-            >
-              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                <SearchField
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  onSubmit={handleSearch}
-                />
+            {!isMobile && (
+              <Box component="nav" aria-label="Principal" sx={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Stack direction="row" spacing={0.5} sx={{ display: 'flex', alignItems: 'center' }}>
+                  {NAV_ITEMS.map((item) => (
+                    <NavLink key={item.path} item={item} active={pathname === item.path} />
+                  ))}
+                </Stack>
               </Box>
+            )}
 
-              <Box sx={{ display: { md: 'none' } }}>
-                <NavActionButton
-                  ariaLabel="Rechercher"
-                  onClick={() => setSearchOpen((p) => !p)}
-                  active={searchOpen}
-                >
-                  <SearchIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
-                </NavActionButton>
-              </Box>
+            {/* Droite — actions */}
+            <Stack direction="row" spacing={{ xs: 1, sm: 0.75 }} sx={{ flexShrink: 0, alignItems: 'center' }}>
+              {isMobile ? (
+                <>
+                  <NavActionButton ariaLabel="Rechercher" onClick={() => setSearchOpen((p) => !p)}>
+                    <SearchIcon sx={{ fontSize: ICON_SIZE }} strokeWidth={1.5} />
+                  </NavActionButton>
+                  <NavActionButton ariaLabel="Panier" onClick={() => toggleCart()}>
+                    <CartBadge count={cartCount} />
+                  </NavActionButton>
+                  <NavActionButton ariaLabel="Ouvrir le menu" onClick={() => setMobileOpen(true)}>
+                    <MenuIcon sx={{ fontSize: ICON_SIZE }} strokeWidth={1.5} />
+                  </NavActionButton>
+                </>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <SearchField
+                      value={searchQuery}
+                      onChange={setSearchQuery}
+                      onSubmit={handleSearch}
+                    />
+                  </Box>
 
-              <Box
-                sx={{
-                  width: '1px',
-                  height: { xs: 24, sm: 28, md: 30 },
-                  bgcolor: 'divider',
-                  mx: { xs: 0.15, sm: 0.25 },
-                  display: { xs: 'none', sm: 'block' },
-                }}
-              />
+                  <NavActionButton ariaLabel="Mes favoris" href="/favorites" active={pathname === '/favorites'}>
+                    <Badge
+                      badgeContent={favoriteCount > 0 ? favoriteCount : undefined}
+                      color="primary"
+                      overlap="circular"
+                      sx={{
+                        '& .MuiBadge-badge': {
+                          fontSize: { xs: 11, sm: 12.5 },
+                          fontWeight: 700,
+                          height: { xs: 18, sm: 22.5 },
+                          minWidth: { xs: 18, sm: 22.5 },
+                          top: { xs: 4, sm: 5 },
+                          right: { xs: 4, sm: 5 },
+                          border: '2px solid',
+                          borderColor: 'background.paper',
+                        },
+                      }}
+                    >
+                      <FavoriteBorder sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} strokeWidth={1.5} />
+                    </Badge>
+                  </NavActionButton>
 
-              <NavActionButton ariaLabel="Mes favoris" href="/favorites" active={pathname === '/favorites'}>
-                <Badge
-                  badgeContent={favoriteCount > 0 ? favoriteCount : undefined}
-                  color="primary"
-                  overlap="circular"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: { xs: 11, sm: 12.5 },
-                      fontWeight: 700,
-                      height: { xs: 18, sm: 22.5 },
-                      minWidth: { xs: 18, sm: 22.5 },
-                      top: { xs: 4, sm: 5 },
-                      right: { xs: 4, sm: 5 },
-                      border: '2px solid',
-                      borderColor: 'background.paper',
-                    },
-                  }}
-                >
-                  <FavoriteBorder sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
-                </Badge>
-              </NavActionButton>
+                  <NavActionButton ariaLabel="Panier" onClick={() => toggleCart()}>
+                    <CartBadge count={cartCount} />
+                  </NavActionButton>
 
-              <NavActionButton ariaLabel="Panier" onClick={() => toggleCart()} active={false}>
-                <Badge
-                  badgeContent={cartCount > 0 ? cartCount : undefined}
-                  color="primary"
-                  overlap="circular"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: { xs: 11, sm: 12.5 },
-                      fontWeight: 700,
-                      height: { xs: 18, sm: 22.5 },
-                      minWidth: { xs: 18, sm: 22.5 },
-                      top: { xs: 4, sm: 5 },
-                      right: { xs: 4, sm: 5 },
-                      border: '2px solid',
-                      borderColor: 'background.paper',
-                    },
-                  }}
-                >
-                  <ShoppingCartOutlined sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
-                </Badge>
-              </NavActionButton>
-
-              {profileTrigger}
+                  {profileTrigger}
+                </>
+              )}
             </Stack>
           </Toolbar>
         </Container>
 
-        {/* Recherche mobile — overlay sans changer la hauteur de la barre */}
+        {/* Recherche mobile — overlay sous la barre */}
         <Box
           sx={{
             position: 'absolute',
@@ -811,7 +831,7 @@ export function Navigation() {
             visibility: searchOpen ? 'visible' : 'hidden',
             pointerEvents: searchOpen ? 'auto' : 'none',
             transition: 'opacity 0.15s ease, visibility 0.15s ease',
-            display: { md: 'none' },
+            display: { xs: 'block', md: 'none' },
           }}
         >
           <SearchField
@@ -1019,7 +1039,7 @@ export function Navigation() {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: 'block', lg: 'none' },
-          '& .MuiDrawer-paper': { width: { xs: '85%', sm: 320, md: 375 }, maxWidth: 375, border: 'none' },
+          '& .MuiDrawer-paper': { width: '100%', borderRight: 'none', borderRadius: 0 },
         }}
       >
         {drawer}

@@ -16,19 +16,19 @@ import {
 import Grid from '@mui/material/Grid';
 import {
   ArrowForward as ArrowRight,
-  Inventory2 as Package,
-  LocalShipping as Truck,
-  Security as Shield,
   VerifiedUser,
   Schedule,
   LocalOffer,
   SupportAgent,
 } from '@mui/icons-material';
 import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 import ProductCard from './ProductCard';
 import HeroSection from '@/features/home/hero/HeroSection';
+import { CONTENT_CONTAINER_SX } from './Navigation';
 import Reveal from './motion/Reveal';
 import { SectionLabel } from './ui/SectionLabel';
+import { FeatureCards } from './FeatureCards';
 import Autoplay from 'embla-carousel-autoplay';
 import {
   Carousel,
@@ -38,10 +38,9 @@ import {
   CarouselNext,
 } from './ui/carousel';
 import { Product, Category } from '../lib/types';
-import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
 import type { ApiError } from '@/lib/error-handler';
-import { BRAND_BLUE, FONT_POPPINS } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import styles from './HomePage.module.css';
 
@@ -64,9 +63,9 @@ const C = {
 
 const sectionTitleSx = {
   fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.1rem', lg: '2.5rem' },
-  fontWeight: 800,
+  fontWeight: 400,
   color: C.dark,
-  fontFamily: FONT_POPPINS,
+  fontFamily: FONT_DISPLAY,
   letterSpacing: '-0.03em',
   lineHeight: { xs: 1.2, sm: 1.18, md: 1.15 },
   mb: { xs: 1, sm: 1.25, md: 1.5 },
@@ -78,31 +77,6 @@ const sectionDescSx = {
   lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 },
   maxWidth: { xs: '100%', sm: 550, md: 650 },
 };
-
-const FEATURES = [
-  {
-    num: '01',
-    icon: Package,
-    title: 'Qualité premium',
-    description:
-      'Chaque article est contrôlé à la source : matériaux, finitions et conformité avant expédition depuis la Chine.',
-  },
-  {
-    num: '02',
-    icon: Truck,
-    title: 'Livraison express',
-    description:
-      'Expédition 24–48h sur Dakar et banlieue, suivi en temps réel et livraison dans tout le Sénégal.',
-  },
-  {
-    num: '03',
-    icon: Shield,
-    title: 'Paiement sécurisé',
-    description:
-      'Transactions protégées et moyens de paiement locaux pour acheter en toute confiance.',
-    paymentMethods: true,
-  },
-] as const;
 
 const CTA_BENEFITS = [
   {
@@ -241,6 +215,97 @@ export function HomePage({
         featuredDiscount={featuredDiscount}
         heroCategoryTags={heroCategoryTags}
       />
+
+      {/* ── Bande « Nouveautés » (sous le hero) ── */}
+      <Box component="section" sx={{ py: { xs: 6, md: 8 }, bgcolor: 'background.paper' }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
+          <Stack
+            direction="row"
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              mb: { xs: 4, md: 5 },
+              [mobileQuery]: { mb: '30px' },
+            }}
+          >
+            <div>
+              <SectionLabel sx={{ mb: { xs: 1, sm: 1.25, md: 1.5 }, [mobileQuery]: { fontSize: '12px', mb: '8px' } }}>Nouveautés</SectionLabel>
+              <Typography component="h2" sx={{ ...sectionTitleSx, [mobileQuery]: { fontSize: 'clamp(22px, 5.8vw, 24px)', lineHeight: 1.2 } }}>
+                Les dernières nouveautés
+              </Typography>
+            </div>
+            <Button
+              variant="outlined"
+              endIcon={<ArrowRight />}
+              onClick={() => handleNavigate('shop')}
+              sx={{
+                borderColor: C.border,
+                color: C.primary,
+                borderRadius: { xs: '10px', sm: '12.5px' },
+                px: { xs: 2, sm: 2.25, md: 2.5 },
+                py: { xs: 0.85, sm: 0.95, md: 1 },
+                fontSize: { xs: 14.5, sm: 15.5, md: 16.25 },
+                fontWeight: 600,
+                textTransform: 'none',
+                flexShrink: 0,
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: C.light, borderColor: C.mid },
+              }}
+            >
+              Tout voir
+            </Button>
+          </Stack>
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
+            {popularProducts.slice(0, 4).map((product: Product) => (
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={product.id}>
+                <Box
+                  sx={{
+                    borderRadius: '24px',
+                    overflow: 'hidden',
+                    bgcolor: 'background.paper',
+                    border: `1px solid ${C.border}`,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => onViewProduct(product)}
+                >
+                  <Box sx={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden', bgcolor: C.light }}>
+                    {product.cover_image_url ? (
+                      <Image
+                        src={getImageUrl(product.cover_image_url)}
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, (max-width: 1200px) 33vw"
+                        style={{ objectFit: 'cover', objectPosition: 'center' }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '3rem' }}>📦</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  <Box sx={{ p: 2 }}>
+                    <Typography sx={{ fontSize: 14, color: C.muted, fontWeight: 500 }}>{product.category_name || 'Décoration'}</Typography>
+                    <Typography variant="h6" sx={{ fontSize: '17px', fontWeight: 700, color: C.dark, mt: 0.5, mb: 1 }}>
+                      {product.name}
+                    </Typography>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 700, color: C.primary }}>
+                      {formatFcfa(product.price)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
       {/* Avantages */}
       <Box
         id="features"
@@ -253,7 +318,7 @@ export function HomePage({
           [mobileQuery]: { pt: '50px', pb: '80px' },
         }}
       >
-        <Container maxWidth="xl" sx={{ position: 'relative', px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={{ ...CONTENT_CONTAINER_SX, position: 'relative' }}>
           <Box
             sx={{
               mb: { xs: 5, md: 7 },
@@ -274,7 +339,7 @@ export function HomePage({
                 <Typography
                   component="h2"
                   sx={{
-                    fontFamily: FONT_POPPINS,
+                    fontFamily: FONT_DISPLAY,
                     fontSize: { xs: '1.6rem', sm: '1.9rem', md: '2.25rem', lg: '2.6rem' },
                     fontWeight: 800,
                     lineHeight: 1.15,
@@ -309,128 +374,7 @@ export function HomePage({
             }}
           >
             <Reveal stagger={0.12} style={{ display: 'contents' }}>
-              {FEATURES.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Box
-                  key={feature.num}
-                  className={styles.featureCard}
-                  sx={{
-                    position: 'relative',
-                    p: { xs: 2.5, sm: 3, md: 3.5 },
-                    height: '100%',
-                    borderRadius: { xs: '20px', md: '24px' },
-                    bgcolor: 'var(--feature-card-bg)',
-                    border: '1px solid var(--feature-card-border)',
-                    color: 'var(--feature-card-color)',
-                    boxShadow: `0 2px 20px ${alpha(C.ink, 0.04)}`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    [mobileQuery]: { p: '20px' },
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: { xs: 2, md: 2.5 }, [mobileQuery]: { mb: '14px' } }}
-                  >
-                    <Box
-                      className={styles.featureIconTile}
-                      sx={{
-                        width: { xs: 52, sm: 56, md: 60 },
-                        height: { xs: 52, sm: 56, md: 60 },
-                        borderRadius: { xs: '16px', md: '18px' },
-                        bgcolor: 'var(--feature-icon-bg)',
-                        border: '1px solid var(--feature-icon-border)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Icon className={styles.featureIcon} sx={{ fontSize: { xs: 26, md: 28 }, color: 'var(--feature-icon-color)', [mobileQuery]: { fontSize: 24 } }} />
-                    </Box>
-                    <Typography
-                      className={styles.featureNumber}
-                      sx={{
-                        fontFamily: FONT_POPPINS,
-                        fontSize: { xs: 15, md: 16 },
-                        fontWeight: 700,
-                        color: 'var(--feature-number-color)',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {feature.num}
-                    </Typography>
-                  </Stack>
-
-                  <Typography
-                    className={styles.featureTitle}
-                    component="h3"
-                    sx={{
-                      fontFamily: FONT_POPPINS,
-                      fontSize: { xs: 18, sm: 19, md: 20.5, lg: 22 },
-                      fontWeight: 700,
-                      color: 'var(--feature-title-color)',
-                      letterSpacing: '-0.015em',
-                      mb: { xs: 0.75, md: 1 },
-                      [mobileQuery]: { fontSize: '16px', lineHeight: 1.25, mb: '6px' },
-                    }}
-                  >
-                    {feature.title}
-                  </Typography>
-                  <Typography
-                    className={styles.featureDescription}
-                    sx={{
-                      fontSize: { xs: 14.5, sm: 15, md: 15.5, lg: 16 },
-                      color: 'var(--feature-body-color)',
-                      lineHeight: { xs: 1.65, md: 1.7 },
-                      flex: 1,
-                      [mobileQuery]: { fontSize: '14px', lineHeight: 1.5 },
-                    }}
-                  >
-                    {feature.description}
-                  </Typography>
-
-                  {'paymentMethods' in feature && feature.paymentMethods && (
-                    <Box
-                      className={styles.featureDivider}
-                      sx={{
-                        mt: { xs: 2.5, md: 3 },
-                        pt: { xs: 2, md: 2.25 },
-                        borderTop: '1px dashed var(--feature-divider-color)',
-                        [mobileQuery]: { mt: '20px', pt: '16px' },
-                      }}
-                    >
-                      <Typography
-                        className={styles.featurePaymentLabel}
-                        sx={{
-                          fontSize: { xs: 11, md: 11.5 },
-                          fontWeight: 700,
-                          color: 'var(--feature-payment-label)',
-                          mb: 1.25,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.12em',
-                          [mobileQuery]: { fontSize: '12px', mb: '8px' },
-                        }}
-                      >
-                        Moyens acceptés
-                      </Typography>
-                      <Box
-                        className={styles.featurePaymentMethods}
-                        sx={{
-                          display: 'inline-flex',
-                          p: { xs: 1, md: 1.25 },
-                          borderRadius: '16px',
-                          bgcolor: 'var(--feature-payment-bg)',
-                          border: '1px solid var(--feature-payment-border)',
-                        }}
-                      >
-                        <PaymentIcons size="sm" />
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
-              );
-              })}
+              <FeatureCards mobileQuery={mobileQuery} />
             </Reveal>
           </Box>
         </Container>
@@ -438,7 +382,7 @@ export function HomePage({
 
       {/* Catégories */}
       <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: C.surface, [mobileQuery]: { py: '60px' } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Reveal>
             <SectionHeader
               label="Catalogue"
@@ -639,7 +583,7 @@ export function HomePage({
 
       {/* Produits populaires */}
       <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: 'background.paper', [mobileQuery]: { py: '60px' } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Reveal>
             <SectionHeader
               label="Sélection"
@@ -723,7 +667,7 @@ export function HomePage({
 
       {/* CTA grossiste */}
       <Box component="section" sx={{ pb: { xs: 6, md: 10 }, pt: { xs: 0, md: 2 }, [mobileQuery]: { pb: '50px' } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Box
             component="article"
             sx={{
@@ -756,7 +700,7 @@ export function HomePage({
                 <Typography
                   component="h2"
                   sx={{
-                    fontFamily: FONT_POPPINS,
+                    fontFamily: FONT_DISPLAY,
                     fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.15rem', lg: '2.5rem' },
                     fontWeight: 800,
                     lineHeight: 1.15,

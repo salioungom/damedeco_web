@@ -1,6 +1,6 @@
 'use client';
 import { createTheme, alpha } from '@mui/material/styles';
-import { Inter, Poppins } from 'next/font/google';
+import { Inter, DM_Serif_Display, Fraunces } from 'next/font/google';
 import { tokens } from '@/theme/tokens';
 
 declare module '@mui/material/styles' {
@@ -71,15 +71,21 @@ const inter = Inter({
   display: 'swap',
 });
 
-const poppins = Poppins({
-  weight: ['700'],
+const dmSerifDisplay = DM_Serif_Display({
+  weight: ['400'],
+  subsets: ['latin'],
+  display: 'swap',
+});
+
+const fraunces = Fraunces({
+  weight: ['400', '500'],
   subsets: ['latin'],
   display: 'swap',
 });
 
 export const FONT_INTER = inter.style.fontFamily;
-export const FONT_POPPINS = poppins.style.fontFamily;
-export const FONT_FRAUNCES = FONT_POPPINS;
+export const FONT_DISPLAY = dmSerifDisplay.style.fontFamily;
+export const FONT_FRAUNCES = fraunces.style.fontFamily;
 
 export const BRAND_BLUE = tokens.colors.brand.main;
 
@@ -91,41 +97,41 @@ const theme = createTheme({
   typography: {
     fontFamily: [inter.style.fontFamily, 'sans-serif'].join(','),
     h1: {
-      fontFamily: FONT_POPPINS,
+      fontFamily: FONT_DISPLAY,
       fontSize: fontSize.xxl,
-      fontWeight: 600,
+      fontWeight: 400,
       lineHeight: 1.08,
       letterSpacing: '-0.02em',
     },
     h2: {
-      fontFamily: FONT_POPPINS,
+      fontFamily: FONT_DISPLAY,
       fontSize: fontSize.xl,
-      fontWeight: 600,
+      fontWeight: 400,
       lineHeight: 1.12,
       letterSpacing: '-0.015em',
     },
     h3: {
-      fontFamily: FONT_POPPINS,
+      fontFamily: FONT_DISPLAY,
       fontSize: fontSize.xl,
-      fontWeight: 600,
+      fontWeight: 400,
       lineHeight: 1.2,
     },
     h4: {
-      fontFamily: FONT_POPPINS,
+      fontFamily: FONT_DISPLAY,
       fontSize: fontSize.lg,
-      fontWeight: 600,
+      fontWeight: 400,
       lineHeight: 1.2,
     },
     h5: {
-      fontFamily: FONT_POPPINS,
+      fontFamily: FONT_DISPLAY,
       fontSize: fontSize.md,
-      fontWeight: 600,
+      fontWeight: 400,
       lineHeight: 1.25,
     },
     h6: {
-      fontFamily: FONT_POPPINS,
+      fontFamily: FONT_DISPLAY,
       fontSize: fontSize.md,
-      fontWeight: 600,
+      fontWeight: 400,
       lineHeight: 1.3,
     },
     subtitle1: {
