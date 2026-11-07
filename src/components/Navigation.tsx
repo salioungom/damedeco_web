@@ -40,15 +40,15 @@ export const NAVBAR_HEIGHT = { xs: 64, sm: 68, md: 74 };
 
 /**
  * Conteneur de contenu partagé — header, hero et sections qui suivent.
- * Identique partout : max-width 1280px, padding horizontal 24px (mobile) /
- * 40px (à partir de lg). Alignement strict header ↔ hero ↔ sections.
+ * Identique partout : max-width 1600px, padding horizontal 20px (mobile) /
+ * 32px (sm) / 48px (lg) / 64px (xl). Alignement strict header ↔ hero ↔ sections.
  */
-export const CONTENT_MAX_WIDTH = 1280;
+export const CONTENT_MAX_WIDTH = 1600;
 export const CONTENT_CONTAINER_SX = {
   width: '100%',
   maxWidth: `${CONTENT_MAX_WIDTH}px`,
   mx: 'auto',
-  px: { xs: 2.4, sm: 2.4, md: 2.4, lg: 4 },
+  px: { xs: 2, sm: 3.2, lg: 4.8, xl: 6.4 },
 };
 
 /** Taille des actions (boutons icônes) — 44px, cible tactile ≥ 44px */

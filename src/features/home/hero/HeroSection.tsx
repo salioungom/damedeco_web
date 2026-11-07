@@ -2,14 +2,16 @@
 
 import { useMemo, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Box,
   Container,
   Typography,
-  Button,
   Stack,
   alpha,
   useTheme,
+  Chip,
+  Skeleton,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
@@ -17,6 +19,9 @@ import {
   LocalShipping as Truck,
   Payment as PaymentIcon,
   Videocam as VideocamIcon,
+  LocalShippingOutlined,
+  Inventory2Outlined,
+  ArrowForward,
 } from '@mui/icons-material';
 import { useGSAP } from '@gsap/react';
 import { gsap } from '@/lib/gsap';
@@ -25,6 +30,7 @@ import { Product, Category } from '@/lib/types';
 import { FONT_FRAUNCES } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import { NAVBAR_HEIGHT, CONTENT_CONTAINER_SX } from '@/components/Navigation';
+import SweepButton from '@/components/ui/SweepButton';
 import styles from './HeroSection.module.css';
 
 const C = {
@@ -53,16 +59,16 @@ const HERO = {
 } as const;
 
 const HERO_CONFIG = {
-  title: 'Meubles et déco importés de Chine, livrés à Dakar en 24-48h',
+  title: 'Meubles et déco importés de Chine, livrés à Dakar en 24\u00A0à\u00A048\u00A0h',
   subtitle: 'Des pièces choisies en usine et inspectées en vidéo avant l\'envoi, pour particuliers et professionnels.',
   proofs: [
-    { icon: 'delivery', text: '24-48h Dakar & banlieue' },
+    { icon: 'delivery', text: '24\u00A0à\u00A048\u00A0h Dakar & banlieue' },
     { icon: 'inspection', text: 'Inspection vidéo en usine' },
     { icon: 'payment', text: 'Paiement à la livraison' },
   ],
   cta: {
     primary: 'Explorer la boutique',
-    whatsapp: 'Commander sur WhatsApp',
+    whatsapp: 'Demander un devis',
   },
   image: '/banner.jpg',
   imageAlt: 'Salon meublé avec vos produits — DameDéco Import',
@@ -91,7 +97,7 @@ export default function HeroSection({
   const theme = useTheme();
   const mobileQuery = theme.breakpoints.down(768);
   const scope = useRef<HTMLDivElement>(null);
-  const heroMinHeight = `calc(100svh - ${NAVBAR_HEIGHT.md}px)`;
+  const heroMinHeight = { xs: 'auto', sm: `calc(100svh - ${NAVBAR_HEIGHT.sm}px)`, md: `calc(100svh - ${NAVBAR_HEIGHT.md}px)` };
 
   // Les donnees du hero sont desormais presentes au premier rendu (page rendue
   // cote serveur). La timeline d'entree ne demarre que si elles le sont, sinon
@@ -116,7 +122,7 @@ export default function HeroSection({
         },
         (context) => {
           const entranceTargets = select(
-            '[data-hero="title"], [data-hero="paragraph"], [data-hero="bullet"], [data-hero="buttons"], [data-hero="image"]',
+            '[data-hero="title"], [data-hero="paragraph"], [data-hero="bullet"], [data-hero="buttons"], [data-hero="image"], [data-hero="badge"], [data-hero="card"]',
           );
 
           if (context.conditions?.reducedMotion) {
@@ -144,6 +150,13 @@ export default function HeroSection({
           );
           intro.fromTo(select('[data-hero="buttons"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false }, '<0.12');
           intro.fromTo(select('[data-hero="image"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, immediateRender: false }, '<0.12');
+          intro.fromTo(select('[data-hero="badge"]'), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false }, '<0.15');
+          intro.fromTo(
+            select('[data-hero="card"]'),
+            { opacity: 0, y: 8 },
+            { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.15, immediateRender: false },
+            '<0.15',
+          );
         },
       );
 
@@ -174,6 +187,293 @@ export default function HeroSection({
     { scope, dependencies: [wasServerRendered], revertOnUpdate: true },
   );
 
+  // Badge "Livraison express"
+  const DeliveryBadge = () => (
+    <Box
+      data-hero="badge"
+      sx={{
+        position: 'absolute',
+        top: { xs: 12, md: 16, lg: 24 },
+        right: { xs: 12, md: 16, lg: 24 },
+        bgcolor: alpha(theme.palette.primary.main, 0.88),
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        color: 'white',
+        borderRadius: '14px',
+        padding: '10px 16px',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        zIndex: 2,
+        maxWidth: '200px',
+        '@supports not (backdrop-filter: blur(8px))': {
+          bgcolor: theme.palette.primary.main,
+        },
+      }}
+    >
+      <LocalShippingOutlined
+        sx={{ fontSize: 20, color: 'white' }}
+        aria-hidden="true"
+      />
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Typography
+          sx={{
+            fontSize: '12px',
+            color: 'rgba(255, 255, 255, 0.85)',
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Livraison express
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '15px',
+            fontWeight: 600,
+            lineHeight: 1.3,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Dakar & banlieue
+        </Typography>
+      </Box>
+    </Box>
+  );
+
+  // Carte "Sélection du moment"
+  const SelectionCard = () => {
+    const hasFeaturedProduct = featuredProduct !== null;
+
+    return (
+      <Box
+        component={Link}
+        href="/shop"
+        data-hero="card"
+        sx={{
+          position: { xs: 'relative', sm: 'relative', md: 'absolute' },
+          bottom: { md: 16, lg: 24 },
+          left: { md: 16, lg: 56 },
+          right: { md: 16, lg: 24 },
+          mt: { xs: 2, sm: 2, md: 0 },
+          maxWidth: { xs: '100%', md: '100%', lg: '520px' },
+          bgcolor: alpha(theme.palette.background.paper, 0.92),
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          textDecoration: 'none',
+          zIndex: 2,
+          maxHeight: '96px',
+          transition: 'transform 0.3s ease',
+          '@media (hover: hover)': {
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              '& .arrow-icon': {
+                transform: 'translateX(4px)',
+              },
+            },
+          },
+          '@supports not (backdrop-filter: blur(10px))': {
+            bgcolor: theme.palette.background.paper,
+          },
+          '&:focus-visible': {
+            outline: `2px solid ${theme.palette.primary.main}`,
+            outlineOffset: '2px',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: '12px',
+            bgcolor: alpha(theme.palette.primary.main, 0.1),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Inventory2Outlined
+            sx={{ fontSize: 24, color: theme.palette.primary.main }}
+            aria-hidden="true"
+          />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontSize: '11px',
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: theme.palette.golden.main,
+              mb: 0.5,
+            }}
+          >
+            SÉLECTION DU MOMENT
+          </Typography>
+          {hasFeaturedProduct ? (
+            <>
+              <Typography
+                sx={{
+                  fontSize: '17px',
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  lineHeight: 1.3,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {featuredProduct.name}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
+                {formatPrice(featuredProduct.price)}
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Typography
+                sx={{
+                  fontSize: '17px',
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  lineHeight: 1.3,
+                }}
+              >
+                Notre sélection arrive prochainement
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                Parcourez la boutique dès maintenant.
+              </Typography>
+            </>
+          )}
+        </Box>
+        <ArrowForward
+          className="arrow-icon"
+          sx={{
+            fontSize: 20,
+            color: theme.palette.primary.main,
+            flexShrink: 0,
+            transition: 'transform 0.3s ease',
+          }}
+          aria-hidden="true"
+        />
+      </Box>
+    );
+  };
+
+  // Catégories chips
+  const CategoryChips = () => {
+    const displayCategories = heroCategoryTags.slice(0, 6);
+    const hasMore = heroCategoryTags.length > 6;
+
+    if (heroCategoryTags.length === 0) return null;
+
+    return (
+      <Box
+        component="nav"
+        aria-label="Catégories"
+        sx={{
+          mt: { xs: 2, sm: 2, md: 2 },
+          display: 'flex',
+          gap: 1.5,
+          alignItems: 'center',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          px: 1,
+          '::-webkit-scrollbar': {
+            display: 'none',
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        {displayCategories.map((category) => (
+          <Chip
+            key={category.id}
+            component={Link}
+            href={`/shop?category=${category.id}`}
+            label={category.name}
+            variant="outlined"
+            sx={{
+              height: '36px',
+              borderRadius: '999px',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: 'transparent',
+              color: theme.palette.text.primary,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              scrollSnapAlign: 'start',
+              transition: 'all 0.25s ease',
+              '@media (hover: hover)': {
+                '&:hover': {
+                  bgcolor: theme.palette.primary.main,
+                  color: 'white',
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+              '&.Mui-focusVisible': {
+                outline: `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: '2px',
+              },
+            }}
+          />
+        ))}
+        {hasMore && (
+          <Chip
+            component={Link}
+            href="/shop"
+            label="Plus +"
+            variant="outlined"
+            sx={{
+              height: '36px',
+              borderRadius: '999px',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: 'transparent',
+              color: theme.palette.text.primary,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              scrollSnapAlign: 'start',
+              transition: 'all 0.25s ease',
+              '@media (hover: hover)': {
+                '&:hover': {
+                  bgcolor: theme.palette.primary.main,
+                  color: 'white',
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+              '&.Mui-focusVisible': {
+                outline: `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: '2px',
+              },
+            }}
+          />
+        )}
+      </Box>
+    );
+  };
+
   return (
     <Box
       ref={scope}
@@ -181,7 +481,7 @@ export default function HeroSection({
       className={styles.heroSection}
       sx={{
         bgcolor: HERO.background,
-        minHeight: { xs: 'auto', lg: heroMinHeight },
+        minHeight: heroMinHeight,
       }}
     >
       <Container
@@ -189,18 +489,20 @@ export default function HeroSection({
         disableGutters
         sx={{
           ...CONTENT_CONTAINER_SX,
-          position: 'relative',
-          zIndex: 1,
           pt: 6,
           pb: 6,
-          minHeight: { lg: heroMinHeight },
+          minHeight: heroMinHeight,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
         }}
       >
-        <Grid container spacing={{ xs: 3, sm: 4, lg: 5 }} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, lg: 5 }} offset={{ lg: 1 }} sx={{ order: { xs: 1, lg: 1 }, alignSelf: 'center' }}>
+        <Grid
+          container
+          spacing={0}
+          sx={{ alignItems: 'stretch', flex: 1, width: '100%' }}
+        >
+          <Grid size={{ xs: 12, lg: 5 }} sx={{ order: { xs: 1, lg: 1 }, alignSelf: 'center' }}>
             <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 725 } }}>
               <Typography
                 className={styles.entranceItem}
@@ -208,13 +510,14 @@ export default function HeroSection({
                 component="h1"
                 sx={{
                   fontFamily: FONT_FRAUNCES,
-                  fontWeight: 400,
-                  fontSize: 'clamp(2.5rem, 4.5vw, 4rem)',
+                  fontWeight: 500,
+                  fontSize: 'clamp(2.5rem, 4vw, 4.5rem)',
                   lineHeight: 1.08,
                   letterSpacing: '-0.01em',
                   color: HERO.title,
-                  maxWidth: '14ch',
+                  maxWidth: '16ch',
                   mb: 2.5,
+                  textWrap: 'balance',
                 }}
               >
                 {HERO_CONFIG.title}
@@ -239,54 +542,29 @@ export default function HeroSection({
                 data-hero="buttons"
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={{ xs: 1.25, sm: 1.5 }}
-                sx={{ mb: 2.5 }}
+                sx={{ mb: 2.5, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}
               >
-                <Button
+                <SweepButton
                   className={styles.primaryButton}
-                  variant="contained"
-                  size="large"
-                  onClick={() => onNavigate('shop')}
-                  sx={{
-                    bgcolor: HERO.cta,
-                    color: HERO.ctaText,
-                    borderRadius: '10px',
-                    height: '52px',
-                    px: 3,
-                    boxShadow: 'none',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    width: { xs: '100%', sm: 'auto' },
-                    '&:hover': { bgcolor: HERO.cta, boxShadow: 'none' },
-                  }}
-                >
-                  {HERO_CONFIG.cta.primary}
-                </Button>
-                <Button
-                  variant="text"
                   size="large"
                   endIcon={<ArrowRight />}
+                  onClick={() => onNavigate('shop')}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  {HERO_CONFIG.cta.primary}
+                </SweepButton>
+                <SweepButton
+                  variant="outline"
+                  size="large"
                   onClick={() => {
                     const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '221771234567';
                     const message = encodeURIComponent('Bonjour, je souhaite commander chez DameDéco');
                     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
                   }}
-                  sx={{
-                    color: HERO.cta,
-                    bgcolor: 'transparent',
-                    borderRadius: '10px',
-                    px: 3,
-                    height: '52px',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    width: { xs: '100%', sm: 'auto' },
-                    textDecoration: 'none',
-                    '&:hover': { bgcolor: 'transparent', textDecoration: 'underline', boxShadow: 'none' },
-                  }}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   {HERO_CONFIG.cta.whatsapp}
-                </Button>
+                </SweepButton>
               </Stack>
 
               <Box
@@ -295,7 +573,7 @@ export default function HeroSection({
                   paddingTop: 2.5,
                 }}
               >
-                <Stack direction="row" spacing="8px">
+                <Stack direction="row" spacing="8px" sx={{ flexWrap: { xs: 'wrap', lg: 'nowrap' } }}>
                   {HERO_CONFIG.proofs.map((proof, index) => {
                     const Icon = proof.icon === 'delivery' ? Truck : proof.icon === 'inspection' ? VideocamIcon : PaymentIcon;
                     return (
@@ -310,7 +588,7 @@ export default function HeroSection({
                           strokeWidth={1.5}
                           sx={{ fontSize: '16px', color: HERO.proofIcon, flexShrink: 0 }}
                         />
-                        <Typography sx={{ fontSize: '14px', color: HERO.proofText, fontWeight: 500, lineHeight: 1.4 }}>
+                        <Typography sx={{ fontSize: '14px', color: HERO.proofText, fontWeight: 500, lineHeight: 1.4, whiteSpace: { xs: 'normal', lg: 'nowrap' } }}>
                           {proof.text}
                         </Typography>
                       </Stack>
@@ -321,8 +599,38 @@ export default function HeroSection({
             </Box>
           </Grid>
 
-          <Grid size={{ xs: 12, lg: 6 }} sx={{ order: { xs: 2, lg: 2 }, alignSelf: 'stretch', mx: { lg: -4 } }}>
-            <Box data-hero="image" className={styles.entranceItem} sx={{ position: 'relative', width: '100%', height: { lg: '100%' } }}>
+          <Grid
+            size={{ xs: 12, lg: 7 }}
+            sx={{ order: { xs: 2, lg: 2 }, alignSelf: 'stretch', position: 'relative', minHeight: { xs: 360, sm: 400, md: 440 } }}
+          >
+            <Box
+              data-hero="image"
+              className={styles.entranceItem}
+              sx={{
+                position: { xs: 'relative', lg: 'absolute' },
+                top: { lg: 0 },
+                bottom: { lg: 0 },
+                left: { lg: 0 },
+                right: {
+                  lg: 'calc(-48px - max(0px, (100vw - 1600px) / 2))',
+                  xl: 'calc(-64px - max(0px, (100vw - 1600px) / 2))',
+                },
+                height: { xs: 360, sm: 400, md: 440, lg: 'auto' },
+                mr: { xs: '-20px', sm: '-32px', md: '-32px', lg: 0 },
+                overflow: 'hidden',
+                borderBottomLeftRadius: '120px',
+                bgcolor: C.light,
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: '40%',
+                  background: 'linear-gradient(to top, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0))',
+                },
+              }}
+            >
               <Box
                 sx={{
                   position: 'relative',
@@ -338,12 +646,20 @@ export default function HeroSection({
                   alt={HERO_CONFIG.imageAlt}
                   fill
                   priority
-                  sizes="(max-width: 600px) 100vw, (max-width: 900px) 90vw, (max-width: 1200px) 50vw, 600px"
+                  sizes="(max-width: 1024px) 100vw, (max-width: 1440px) 55vw, (min-width: 1440px) 46vw"
                   style={{ objectFit: 'cover', objectPosition: 'center' }}
                 />
+                <DeliveryBadge />
               </Box>
             </Box>
+            <SelectionCard />
           </Grid>
+
+          {heroCategoryTags.length > 0 && (
+            <Grid size={{ xs: 12, lg: 7 }} offset={{ lg: 5 }} sx={{ order: { xs: 3, lg: 3 } }}>
+              <CategoryChips />
+            </Grid>
+          )}
         </Grid>
       </Container>
     </Box>

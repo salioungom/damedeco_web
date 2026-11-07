@@ -217,7 +217,7 @@ export function HomePage({
       />
 
       {/* ── Bande « Nouveautés » (sous le hero) ── */}
-      <Box component="section" sx={{ py: { xs: 6, md: 8 }, bgcolor: 'background.paper' }}>
+      <Box component="section" sx={{ py: { xs: 6, md: 8 }, bgcolor: C.surface }}>
         <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Stack
             direction="row"
@@ -312,7 +312,7 @@ export function HomePage({
         component="section"
         sx={{
           pt: { xs: 6, md: 8 },
-          pb: { xs: 10, md: 13 },
+          pb: { xs: 6, lg: 8 },
           bgcolor: 'background.paper',
           position: 'relative',
           [mobileQuery]: { pt: '50px', pb: '80px' },
@@ -381,7 +381,7 @@ export function HomePage({
       </Box>
 
       {/* Catégories */}
-      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: C.surface, [mobileQuery]: { py: '60px' } }}>
+      <Box component="section" sx={{ py: { xs: 6, lg: 8 }, bgcolor: C.surface, [mobileQuery]: { py: '60px' } }}>
         <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Reveal>
             <SectionHeader
@@ -582,7 +582,7 @@ export function HomePage({
       </Box>
 
       {/* Produits populaires */}
-      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: 'background.paper', [mobileQuery]: { py: '60px' } }}>
+      <Box component="section" sx={{ py: { xs: 6, lg: 8 }, bgcolor: 'background.paper', [mobileQuery]: { py: '60px' } }}>
         <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Reveal>
             <SectionHeader
@@ -631,10 +631,10 @@ export function HomePage({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-                gap: { xs: 1.5, md: 2.5 },
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)', xl: 'repeat(5, 1fr)' },
+                gap: 2.4,
+                alignItems: 'stretch',
                 [mobileQuery]: {
-                  gap: '12px',
                   '& .product-card .MuiCardContent-root': { p: '12px' },
                   '& .product-card .MuiTypography-caption': { fontSize: '12px', lineHeight: 1.45 },
                   '& .product-card .MuiCardContent-root h3': { fontSize: '16px', lineHeight: 1.3, minHeight: '2.6em', mb: '4px' },
@@ -666,7 +666,7 @@ export function HomePage({
       </Box>
 
       {/* CTA grossiste */}
-      <Box component="section" sx={{ pb: { xs: 6, md: 10 }, pt: { xs: 0, md: 2 }, [mobileQuery]: { pb: '50px' } }}>
+      <Box component="section" sx={{ pb: { xs: 6, lg: 8 }, pt: { xs: 0, md: 2 }, [mobileQuery]: { pb: '50px' } }}>
         <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Box
             component="article"

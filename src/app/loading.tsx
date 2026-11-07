@@ -51,7 +51,7 @@ export default function Loading() {
             spacing={{ xs: 3, sm: 4, lg: 5 }}
             sx={{ alignItems: 'center', minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
-            <Grid size={{ xs: 12, lg: 5 }} offset={{ lg: 1 }}>
+            <Grid size={{ xs: 12, lg: 5 }}>
               <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 725 } }}>
                 {/* Pastille « lieu » */}
                 <Skeleton
@@ -133,8 +133,8 @@ export default function Loading() {
             </Grid>
 
             {/* Visuel */}
-            <Grid size={{ xs: 12, lg: 6 }} sx={{ overflow: 'hidden', width: '100%' }}>
-              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: '100%', sm: '90%', md: '85%', lg: 700 } }}>
+            <Grid size={{ xs: 12, lg: 7 }} sx={{ overflow: 'hidden', width: '100%' }}>
+              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: '100%', sm: '90%', md: '85%', lg: 800 } }}>
                 <Skeleton
                   variant="rounded"
                   sx={{

@@ -23,6 +23,7 @@ import { PaymentIcons } from './PaymentIcons';
 import { BrandMark } from './ui/BrandMark';
 import { useCategories } from '@/hooks/useCategories';
 import { tokens } from '@/theme/tokens';
+import { CONTENT_CONTAINER_SX } from './Navigation';
 
 /** Couleurs du footer — toutes issues des tokens (aucune valeur en dur) */
 const INK = tokens.colors.surfaces.inverseFooter;
@@ -105,7 +106,7 @@ export function Footer() {
         [mobileQuery]: { '& a': { minHeight: 44, display: 'flex', alignItems: 'center' } },
       }}
     >
-      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 } }}>
+      <Container maxWidth={false} disableGutters sx={{ ...CONTENT_CONTAINER_SX, position: 'relative', zIndex: 1 }}>
         <Box
           sx={{
             display: 'grid',

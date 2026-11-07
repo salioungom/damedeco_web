@@ -25,6 +25,43 @@ import { Product } from '../types/product';
 import { getImageUrl } from '@/lib/imageUtils';
 import { formatFcfa } from '@/lib/format';
 
+// ─── Détection produit placeholder (image de capture d'écran / non cadrée) ───
+
+/**
+ * Noms/slug identifiants qui correspondent à un produit « placeholder ».
+ * Ex. : « new pro » (nom = slug = description génériques) — à remplacer par
+ * une vraie photo avant mise en production.
+ */
+const PLACEHOLDER_IDENTITIES = new Set([
+  'new pro',
+  'new',
+  'nouveau',
+  'nouvelle',
+  'nouvel',
+  'nouveau',
+  'test',
+  'demo',
+  'sample',
+  'placeholder',
+  'untitled',
+  'produit',
+  'product',
+  'pro',
+]);
+
+/**
+ * Indique si un produit est un placeholder (capture d'écran, nom générique…).
+ * À n'utiliser que pour le signalement visuel — pas pour la logique métier.
+ */
+export function isPlaceholderProduct(product?: Pick<Product, 'name' | 'slug' | 'description' | 'short_description'> | null): boolean {
+  if (!product) return true;
+  const name = (product.name || '').trim().toLowerCase();
+  const slug = (product.slug || '').trim().toLowerCase();
+  const description = (product.description || product.short_description || '').trim().toLowerCase();
+  const identity = `${name}|${slug}|${description}`;
+  return Boolean(name || slug) && (PLACEHOLDER_IDENTITIES.has(identity) || PLACEHOLDER_IDENTITIES.has(name) || PLACEHOLDER_IDENTITIES.has(slug));
+}
+
 // ─── Styled components ───────────────────────────────────────────────────────
 
 const StyledCard = muiStyled(Card, {
@@ -57,10 +94,7 @@ const StyledCard = muiStyled(Card, {
 const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
   position: 'relative',
   width: '100%',
-  paddingTop: '74%',  // mobile : image plus compacte
-  [theme.breakpoints.up('sm')]: {
-    paddingTop: '100%', // sm et + : ratio 1:1 confortable
-  },
+  paddingTop: '75%', // ratio fixe 4/3 (aspect-ratio 4/3)
   overflow: 'hidden',
   backgroundColor: theme.palette.primary.dark,
   borderBottom: 'none',
@@ -372,6 +406,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
         >
           {product.name}
         </Typography>
+
+        {isPlaceholderProduct(product) && (
+          <Chip
+            size="small"
+            label="Image à remplacer"
+            sx={{
+              alignSelf: 'flex-start',
+              mt: { xs: 0.25, sm: 0.5 },
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              borderRadius: '8px',
+              color: 'warning.main',
+              borderColor: 'warning.main',
+            }}
+          />
+        )}
 
         <Box sx={{ mt: { xs: 0.25, sm: 'auto' } }}>
           <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
