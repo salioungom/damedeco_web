@@ -26,11 +26,13 @@ import {
 import { useGSAP } from '@gsap/react';
 import { gsap } from '@/lib/gsap';
 import { formatFcfa } from '@/lib/format';
+import { getImageUrl } from '@/lib/imageUtils';
 import { Product, Category } from '@/lib/types';
 import { FONT_FRAUNCES } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import { NAVBAR_HEIGHT, CONTENT_CONTAINER_SX } from '@/components/Navigation';
 import SweepButton from '@/components/ui/SweepButton';
+import { sweepHoverSx } from '@/components/ui/sweepHover';
 import styles from './HeroSection.module.css';
 
 const C = {
@@ -195,21 +197,17 @@ export default function HeroSection({
         position: 'absolute',
         top: { xs: 12, md: 16, lg: 24 },
         right: { xs: 12, md: 16, lg: 24 },
-        bgcolor: alpha(theme.palette.primary.main, 0.88),
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        bgcolor: theme.palette.primary.main,
         color: 'white',
         borderRadius: '14px',
         padding: '10px 16px',
         border: '1px solid rgba(255, 255, 255, 0.18)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.18)',
         display: 'flex',
         alignItems: 'center',
         gap: 1,
         zIndex: 2,
         maxWidth: '200px',
-        '@supports not (backdrop-filter: blur(8px))': {
-          bgcolor: theme.palette.primary.main,
-        },
       }}
     >
       <LocalShippingOutlined
@@ -244,32 +242,54 @@ export default function HeroSection({
   // Carte "Sélection du moment"
   const SelectionCard = () => {
     const hasFeaturedProduct = featuredProduct !== null;
+    const originalPrice = featuredProduct
+      ? Number(featuredProduct.original_price ?? featuredProduct.compare_price ?? 0)
+      : 0;
+    const currentPrice = featuredProduct ? Number(featuredProduct.price) : 0;
+    const hasDiscount = originalPrice > currentPrice;
+    const savingsAmount = hasDiscount ? originalPrice - currentPrice : 0;
+    const discountPercent = hasDiscount
+      ? Math.round((savingsAmount / originalPrice) * 100)
+      : featuredDiscount;
+    const href = featuredProduct ? `/product/${featuredProduct.id}` : '/shop';
 
     return (
       <Box
         component={Link}
-        href="/shop"
+        href={href}
         data-hero="card"
         sx={{
           position: { xs: 'relative', sm: 'relative', md: 'absolute' },
           bottom: { md: 16, lg: 24 },
-          left: { md: 16, lg: 56 },
-          right: { md: 16, lg: 24 },
+          left: 'auto',
+          right: {
+            md: 16,
+            lg: 'calc(-24px - max(0px, (100vw - 1600px) / 2))',
+            xl: 'calc(-40px - max(0px, (100vw - 1600px) / 2))',
+          },
           mt: { xs: 2, sm: 2, md: 0 },
-          maxWidth: { xs: '100%', md: '100%', lg: '520px' },
-          bgcolor: alpha(theme.palette.background.paper, 0.92),
+          width: { xs: '100%', md: 360, lg: 420 },
+          maxWidth: { xs: '100%', md: 360, lg: 420 },
+          bgcolor: alpha(theme.palette.background.paper, 0.94),
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
           borderRadius: '16px',
-          padding: '16px 20px',
+          padding: { xs: '12px 14px', sm: '14px 18px' },
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
           display: 'flex',
           alignItems: 'center',
-          gap: 2,
+          gap: { xs: 1.25, sm: 1.75 },
           textDecoration: 'none',
           zIndex: 2,
-          maxHeight: '96px',
           transition: 'transform 0.3s ease',
+          '@keyframes heroSelectionFloat': {
+            '0%, 100%': { translate: '0 0' },
+            '50%': { translate: '0 -6px' },
+          },
+          animation: 'heroSelectionFloat 3.2s ease-in-out infinite',
+          '@media (prefers-reduced-motion: reduce)': {
+            animation: 'none',
+          },
           '@media (hover: hover)': {
             '&:hover': {
               transform: 'translateY(-2px)',
@@ -289,20 +309,38 @@ export default function HeroSection({
       >
         <Box
           sx={{
-            width: 48,
-            height: 48,
+            width: { xs: 64, sm: 76 },
+            height: { xs: 64, sm: 76 },
             borderRadius: '12px',
             bgcolor: alpha(theme.palette.primary.main, 0.1),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            overflow: 'hidden',
           }}
         >
-          <Inventory2Outlined
-            sx={{ fontSize: 24, color: theme.palette.primary.main }}
-            aria-hidden="true"
-          />
+          {hasFeaturedProduct && featuredProduct.cover_image_url ? (
+            <Box
+              component="img"
+              src={getImageUrl(featuredProduct.cover_image_url)}
+              alt={featuredProduct.name}
+              loading="lazy"
+              decoding="async"
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <Inventory2Outlined
+              sx={{ fontSize: 28, color: theme.palette.primary.main }}
+              aria-hidden="true"
+            />
+          )}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
@@ -321,7 +359,7 @@ export default function HeroSection({
             <>
               <Typography
                 sx={{
-                  fontSize: '17px',
+                  fontSize: { xs: '15px', sm: '16px' },
                   fontWeight: 600,
                   color: theme.palette.text.primary,
                   lineHeight: 1.3,
@@ -332,15 +370,67 @@ export default function HeroSection({
               >
                 {featuredProduct.name}
               </Typography>
-              <Typography
+              <Box
                 sx={{
-                  fontSize: '14px',
-                  color: theme.palette.text.secondary,
-                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.25,
+                  mt: 0.25,
                 }}
               >
-                {formatPrice(featuredProduct.price)}
-              </Typography>
+                <Typography
+                  sx={{
+                    fontSize: { xs: '14px', sm: '15px' },
+                    fontWeight: 700,
+                    color: theme.palette.primary.main,
+                    lineHeight: 1.3,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {formatPrice(currentPrice)}
+                </Typography>
+                {hasDiscount && (
+                  <Typography
+                    sx={{
+                      fontSize: { xs: '12px', sm: '13px' },
+                      color: theme.palette.text.disabled,
+                      textDecoration: 'line-through',
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {formatPrice(originalPrice)}
+                  </Typography>
+                )}
+                {hasDiscount && discountPercent != null && (
+                  <Chip
+                    label={`-${discountPercent}%`}
+                    size="small"
+                    color="error"
+                    sx={{
+                      height: 20,
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      '& .MuiChip-label': { px: 0.75 },
+                    }}
+                  />
+                )}
+              </Box>
+              {hasDiscount && (
+                <Typography
+                  sx={{
+                    fontSize: { xs: '12px', sm: '12.5px' },
+                    fontWeight: 600,
+                    color: tokens.colors.status.success,
+                    lineHeight: 1.3,
+                    mt: 0.25,
+                  }}
+                >
+                  Économisez {formatPrice(savingsAmount)}
+                </Typography>
+              )}
             </>
           ) : (
             <>
@@ -381,7 +471,7 @@ export default function HeroSection({
 
   // Catégories chips
   const CategoryChips = () => {
-    const displayCategories = heroCategoryTags.slice(0, 6);
+    const displayCategories = heroCategoryTags.slice(0, 5);
     const hasMore = heroCategoryTags.length > 6;
 
     if (heroCategoryTags.length === 0) return null;
@@ -423,14 +513,12 @@ export default function HeroSection({
               textDecoration: 'none',
               whiteSpace: 'nowrap',
               scrollSnapAlign: 'start',
-              transition: 'all 0.25s ease',
-              '@media (hover: hover)': {
-                '&:hover': {
-                  bgcolor: theme.palette.primary.main,
-                  color: 'white',
-                  borderColor: theme.palette.primary.main,
-                },
-              },
+              position: 'relative',
+              ...sweepHoverSx({
+                fill: theme.palette.primary.main,
+                hoverColor: 'white',
+                hoverBorderColor: theme.palette.primary.main,
+              }),
               '&.Mui-focusVisible': {
                 outline: `2px solid ${theme.palette.primary.main}`,
                 outlineOffset: '2px',
@@ -455,14 +543,12 @@ export default function HeroSection({
               textDecoration: 'none',
               whiteSpace: 'nowrap',
               scrollSnapAlign: 'start',
-              transition: 'all 0.25s ease',
-              '@media (hover: hover)': {
-                '&:hover': {
-                  bgcolor: theme.palette.primary.main,
-                  color: 'white',
-                  borderColor: theme.palette.primary.main,
-                },
-              },
+              position: 'relative',
+              ...sweepHoverSx({
+                fill: theme.palette.primary.main,
+                hoverColor: 'white',
+                hoverBorderColor: theme.palette.primary.main,
+              }),
               '&.Mui-focusVisible': {
                 outline: `2px solid ${theme.palette.primary.main}`,
                 outlineOffset: '2px',
@@ -556,11 +642,7 @@ export default function HeroSection({
                 <SweepButton
                   variant="outline"
                   size="large"
-                  onClick={() => {
-                    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '221771234567';
-                    const message = encodeURIComponent('Bonjour, je souhaite commander chez DameDéco');
-                    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-                  }}
+                  onClick={() => onNavigate('contact')}
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   {HERO_CONFIG.cta.whatsapp}

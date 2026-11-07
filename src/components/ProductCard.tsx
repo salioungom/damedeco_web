@@ -24,6 +24,7 @@ import {
 import { Product } from '../types/product';
 import { getImageUrl } from '@/lib/imageUtils';
 import { formatFcfa } from '@/lib/format';
+import { sweepHoverSx } from './ui/sweepHover';
 
 // ─── Détection produit placeholder (image de capture d'écran / non cadrée) ───
 
@@ -143,10 +144,6 @@ const FavoriteButton = muiStyled(IconButton)(({ theme }: { theme: any }) => ({
   backgroundColor: theme.palette.primary.main,
   border: `1px solid ${theme.palette.primary.main}`,
   boxShadow: theme.shadows[2],
-  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
-  '&:hover': {
-    backgroundColor: theme.palette.primary.main,
-  },
   [theme.breakpoints.down('sm')]: {
     width: 36,
     height: 36,
@@ -346,6 +343,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
               size="small"
               aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               aria-pressed={isFavorite}
+              sx={{
+                ...sweepHoverSx({
+                  fill: theme.palette.background.paper,
+                  hoverColor: theme.palette.primary.main,
+                  hoverBorderColor: theme.palette.primary.main,
+                }),
+                '&:hover .MuiSvgIcon-root': { color: theme.palette.primary.main },
+              }}
             >
               {isFavorite
                 ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'error.main' }} />
@@ -516,16 +521,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 onClick={handleAddToCart}
                 aria-label={`Ajouter ${product.name} au panier`}
                 sx={{
+                  position: 'relative',
+                  ...sweepHoverSx({
+                    fill: theme.palette.background.paper,
+                    hoverColor: theme.palette.primary.main,
+                    hoverBorderColor: theme.palette.primary.main,
+                  }),
                   bgcolor: 'primary.main',
                   color: 'primary.contrastText',
                   border: '1px solid',
                   borderColor: 'primary.main',
                   boxShadow: theme.shadows[2],
-                  '&:hover': {
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    boxShadow: theme.shadows[4],
-                  },
                 }}
               >
                 <ShoppingCart fontSize={isMobile ? 'small' : 'medium'} />
@@ -540,8 +546,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 onClick={handleViewDetails}
                 aria-label={`Voir les détails de ${product.name}`}
                 sx={{
+                  position: 'relative',
+                  ...sweepHoverSx({
+                    fill: theme.palette.primary.main,
+                    hoverColor: theme.palette.primary.contrastText,
+                  }),
                   bgcolor: 'action.hover',
-                  '&:hover': { bgcolor: 'action.selected' },
                 }}
               >
                 <Visibility fontSize={isMobile ? 'small' : 'medium'} />

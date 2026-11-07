@@ -6,7 +6,6 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Stack,
   Paper,
   Chip,
@@ -28,6 +27,8 @@ import HeroSection from '@/features/home/hero/HeroSection';
 import { CONTENT_CONTAINER_SX } from './Navigation';
 import Reveal from './motion/Reveal';
 import { SectionLabel } from './ui/SectionLabel';
+import SweepButton from './ui/SweepButton';
+import { sweepHoverSx } from './ui/sweepHover';
 import { FeatureCards } from './FeatureCards';
 import Autoplay from 'embla-carousel-autoplay';
 import {
@@ -234,26 +235,22 @@ export function HomePage({
                 Les dernières nouveautés
               </Typography>
             </div>
-            <Button
-              variant="outlined"
+            <SweepButton
+              variant="outline"
               endIcon={<ArrowRight />}
               onClick={() => handleNavigate('shop')}
               sx={{
-                borderColor: C.border,
-                color: C.primary,
                 borderRadius: { xs: '10px', sm: '12.5px' },
                 px: { xs: 2, sm: 2.25, md: 2.5 },
-                py: { xs: 0.85, sm: 0.95, md: 1 },
+                height: { xs: 44, sm: 46, md: 48 },
                 fontSize: { xs: 14.5, sm: 15.5, md: 16.25 },
                 fontWeight: 600,
                 textTransform: 'none',
                 flexShrink: 0,
-                bgcolor: 'background.paper',
-                '&:hover': { bgcolor: C.light, borderColor: C.mid },
               }}
             >
               Tout voir
-            </Button>
+            </SweepButton>
           </Stack>
           <Grid container spacing={{ xs: 2, sm: 3 }}>
             {popularProducts.slice(0, 4).map((product: Product) => (
@@ -389,27 +386,23 @@ export function HomePage({
               title="Nos catégories"
               description="Parcourez nos univers — meubles, décoration, mode, électronique et bien plus."
               action={
-              <Button
-                variant="outlined"
+              <SweepButton
+                variant="outline"
                 endIcon={<ArrowRight />}
                 onClick={() => handleNavigate('shop')}
                 sx={{
-                  borderColor: C.border,
-                  color: C.primary,
                   borderRadius: { xs: '10px', sm: '12.5px' },
                   px: { xs: 2, sm: 2.25, md: 2.5 },
-                  py: { xs: 0.85, sm: 0.95, md: 1 },
+                  height: { xs: 44, sm: 46, md: 48 },
                   fontSize: { xs: 14.5, sm: 15.5, md: 16.25 },
                   fontWeight: 600,
                   textTransform: 'none',
                   flexShrink: 0,
-                  bgcolor: 'background.paper',
-                  '&:hover': { bgcolor: C.light, borderColor: C.mid },
-                  [mobileQuery]: { fontSize: '14px', minHeight: 44, py: '8px' },
+                  [mobileQuery]: { fontSize: '14px', minHeight: 44 },
                 }}
               >
                 Tout le catalogue
-              </Button>
+              </SweepButton>
               }
             />
           </Reveal>
@@ -558,7 +551,11 @@ export function HomePage({
                     boxShadow: `0 4px 16px ${alpha(C.ink, 0.10)}`,
                     width: { xs: 45, md: 52.5 },
                     height: { xs: 45, md: 52.5 },
-                    '&:hover': { bgcolor: C.light },
+                    ...sweepHoverSx({
+                      fill: C.primary,
+                      hoverColor: C.onInverse,
+                      hoverBorderColor: C.primary,
+                    }),
                     '&.Mui-disabled': { opacity: 0.3 },
                   }}
                 />
@@ -571,7 +568,11 @@ export function HomePage({
                     boxShadow: `0 4px 16px ${alpha(C.ink, 0.10)}`,
                     width: { xs: 45, md: 52.5 },
                     height: { xs: 45, md: 52.5 },
-                    '&:hover': { bgcolor: C.light },
+                    ...sweepHoverSx({
+                      fill: C.primary,
+                      hoverColor: C.onInverse,
+                      hoverBorderColor: C.primary,
+                    }),
                     '&.Mui-disabled': { opacity: 0.3 },
                   }}
                 />
@@ -590,26 +591,24 @@ export function HomePage({
               title="Produits populaires"
               description="Les articles les plus appréciés par nos clients — qualité vérifiée, prix compétitifs."
               action={
-              <Button
-                variant="contained"
+              <SweepButton
+                variant="primary"
                 endIcon={<ArrowRight />}
                 onClick={() => handleNavigate('shop')}
                 sx={{
-                  bgcolor: C.primary,
                   borderRadius: '12.5px',
                   px: 2.5,
-                  py: 1,
+                  height: { xs: 44, sm: 46, md: 48 },
                   fontSize: 16.25,
                   fontWeight: 700,
                   textTransform: 'none',
                   boxShadow: `0 6px 20px ${alpha(C.ink, 0.15)}`,
                   flexShrink: 0,
-                  '&:hover': { bgcolor: C.dark },
-                  [mobileQuery]: { fontSize: '14px', minHeight: 44, py: '8px' },
+                  [mobileQuery]: { fontSize: '14px', minHeight: 44 },
                 }}
               >
                 Voir tout
-              </Button>
+              </SweepButton>
               }
             />
           </Reveal>
@@ -780,28 +779,25 @@ export function HomePage({
                   </Box>
                 ))}
 
-                <Button
-                  variant="contained"
+                <SweepButton
+                  variant="primary"
                   size="large"
                   endIcon={<ArrowRight />}
                   fullWidth
                   onClick={() => handleNavigate('contact')}
                   sx={{
                     mt: 3,
-                    bgcolor: C.primary,
-                    color: C.onInverse,
                     fontWeight: 700,
                     fontSize: { xs: 15, md: 16 },
-                    py: 1.5,
+                    height: { xs: 48, sm: 52 },
                     borderRadius: 1,
                     textTransform: 'none',
                     boxShadow: `0 8px 24px ${alpha(C.ink, 0.18)}`,
-                    '&:hover': { bgcolor: C.dark },
-                    [mobileQuery]: { mt: '20px', minHeight: 44, py: '8px', fontSize: '14px' },
+                    [mobileQuery]: { mt: '20px', minHeight: 44, fontSize: '14px' },
                   }}
                 >
                   Demander un devis
-                </Button>
+                </SweepButton>
                 <Typography sx={{ mt: 1.5, textAlign: 'center', fontSize: 12.5, color: C.muted, [mobileQuery]: { fontSize: '12px', lineHeight: 1.45 } }}>
                   Réponse personnalisée · Sans engagement
                 </Typography>

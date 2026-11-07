@@ -23,6 +23,7 @@ import { PaymentIcons } from './PaymentIcons';
 import { BrandMark } from './ui/BrandMark';
 import { useCategories } from '@/hooks/useCategories';
 import { tokens } from '@/theme/tokens';
+import { sweepHoverSx } from './ui/sweepHover';
 import { CONTENT_CONTAINER_SX } from './Navigation';
 
 /** Couleurs du footer — toutes issues des tokens (aucune valeur en dur) */
@@ -222,11 +223,12 @@ export function Footer() {
                   borderRadius: '50%',
                   border: `1px solid ${SOCIAL_RULE}`,
                   color: LINK,
-                  transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
-                  '&:hover': {
-                    color: GOLD,
-                    borderColor: GOLD,
-                  },
+                  position: 'relative',
+                  ...sweepHoverSx({
+                    fill: LINK,
+                    hoverColor: INK,
+                    hoverBorderColor: LINK,
+                  }),
                   '&:focus-visible': focusRingSx,
                   [mobileQuery]: { width: 44, height: 44, minWidth: 44, minHeight: 44 },
                 }}
