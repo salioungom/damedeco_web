@@ -34,7 +34,7 @@ export function sweepHoverSx({
       zIndex: -1,
       backgroundColor: fill,
       transform: 'scaleX(0)',
-      transformOrigin: 'right',
+      transformOrigin: 'left center',
       transition: `transform ${SWEEP_DURATION} ${SWEEP_EASING}`,
     },
     '@media (hover: hover)': {
@@ -43,13 +43,11 @@ export function sweepHoverSx({
         ...(hoverBorderColor ? { borderColor: hoverBorderColor } : {}),
         '&::before': {
           transform: 'scaleX(1)',
-          transformOrigin: 'left',
         },
       },
     },
     '&:active::before': {
       transform: 'scaleX(1)',
-      transformOrigin: 'left',
     },
     '@media (prefers-reduced-motion: reduce)': {
       transition: 'none',

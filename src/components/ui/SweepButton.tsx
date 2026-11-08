@@ -49,7 +49,7 @@ export const SweepButton = React.forwardRef<HTMLButtonElement, SweepButtonProps>
     backgroundColor: fillColor,
     '--sweep-bg': fillColor,
     transform: 'scaleX(0)',
-    transformOrigin: 'right',
+    transformOrigin: 'left center',
     transition: SWEEP_FILL_TRANSITION,
   };
 
@@ -92,7 +92,6 @@ export const SweepButton = React.forwardRef<HTMLButtonElement, SweepButtonProps>
     '&::before': {
       ...fill,
       transform: 'scaleX(1)',
-      transformOrigin: 'left',
     },
     '& .MuiButton-endIcon': hoverIconSx,
   };
