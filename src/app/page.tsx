@@ -11,6 +11,9 @@
  */
 
 import { HomePageClient } from '@/components/HomePageClient';
+import { Suspense } from 'react';
+import HeroCategories from '@/features/home/hero/HeroCategories';
+import { HeroCategoriesSkeleton } from '@/features/home/hero/HeroCategoriesList';
 import { homeService } from '@/services/home.service';
 import { productService } from '@/services/product.service';
 import { Product, Category } from '@/lib/types';
@@ -84,6 +87,11 @@ export default async function Page() {
       categories={categories}
       popularProducts={popularProducts}
       error={error}
+      heroCategories={
+        <Suspense fallback={<HeroCategoriesSkeleton />}>
+          <HeroCategories />
+        </Suspense>
+      }
     />
   );
 }

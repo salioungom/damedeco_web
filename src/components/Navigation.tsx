@@ -32,6 +32,21 @@ import {
 import { FavoriteBorder, PersonOutlined, Menu as MenuIcon, Search as SearchIcon, Close as CloseIcon, AdminPanelSettingsOutlined, DashboardOutlined, LogoutOutlined, AccountCircleOutlined, ShoppingCartOutlined } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
 import { BrandMark } from './ui/BrandMark';
+import {
+  mobileDrawerAccountLinkSx,
+  mobileDrawerAccountNameSx,
+  mobileDrawerDividerSx,
+  mobileDrawerFooterSx,
+  mobileDrawerHeaderSx,
+  mobileDrawerLoginButtonSx,
+  mobileDrawerPrimaryLinkSx,
+  mobileDrawerRegisterLinkSx,
+  mobileDrawerRootSx,
+  mobileDrawerScrollSx,
+  mobileDrawerSearchSx,
+  mobileDrawerSecondaryLinkSx,
+  mobileDrawerBrandSx,
+} from './Navigation.styles';
 import { tokens } from '@/theme/tokens';
 import { FONT_INTER, FONT_FRAUNCES } from '@/theme';
 
@@ -280,7 +295,10 @@ const SearchField = memo(function SearchField({
     <Box
       component="form"
       onSubmit={onSubmit}
-      sx={{ width: fullWidth ? '100%' : { sm: 240 }, maxWidth: fullWidth ? '100%' : 240 }}
+      sx={{
+        width: fullWidth ? '100%' : { sm: 240 },
+        maxWidth: fullWidth ? '100%' : 240,
+      }}
     >
       <Box
         sx={{
@@ -323,7 +341,7 @@ export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down(768));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { user, logout, loading: authLoading } = useAuth();
   const isAdmin = useStore((s) => s.isAdmin);
@@ -403,25 +421,18 @@ export function Navigation() {
   }, [user]);
 
   const drawer = (
-    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
-      <Box
-        sx={{
-          px: 2.5,
-          py: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}
-      >
-        <Brand />
-        <NavActionButton ariaLabel="Fermer le menu" onClick={() => setMobileOpen(false)}>
+    <Box sx={mobileDrawerRootSx}>
+      <Box sx={mobileDrawerHeaderSx}>
+        <Box sx={mobileDrawerBrandSx}><BrandMark size="sm" /></Box>
+        <NavActionButton
+          ariaLabel="Fermer le menu"
+          onClick={() => setMobileOpen(false)}
+        >
           <CloseIcon sx={{ fontSize: ICON_SIZE }} strokeWidth={1.5} />
         </NavActionButton>
       </Box>
 
-      <Box sx={{ px: 2, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+      <Box sx={mobileDrawerSearchSx}>
         <SearchField
           value={searchQuery}
           onChange={setSearchQuery}
@@ -430,7 +441,7 @@ export function Navigation() {
         />
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', py: 1 }}>
+      <Box sx={mobileDrawerScrollSx}>
         <List disablePadding>
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.path;
@@ -440,39 +451,10 @@ export function Navigation() {
                   component={Link}
                   href={item.path}
                   onClick={() => setMobileOpen(false)}
-                  sx={{
-                    mx: 2,
-                    borderRadius: '10px',
-                    py: 2,
-                    bgcolor: 'transparent',
-                    color: tokens.colors.text.primary,
-                    transition: 'background-color 0.15s ease',
-                    '&:hover': { bgcolor: tokens.colors.surfaces.alt },
-                    '&:focus-visible': { outline: `2px solid ${tokens.colors.status.focus}`, outlineOffset: '2px' },
-                    ...(active
-                      ? {
-                          textDecoration: 'underline',
-                          textDecorationColor: tokens.colors.text.primary,
-                          textDecorationThickness: '2px',
-                          textUnderlineOffset: '8px',
-                        }
-                      : { textDecoration: 'none' }),
-                  }}
+                  aria-current={active ? 'page' : undefined}
+                  sx={mobileDrawerPrimaryLinkSx}
                 >
-                  <ListItemText
-                    primary={item.label}
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontFamily: FONT_FRAUNCES,
-                          fontSize: 28,
-                          fontWeight: 500,
-                          lineHeight: 1.2,
-                          color: tokens.colors.text.primary,
-                        },
-                      },
-                    }}
-                  />
+                  <ListItemText primary={item.label} />
                 </ListItemButton>
               </ListItem>
             );
@@ -481,7 +463,7 @@ export function Navigation() {
 
         {isAdmin && (
           <>
-            <Divider sx={{ mx: 2, my: 1 }} />
+            <Divider sx={mobileDrawerDividerSx} />
             <List disablePadding>
               <ListItem disablePadding>
                 <ListItemButton
@@ -489,7 +471,7 @@ export function Navigation() {
                     toggleAdmin?.();
                     setMobileOpen(false);
                   }}
-                  sx={{ mx: 2, borderRadius: '10px' }}
+                  sx={mobileDrawerSecondaryLinkSx}
                 >
                   <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
                     <AdminPanelSettingsOutlined fontSize="small" />
@@ -511,35 +493,19 @@ export function Navigation() {
           </>
         )}
 
-        <Divider sx={{ mx: 2, my: 0.5 }} />
+        <Divider sx={mobileDrawerDividerSx} />
         <List disablePadding>
           <ListItem disablePadding>
             <ListItemButton
               component={Link}
               href="/favorites"
               onClick={() => setMobileOpen(false)}
-              sx={{
-                mx: 2,
-                borderRadius: '10px',
-                py: 2,
-                bgcolor: 'transparent',
-                color: tokens.colors.text.secondary,
-              }}
+              sx={mobileDrawerSecondaryLinkSx}
             >
-              <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
-                <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} strokeWidth={1.5} />
+              <ListItemIcon>
+                <FavoriteBorder sx={{ fontSize: '20px' }} strokeWidth={1.5} />
               </ListItemIcon>
-              <ListItemText
-                primary="Mes favoris"
-                slotProps={{
-                  primary: {
-                    sx: {
-                      fontSize: { xs: 15, sm: 16.5 },
-                      fontWeight: 500,
-                    },
-                  },
-                }}
-              />
+              <ListItemText primary="Mes favoris" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
@@ -547,110 +513,58 @@ export function Navigation() {
               component={Link}
               href={user ? '/account' : '/login'}
               onClick={() => setMobileOpen(false)}
-              sx={{
-                mx: 2,
-                borderRadius: '10px',
-                py: 2,
-                bgcolor: 'transparent',
-                color: tokens.colors.text.secondary,
-              }}
+              sx={mobileDrawerSecondaryLinkSx}
             >
-              <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
-                <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} strokeWidth={1.5} />
+              <ListItemIcon>
+                <PersonOutlined sx={{ fontSize: '20px' }} strokeWidth={1.5} />
               </ListItemIcon>
-              <ListItemText
-                primary={user ? 'Mon compte' : 'Suivre ma commande'}
-                slotProps={{
-                  primary: {
-                    sx: {
-                      fontSize: { xs: 15, sm: 16.5 },
-                      fontWeight: 500,
-                    },
-                  },
-                }}
-              />
+              <ListItemText primary={user ? 'Mon compte' : 'Suivre ma commande'} />
             </ListItemButton>
           </ListItem>
         </List>
       </Box>
 
-      <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
+      <Box sx={mobileDrawerFooterSx}>
         {user ? (
-          <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
-            <Avatar src={user.avatar} sx={{ width: { xs: 44, sm: 48, md: 52.5 }, height: { xs: 44, sm: 48, md: 52.5 }, bgcolor: 'primary.main' }}>
-              {getUserInitials(user.full_name, user.email)}
-            </Avatar>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: { xs: 15, sm: 17.5 } }}>
-                {user.full_name || user.email}
-              </Typography>
-              <Typography color="text.secondary" sx={{ fontSize: { xs: 13, sm: 15 } }}>
-                {user.email}
-              </Typography>
-            </Box>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: 'center', minHeight: '44px' }}
+          >
+            <Typography sx={mobileDrawerAccountNameSx}>
+              {user.full_name || user.email}
+            </Typography>
+            <Button
+              component={Link}
+              href="/account"
+              onClick={() => setMobileOpen(false)}
+              sx={mobileDrawerAccountLinkSx}
+            >
+              Mon compte
+            </Button>
           </Stack>
         ) : (
-          <Stack spacing={1}>
-            <Box sx={{ textAlign: 'center', mb: 0.5 }}>
-              <Box
-                sx={{
-                  width: { xs: 48, sm: 55 },
-                  height: { xs: 48, sm: 55 },
-                  borderRadius: 2,
-                  bgcolor: 'primary.main',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 1,
-                  color: 'primary.contrastText',
-                }}
-              >
-                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 27.5 } }} />
-              </Box>
-              <Typography color="text.primary" sx={{ fontSize: { xs: 15, sm: 17.5 }, fontWeight: 700 }}>
-                Bienvenue !
-              </Typography>
-              <Typography color="text.secondary" sx={{ fontSize: { xs: 13, sm: 15 }, mt: 0.5 }}>
-                Suivez vos commandes et vos favoris
-              </Typography>
-            </Box>
+          <Stack spacing="2px">
             <Button
-              fullWidth
               variant="contained"
               color="primary"
               component={Link}
               href="/login"
               onClick={() => setMobileOpen(false)}
               disableElevation
-              sx={{
-                py: { xs: 1, sm: 1.2 },
-                fontWeight: 700,
-                fontSize: { xs: 15, sm: 17.5 },
-                textTransform: 'none',
-              }}
+              sx={mobileDrawerLoginButtonSx}
             >
               Se connecter
             </Button>
             <Button
-              fullWidth
               variant="text"
               component={Link}
               href="/register"
               onClick={() => setMobileOpen(false)}
-              sx={{
-                py: { xs: 0.9, sm: 1 },
-                borderRadius: '12.5px',
-                fontWeight: 600,
-                fontSize: { xs: 14, sm: 16.25 },
-                textTransform: 'none',
-                color: theme.palette.primary.main,
-                justifyContent: 'center',
-                textAlign: 'center',
-                flexWrap: 'wrap',
-              }}
+              sx={mobileDrawerRegisterLinkSx}
             >
               Pas encore de compte ?{' '}
-              <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+              <Box component="span" sx={{ fontWeight: 700, ml: '4px' }}>
                 Créer
               </Box>
             </Button>
@@ -1038,8 +952,15 @@ export function Navigation() {
         onClose={() => setMobileOpen(false)}
         ModalProps={{ keepMounted: true }}
         sx={{
-          display: { xs: 'block', lg: 'none' },
-          '& .MuiDrawer-paper': { width: '100%', borderRight: 'none', borderRadius: 0 },
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: '100%',
+            height: '100dvh',
+            maxHeight: '100dvh',
+            overflow: 'hidden',
+            borderRight: 'none',
+            borderRadius: 0,
+          },
         }}
       >
         {drawer}

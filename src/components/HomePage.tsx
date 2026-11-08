@@ -21,7 +21,6 @@ import {
   SupportAgent,
 } from '@mui/icons-material';
 import { getImageUrl } from '@/lib/imageUtils';
-import { formatFcfa } from '@/lib/format';
 import ProductCard from './ProductCard';
 import HeroSection from '@/features/home/hero/HeroSection';
 import { CONTENT_CONTAINER_SX } from './Navigation';
@@ -44,6 +43,7 @@ import type { ApiError } from '@/lib/error-handler';
 import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import styles from './HomePage.module.css';
+import type { ReactNode } from 'react';
 
 const C = {
   primary: tokens.colors.brand.main,
@@ -150,6 +150,7 @@ interface HomePageProps {
   categories: Category[];
   popularProducts: Product[];
   error: ApiError | null;
+  heroCategories: ReactNode;
 }
 
 export function HomePage({
@@ -163,6 +164,7 @@ export function HomePage({
   categories,
   popularProducts,
   error,
+  heroCategories,
 }: HomePageProps) {
   const theme = useTheme();
   const mobileQuery = theme.breakpoints.down(768);
@@ -207,7 +209,7 @@ export function HomePage({
       : null;
 
   return (
-    <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: 'background.default' }}>
+    <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: C.surface }}>
       <HeroSection
         onNavigate={handleNavigate}
         onViewProduct={onViewProduct}
@@ -215,11 +217,24 @@ export function HomePage({
         featuredProduct={featuredProduct}
         featuredDiscount={featuredDiscount}
         heroCategoryTags={heroCategoryTags}
+        heroCategories={heroCategories}
       />
 
       {/* ── Bande « Nouveautés » (sous le hero) ── */}
-      <Box component="section" sx={{ py: { xs: 6, md: 8 }, bgcolor: C.surface }}>
-        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
+      <Box
+        component="section"
+        sx={{
+          py: { xs: 5, sm: 6, md: 8 },
+          bgcolor: C.surface,
+          [mobileQuery]: { py: '60px' },
+          [theme.breakpoints.down('sm')]: { py: 5 },
+        }}
+      >
+        <Container
+          maxWidth={false}
+          disableGutters
+          sx={{ ...CONTENT_CONTAINER_SX, px: { xs: '20px', sm: 3.2, lg: 4.8, xl: 6.4 } }}
+        >
           <Stack
             direction="row"
             sx={{
@@ -227,23 +242,88 @@ export function HomePage({
               alignItems: 'flex-end',
               mb: { xs: 4, md: 5 },
               [mobileQuery]: { mb: '30px' },
+              [theme.breakpoints.down('sm')]: { mb: '24px', alignItems: 'flex-start' },
             }}
           >
-            <div>
-              <SectionLabel sx={{ mb: { xs: 1, sm: 1.25, md: 1.5 }, [mobileQuery]: { fontSize: '12px', mb: '8px' } }}>Nouveautés</SectionLabel>
-              <Typography component="h2" sx={{ ...sectionTitleSx, [mobileQuery]: { fontSize: 'clamp(22px, 5.8vw, 24px)', lineHeight: 1.2 } }}>
-                Les dernières nouveautés
-              </Typography>
-            </div>
+            <Box sx={{ maxWidth: { xs: '100%', sm: 700 }, flexGrow: 1, minWidth: 0 }}>
+              <SectionLabel
+                sx={{
+                  mb: { xs: 1, sm: 1.25, md: 1.5 },
+                  [mobileQuery]: { fontSize: '12px', mb: '8px' },
+                  [theme.breakpoints.down('sm')]: { fontSize: '11px', mb: '8px' },
+                }}
+              >
+                Nouveautés
+              </SectionLabel>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, minWidth: 0 }}>
+                <Typography
+                  component="h2"
+                  sx={{
+                    ...sectionTitleSx,
+                    [mobileQuery]: { fontSize: 'clamp(22px, 5.8vw, 24px)', lineHeight: 1.2 },
+                    [theme.breakpoints.down('sm')]: {
+                      mb: 0,
+                      fontSize: 'clamp(1.375rem, 6vw, 1.75rem)',
+                      lineHeight: 1.2,
+                    },
+                  }}
+                >
+                  Les dernières nouveautés
+                </Typography>
+                <SweepButton
+                  variant="outline"
+                  endIcon={<ArrowRight />}
+                  onClick={() => handleNavigate('shop')}
+                  sx={{
+                    display: { xs: 'inline-flex', sm: 'none' },
+                    minWidth: 44,
+                    height: 44,
+                    px: 0,
+                    border: 'none',
+                    borderRadius: 0,
+                    bgcolor: 'transparent',
+                    color: 'primary.main',
+                    boxShadow: 'none',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    flexShrink: 0,
+                    '&::before': { display: 'none' },
+                    '@media (hover: hover)': {
+                      '&:hover': {
+                        border: 'none',
+                        bgcolor: 'transparent',
+                        color: 'primary.main',
+                        boxShadow: 'none',
+                      },
+                    },
+                    '&:active': {
+                      border: 'none',
+                      bgcolor: 'transparent',
+                      color: 'primary.main',
+                      boxShadow: 'none',
+                    },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px',
+                    },
+                    '& .MuiButton-endIcon': { color: 'primary.main' },
+                  }}
+                >
+                  Tout voir
+                </SweepButton>
+              </Box>
+            </Box>
             <SweepButton
               variant="outline"
               endIcon={<ArrowRight />}
               onClick={() => handleNavigate('shop')}
               sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
                 borderRadius: { xs: '10px', sm: '12.5px' },
                 px: { xs: 2, sm: 2.25, md: 2.5 },
                 height: { xs: 44, sm: 46, md: 48 },
-                fontSize: { xs: 14.5, sm: 15.5, md: 16.25 },
+                fontSize: { xs: 14, sm: 15.5, md: 16.25 },
                 fontWeight: 600,
                 textTransform: 'none',
                 flexShrink: 0,
@@ -252,55 +332,37 @@ export function HomePage({
               Tout voir
             </SweepButton>
           </Stack>
-          <Grid container spacing={{ xs: 2, sm: 3 }}>
-            {popularProducts.slice(0, 4).map((product: Product) => (
-              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={product.id}>
-                <Box
-                  sx={{
-                    borderRadius: '24px',
-                    overflow: 'hidden',
-                    bgcolor: 'background.paper',
-                    border: `1px solid ${C.border}`,
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => onViewProduct(product)}
-                >
-                  <Box sx={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden', bgcolor: C.light }}>
-                    {product.cover_image_url ? (
-                      <Image
-                        src={getImageUrl(product.cover_image_url)}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, (max-width: 1200px) 33vw"
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          inset: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Typography sx={{ fontSize: '3rem' }}>📦</Typography>
-                      </Box>
-                    )}
-                  </Box>
-                  <Box sx={{ p: 2 }}>
-                    <Typography sx={{ fontSize: 14, color: C.muted, fontWeight: 500 }}>{product.category_name || 'Décoration'}</Typography>
-                    <Typography variant="h6" sx={{ fontSize: '17px', fontWeight: 700, color: C.dark, mt: 0.5, mb: 1 }}>
-                      {product.name}
-                    </Typography>
-                    <Typography sx={{ fontSize: '16px', fontWeight: 700, color: C.primary }}>
-                      {formatFcfa(product.price)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
+          {popularProducts.length === 0 ? (
+            <Typography sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+              Aucun produit à afficher.
+            </Typography>
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: 'repeat(2, minmax(0, 1fr))',
+                  sm: 'repeat(3, minmax(0, 1fr))',
+                  md: 'repeat(4, minmax(0, 1fr))',
+                },
+                gap: { xs: '12px', sm: '16px', md: '24px' },
+                alignItems: 'stretch',
+              }}
+            >
+              {popularProducts.slice(0, 4).map((product: Product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={onAddToCart}
+                  onViewDetails={onViewProduct}
+                  userType={userType}
+                  isFavorite={favorites.includes(product.id.toString())}
+                  onToggleFavorite={onToggleFavorite}
+                  homeGrid
+                />
+              ))}
+            </Box>
+          )}
         </Container>
       </Box>
       {/* Avantages */}
@@ -583,34 +645,134 @@ export function HomePage({
       </Box>
 
       {/* Produits populaires */}
-      <Box component="section" sx={{ py: { xs: 6, lg: 8 }, bgcolor: 'background.paper', [mobileQuery]: { py: '60px' } }}>
-        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
+      <Box
+        component="section"
+        sx={{
+          py: { xs: 5, sm: 6, lg: 8 },
+          bgcolor: 'background.paper',
+          [mobileQuery]: { py: '60px' },
+          [theme.breakpoints.down('sm')]: { py: 5 },
+        }}
+      >
+        <Container
+          maxWidth={false}
+          disableGutters
+          sx={{ ...CONTENT_CONTAINER_SX, px: { xs: '20px', sm: 3.2, lg: 4.8, xl: 6.4 } }}
+        >
           <Reveal>
-            <SectionHeader
-              label="Sélection"
-              title="Produits populaires"
-              description="Les articles les plus appréciés par nos clients — qualité vérifiée, prix compétitifs."
-              action={
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'stretch', sm: 'flex-end' },
+                gap: { xs: 2, sm: 2.5, md: 3 },
+                mb: { xs: 4, sm: 5, md: 6 },
+                [mobileQuery]: { mb: '30px', gap: '12px' },
+                [theme.breakpoints.down('sm')]: { mb: '24px', gap: '8px' },
+              }}
+            >
+              <Box sx={{ maxWidth: { xs: '100%', sm: 700 }, flexGrow: 1, minWidth: 0 }}>
+                <SectionLabel
+                  sx={{
+                    mb: { xs: 1, sm: 1.25, md: 1.5 },
+                    [mobileQuery]: { fontSize: '12px', mb: '8px' },
+                    [theme.breakpoints.down('sm')]: { fontSize: '11px', mb: '8px' },
+                  }}
+                >
+                  Sélection
+                </SectionLabel>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+                  <Typography
+                    component="h2"
+                    sx={{
+                      ...sectionTitleSx,
+                      [mobileQuery]: {
+                        mb: '8px',
+                        fontSize: 'clamp(22px, 5.8vw, 24px)',
+                        lineHeight: 1.2,
+                      },
+                      [theme.breakpoints.down('sm')]: {
+                        mb: 0,
+                        fontSize: 'clamp(1.375rem, 6vw, 1.75rem)',
+                        lineHeight: 1.2,
+                      },
+                    }}
+                  >
+                    Produits populaires
+                  </Typography>
+                  <SweepButton
+                    variant="outline"
+                    endIcon={<ArrowRight />}
+                    onClick={() => handleNavigate('shop')}
+                    sx={{
+                      display: { xs: 'inline-flex', sm: 'none' },
+                      minWidth: 44,
+                      height: 44,
+                      px: 0,
+                      border: 'none',
+                      borderRadius: 0,
+                      bgcolor: 'transparent',
+                      color: 'primary.main',
+                      boxShadow: 'none',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      flexShrink: 0,
+                      '&::before': { display: 'none' },
+                      '@media (hover: hover)': {
+                        '&:hover': {
+                          border: 'none',
+                          bgcolor: 'transparent',
+                          color: 'primary.main',
+                          boxShadow: 'none',
+                        },
+                      },
+                      '&:active': {
+                        border: 'none',
+                        bgcolor: 'transparent',
+                        color: 'primary.main',
+                        boxShadow: 'none',
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: '2px',
+                      },
+                      '& .MuiButton-endIcon': { color: 'primary.main' },
+                    }}
+                  >
+                    Tout voir
+                  </SweepButton>
+                </Box>
+                <Typography
+                  sx={{
+                    ...sectionDescSx,
+                    [mobileQuery]: { fontSize: '14px', lineHeight: 1.5 },
+                    [theme.breakpoints.down('sm')]: { mt: '8px', fontSize: '14px', lineHeight: 1.5 },
+                  }}
+                >
+                  Les articles les plus appréciés par nos clients — qualité vérifiée, prix compétitifs.
+                </Typography>
+              </Box>
               <SweepButton
                 variant="primary"
                 endIcon={<ArrowRight />}
                 onClick={() => handleNavigate('shop')}
                 sx={{
+                  display: { xs: 'none', sm: 'inline-flex' },
                   borderRadius: '12.5px',
                   px: 2.5,
-                  height: { xs: 44, sm: 46, md: 48 },
+                  height: { sm: 46, md: 48 },
                   fontSize: 16.25,
                   fontWeight: 700,
                   textTransform: 'none',
                   boxShadow: `0 6px 20px ${alpha(C.ink, 0.15)}`,
                   flexShrink: 0,
-                  [mobileQuery]: { fontSize: '14px', minHeight: 44 },
                 }}
               >
                 Voir tout
               </SweepButton>
-              }
-            />
+            </Box>
           </Reveal>
 
           {popularProducts.length === 0 ? (
@@ -630,20 +792,13 @@ export function HomePage({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)', xl: 'repeat(5, 1fr)' },
-                gap: 2.4,
-                alignItems: 'stretch',
-                [mobileQuery]: {
-                  '& .product-card .MuiCardContent-root': { p: '12px' },
-                  '& .product-card .MuiTypography-caption': { fontSize: '12px', lineHeight: 1.45 },
-                  '& .product-card .MuiCardContent-root h3': { fontSize: '16px', lineHeight: 1.3, minHeight: '2.6em', mb: '4px' },
-                  '& .product-card .MuiCardContent-root .MuiTypography-h6': { fontSize: '15px', lineHeight: 1.25 },
-                  '& .product-card .MuiCardContent-root .MuiTypography-body2': { fontSize: '12px' },
-                  '& .product-card .MuiChip-root': { fontSize: '12px', minHeight: 24 },
-                  '& .product-card .MuiCardActions-root': { p: '0 12px 12px' },
-                  '& .product-card .MuiIconButton-root': { width: 44, height: 44, minWidth: 44, minHeight: 44 },
-                  '& .product-card .MuiIconButton-root svg': { fontSize: 18 },
+                gridTemplateColumns: {
+                  xs: 'repeat(2, minmax(0, 1fr))',
+                  sm: 'repeat(3, minmax(0, 1fr))',
+                  md: 'repeat(4, minmax(0, 1fr))',
                 },
+                gap: { xs: '12px', sm: '16px', md: '24px' },
+                alignItems: 'stretch',
               }}
             >
               <Reveal stagger={0.12} style={{ display: 'contents' }}>
@@ -656,6 +811,7 @@ export function HomePage({
                   userType={userType}
                   isFavorite={favorites.includes(product.id.toString())}
                   onToggleFavorite={onToggleFavorite}
+                  homeGrid
                 />
                 ))}
               </Reveal>

@@ -12,6 +12,7 @@
 import { HomePage } from '@/components/HomePage';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
+import type { ReactNode } from 'react';
 import { Product, Category } from '@/lib/types';
 import type { ApiError } from '@/lib/error-handler';
 
@@ -19,9 +20,15 @@ interface HomePageClientProps {
   categories: Category[];
   popularProducts: Product[];
   error: ApiError | null;
+  heroCategories: ReactNode;
 }
 
-export function HomePageClient({ categories, popularProducts, error }: HomePageClientProps) {
+export function HomePageClient({
+  categories,
+  popularProducts,
+  error,
+  heroCategories,
+}: HomePageClientProps) {
   const addToCart = useStore((s) => s.addToCart);
   const userType = useStore((s) => s.userType);
   const favorites = useStore((s) => s.favorites);
@@ -39,6 +46,7 @@ export function HomePageClient({ categories, popularProducts, error }: HomePageC
       categories={categories}
       popularProducts={popularProducts}
       error={error}
+      heroCategories={heroCategories}
     />
   );
 }
