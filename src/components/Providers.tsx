@@ -2,7 +2,7 @@
 
 import { SnackbarProvider } from 'notistack';
 import { Box } from '@mui/material';
-import { Navigation, NAVBAR_HEIGHT } from './Navigation';
+import { Navigation } from './Navigation';
 import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -142,11 +142,6 @@ export function Providers({ children }: ProvidersProps) {
             width: '100%',
             maxWidth: '100%',
             mx: 'auto',
-            pt: {
-              xs: `${NAVBAR_HEIGHT.xs}px`,
-              sm: `${NAVBAR_HEIGHT.sm}px`,
-              md: `${NAVBAR_HEIGHT.md}px`,
-            },
           }}
         >
           <ErrorBoundary>

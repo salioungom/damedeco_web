@@ -6,7 +6,6 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Stack,
   Paper,
   Chip,
@@ -16,9 +15,6 @@ import {
 import Grid from '@mui/material/Grid';
 import {
   ArrowForward as ArrowRight,
-  Inventory2 as Package,
-  LocalShipping as Truck,
-  Security as Shield,
   VerifiedUser,
   Schedule,
   LocalOffer,
@@ -27,8 +23,12 @@ import {
 import { getImageUrl } from '@/lib/imageUtils';
 import ProductCard from './ProductCard';
 import HeroSection from '@/features/home/hero/HeroSection';
+import { CONTENT_CONTAINER_SX } from './Navigation';
 import Reveal from './motion/Reveal';
 import { SectionLabel } from './ui/SectionLabel';
+import SweepButton from './ui/SweepButton';
+import { sweepHoverSx } from './ui/sweepHover';
+import { FeatureCards } from './FeatureCards';
 import Autoplay from 'embla-carousel-autoplay';
 import {
   Carousel,
@@ -38,12 +38,12 @@ import {
   CarouselNext,
 } from './ui/carousel';
 import { Product, Category } from '../lib/types';
-import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
 import type { ApiError } from '@/lib/error-handler';
-import { BRAND_BLUE, FONT_POPPINS } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import styles from './HomePage.module.css';
+import type { ReactNode } from 'react';
 
 const C = {
   primary: tokens.colors.brand.main,
@@ -64,9 +64,9 @@ const C = {
 
 const sectionTitleSx = {
   fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.1rem', lg: '2.5rem' },
-  fontWeight: 800,
+  fontWeight: 400,
   color: C.dark,
-  fontFamily: FONT_POPPINS,
+  fontFamily: FONT_DISPLAY,
   letterSpacing: '-0.03em',
   lineHeight: { xs: 1.2, sm: 1.18, md: 1.15 },
   mb: { xs: 1, sm: 1.25, md: 1.5 },
@@ -78,31 +78,6 @@ const sectionDescSx = {
   lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 },
   maxWidth: { xs: '100%', sm: 550, md: 650 },
 };
-
-const FEATURES = [
-  {
-    num: '01',
-    icon: Package,
-    title: 'Qualité premium',
-    description:
-      'Chaque article est contrôlé à la source : matériaux, finitions et conformité avant expédition depuis la Chine.',
-  },
-  {
-    num: '02',
-    icon: Truck,
-    title: 'Livraison express',
-    description:
-      'Expédition 24–48h sur Dakar et banlieue, suivi en temps réel et livraison dans tout le Sénégal.',
-  },
-  {
-    num: '03',
-    icon: Shield,
-    title: 'Paiement sécurisé',
-    description:
-      'Transactions protégées et moyens de paiement locaux pour acheter en toute confiance.',
-    paymentMethods: true,
-  },
-] as const;
 
 const CTA_BENEFITS = [
   {
@@ -175,6 +150,7 @@ interface HomePageProps {
   categories: Category[];
   popularProducts: Product[];
   error: ApiError | null;
+  heroCategories: ReactNode;
 }
 
 export function HomePage({
@@ -188,6 +164,7 @@ export function HomePage({
   categories,
   popularProducts,
   error,
+  heroCategories,
 }: HomePageProps) {
   const theme = useTheme();
   const mobileQuery = theme.breakpoints.down(768);
@@ -232,7 +209,7 @@ export function HomePage({
       : null;
 
   return (
-    <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: 'background.default' }}>
+    <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: C.surface }}>
       <HeroSection
         onNavigate={handleNavigate}
         onViewProduct={onViewProduct}
@@ -240,20 +217,167 @@ export function HomePage({
         featuredProduct={featuredProduct}
         featuredDiscount={featuredDiscount}
         heroCategoryTags={heroCategoryTags}
+        heroCategories={heroCategories}
       />
+
+      {/* ── Bande « Nouveautés » (sous le hero) ── */}
+      <Box
+        component="section"
+        sx={{
+          py: { xs: 5, sm: 6, md: 8 },
+          bgcolor: C.surface,
+          [mobileQuery]: { py: '60px' },
+          [theme.breakpoints.down('sm')]: { py: 5 },
+        }}
+      >
+        <Container
+          maxWidth={false}
+          disableGutters
+          sx={{ ...CONTENT_CONTAINER_SX, px: { xs: '20px', sm: 3.2, lg: 4.8, xl: 6.4 } }}
+        >
+          <Stack
+            direction="row"
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              mb: { xs: 4, md: 5 },
+              [mobileQuery]: { mb: '30px' },
+              [theme.breakpoints.down('sm')]: { mb: '24px', alignItems: 'flex-start' },
+            }}
+          >
+            <Box sx={{ maxWidth: { xs: '100%', sm: 700 }, flexGrow: 1, minWidth: 0 }}>
+              <SectionLabel
+                sx={{
+                  mb: { xs: 1, sm: 1.25, md: 1.5 },
+                  [mobileQuery]: { fontSize: '12px', mb: '8px' },
+                  [theme.breakpoints.down('sm')]: { fontSize: '11px', mb: '8px' },
+                }}
+              >
+                Nouveautés
+              </SectionLabel>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, minWidth: 0 }}>
+                <Typography
+                  component="h2"
+                  sx={{
+                    ...sectionTitleSx,
+                    [mobileQuery]: { fontSize: 'clamp(22px, 5.8vw, 24px)', lineHeight: 1.2 },
+                    [theme.breakpoints.down('sm')]: {
+                      mb: 0,
+                      fontSize: 'clamp(1.375rem, 6vw, 1.75rem)',
+                      lineHeight: 1.2,
+                    },
+                  }}
+                >
+                  Les dernières nouveautés
+                </Typography>
+                <SweepButton
+                  variant="outline"
+                  endIcon={<ArrowRight />}
+                  onClick={() => handleNavigate('shop')}
+                  sx={{
+                    display: { xs: 'inline-flex', sm: 'none' },
+                    minWidth: 44,
+                    height: 44,
+                    px: 0,
+                    border: 'none',
+                    borderRadius: 0,
+                    bgcolor: 'transparent',
+                    color: 'primary.main',
+                    boxShadow: 'none',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    flexShrink: 0,
+                    '&::before': { display: 'none' },
+                    '@media (hover: hover)': {
+                      '&:hover': {
+                        border: 'none',
+                        bgcolor: 'transparent',
+                        color: 'primary.main',
+                        boxShadow: 'none',
+                      },
+                    },
+                    '&:active': {
+                      border: 'none',
+                      bgcolor: 'transparent',
+                      color: 'primary.main',
+                      boxShadow: 'none',
+                    },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px',
+                    },
+                    '& .MuiButton-endIcon': { color: 'primary.main' },
+                  }}
+                >
+                  Tout voir
+                </SweepButton>
+              </Box>
+            </Box>
+            <SweepButton
+              variant="outline"
+              endIcon={<ArrowRight />}
+              onClick={() => handleNavigate('shop')}
+              sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
+                borderRadius: { xs: '10px', sm: '12.5px' },
+                px: { xs: 2, sm: 2.25, md: 2.5 },
+                height: { xs: 44, sm: 46, md: 48 },
+                fontSize: { xs: 14, sm: 15.5, md: 16.25 },
+                fontWeight: 600,
+                textTransform: 'none',
+                flexShrink: 0,
+              }}
+            >
+              Tout voir
+            </SweepButton>
+          </Stack>
+          {popularProducts.length === 0 ? (
+            <Typography sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+              Aucun produit à afficher.
+            </Typography>
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: 'repeat(2, minmax(0, 1fr))',
+                  sm: 'repeat(3, minmax(0, 1fr))',
+                  md: 'repeat(4, minmax(0, 1fr))',
+                },
+                gap: { xs: '12px', sm: '16px', md: '24px' },
+                alignItems: 'stretch',
+              }}
+            >
+              {popularProducts.slice(0, 4).map((product: Product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={onAddToCart}
+                  onViewDetails={onViewProduct}
+                  userType={userType}
+                  isFavorite={favorites.includes(product.id.toString())}
+                  onToggleFavorite={onToggleFavorite}
+                  homeGrid
+                />
+              ))}
+            </Box>
+          )}
+        </Container>
+      </Box>
       {/* Avantages */}
       <Box
         id="features"
         component="section"
         sx={{
           pt: { xs: 6, md: 8 },
-          pb: { xs: 10, md: 13 },
+          pb: { xs: 6, lg: 8 },
           bgcolor: 'background.paper',
           position: 'relative',
           [mobileQuery]: { pt: '50px', pb: '80px' },
         }}
       >
-        <Container maxWidth="xl" sx={{ position: 'relative', px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={{ ...CONTENT_CONTAINER_SX, position: 'relative' }}>
           <Box
             sx={{
               mb: { xs: 5, md: 7 },
@@ -274,7 +398,7 @@ export function HomePage({
                 <Typography
                   component="h2"
                   sx={{
-                    fontFamily: FONT_POPPINS,
+                    fontFamily: FONT_DISPLAY,
                     fontSize: { xs: '1.6rem', sm: '1.9rem', md: '2.25rem', lg: '2.6rem' },
                     fontWeight: 800,
                     lineHeight: 1.15,
@@ -309,163 +433,38 @@ export function HomePage({
             }}
           >
             <Reveal stagger={0.12} style={{ display: 'contents' }}>
-              {FEATURES.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Box
-                  key={feature.num}
-                  className={styles.featureCard}
-                  sx={{
-                    position: 'relative',
-                    p: { xs: 2.5, sm: 3, md: 3.5 },
-                    height: '100%',
-                    borderRadius: { xs: '20px', md: '24px' },
-                    bgcolor: 'var(--feature-card-bg)',
-                    border: '1px solid var(--feature-card-border)',
-                    color: 'var(--feature-card-color)',
-                    boxShadow: `0 2px 20px ${alpha(C.ink, 0.04)}`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    [mobileQuery]: { p: '20px' },
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: { xs: 2, md: 2.5 }, [mobileQuery]: { mb: '14px' } }}
-                  >
-                    <Box
-                      className={styles.featureIconTile}
-                      sx={{
-                        width: { xs: 52, sm: 56, md: 60 },
-                        height: { xs: 52, sm: 56, md: 60 },
-                        borderRadius: { xs: '16px', md: '18px' },
-                        bgcolor: 'var(--feature-icon-bg)',
-                        border: '1px solid var(--feature-icon-border)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Icon className={styles.featureIcon} sx={{ fontSize: { xs: 26, md: 28 }, color: 'var(--feature-icon-color)', [mobileQuery]: { fontSize: 24 } }} />
-                    </Box>
-                    <Typography
-                      className={styles.featureNumber}
-                      sx={{
-                        fontFamily: FONT_POPPINS,
-                        fontSize: { xs: 15, md: 16 },
-                        fontWeight: 700,
-                        color: 'var(--feature-number-color)',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {feature.num}
-                    </Typography>
-                  </Stack>
-
-                  <Typography
-                    className={styles.featureTitle}
-                    component="h3"
-                    sx={{
-                      fontFamily: FONT_POPPINS,
-                      fontSize: { xs: 18, sm: 19, md: 20.5, lg: 22 },
-                      fontWeight: 700,
-                      color: 'var(--feature-title-color)',
-                      letterSpacing: '-0.015em',
-                      mb: { xs: 0.75, md: 1 },
-                      [mobileQuery]: { fontSize: '16px', lineHeight: 1.25, mb: '6px' },
-                    }}
-                  >
-                    {feature.title}
-                  </Typography>
-                  <Typography
-                    className={styles.featureDescription}
-                    sx={{
-                      fontSize: { xs: 14.5, sm: 15, md: 15.5, lg: 16 },
-                      color: 'var(--feature-body-color)',
-                      lineHeight: { xs: 1.65, md: 1.7 },
-                      flex: 1,
-                      [mobileQuery]: { fontSize: '14px', lineHeight: 1.5 },
-                    }}
-                  >
-                    {feature.description}
-                  </Typography>
-
-                  {'paymentMethods' in feature && feature.paymentMethods && (
-                    <Box
-                      className={styles.featureDivider}
-                      sx={{
-                        mt: { xs: 2.5, md: 3 },
-                        pt: { xs: 2, md: 2.25 },
-                        borderTop: '1px dashed var(--feature-divider-color)',
-                        [mobileQuery]: { mt: '20px', pt: '16px' },
-                      }}
-                    >
-                      <Typography
-                        className={styles.featurePaymentLabel}
-                        sx={{
-                          fontSize: { xs: 11, md: 11.5 },
-                          fontWeight: 700,
-                          color: 'var(--feature-payment-label)',
-                          mb: 1.25,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.12em',
-                          [mobileQuery]: { fontSize: '12px', mb: '8px' },
-                        }}
-                      >
-                        Moyens acceptés
-                      </Typography>
-                      <Box
-                        className={styles.featurePaymentMethods}
-                        sx={{
-                          display: 'inline-flex',
-                          p: { xs: 1, md: 1.25 },
-                          borderRadius: '16px',
-                          bgcolor: 'var(--feature-payment-bg)',
-                          border: '1px solid var(--feature-payment-border)',
-                        }}
-                      >
-                        <PaymentIcons size="sm" />
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
-              );
-              })}
+              <FeatureCards mobileQuery={mobileQuery} />
             </Reveal>
           </Box>
         </Container>
       </Box>
 
       {/* Catégories */}
-      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: C.surface, [mobileQuery]: { py: '60px' } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+      <Box component="section" sx={{ py: { xs: 6, lg: 8 }, bgcolor: C.surface, [mobileQuery]: { py: '60px' } }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Reveal>
             <SectionHeader
               label="Catalogue"
               title="Nos catégories"
               description="Parcourez nos univers — meubles, décoration, mode, électronique et bien plus."
               action={
-              <Button
-                variant="outlined"
+              <SweepButton
+                variant="outline"
                 endIcon={<ArrowRight />}
                 onClick={() => handleNavigate('shop')}
                 sx={{
-                  borderColor: C.border,
-                  color: C.primary,
                   borderRadius: { xs: '10px', sm: '12.5px' },
                   px: { xs: 2, sm: 2.25, md: 2.5 },
-                  py: { xs: 0.85, sm: 0.95, md: 1 },
+                  height: { xs: 44, sm: 46, md: 48 },
                   fontSize: { xs: 14.5, sm: 15.5, md: 16.25 },
                   fontWeight: 600,
                   textTransform: 'none',
                   flexShrink: 0,
-                  bgcolor: 'background.paper',
-                  '&:hover': { bgcolor: C.light, borderColor: C.mid },
-                  [mobileQuery]: { fontSize: '14px', minHeight: 44, py: '8px' },
+                  [mobileQuery]: { fontSize: '14px', minHeight: 44 },
                 }}
               >
                 Tout le catalogue
-              </Button>
+              </SweepButton>
               }
             />
           </Reveal>
@@ -614,7 +613,11 @@ export function HomePage({
                     boxShadow: `0 4px 16px ${alpha(C.ink, 0.10)}`,
                     width: { xs: 45, md: 52.5 },
                     height: { xs: 45, md: 52.5 },
-                    '&:hover': { bgcolor: C.light },
+                    ...sweepHoverSx({
+                      fill: C.primary,
+                      hoverColor: C.onInverse,
+                      hoverBorderColor: C.primary,
+                    }),
                     '&.Mui-disabled': { opacity: 0.3 },
                   }}
                 />
@@ -627,7 +630,11 @@ export function HomePage({
                     boxShadow: `0 4px 16px ${alpha(C.ink, 0.10)}`,
                     width: { xs: 45, md: 52.5 },
                     height: { xs: 45, md: 52.5 },
-                    '&:hover': { bgcolor: C.light },
+                    ...sweepHoverSx({
+                      fill: C.primary,
+                      hoverColor: C.onInverse,
+                      hoverBorderColor: C.primary,
+                    }),
                     '&.Mui-disabled': { opacity: 0.3 },
                   }}
                 />
@@ -638,36 +645,134 @@ export function HomePage({
       </Box>
 
       {/* Produits populaires */}
-      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: 'background.paper', [mobileQuery]: { py: '60px' } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+      <Box
+        component="section"
+        sx={{
+          py: { xs: 5, sm: 6, lg: 8 },
+          bgcolor: 'background.paper',
+          [mobileQuery]: { py: '60px' },
+          [theme.breakpoints.down('sm')]: { py: 5 },
+        }}
+      >
+        <Container
+          maxWidth={false}
+          disableGutters
+          sx={{ ...CONTENT_CONTAINER_SX, px: { xs: '20px', sm: 3.2, lg: 4.8, xl: 6.4 } }}
+        >
           <Reveal>
-            <SectionHeader
-              label="Sélection"
-              title="Produits populaires"
-              description="Les articles les plus appréciés par nos clients — qualité vérifiée, prix compétitifs."
-              action={
-              <Button
-                variant="contained"
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'stretch', sm: 'flex-end' },
+                gap: { xs: 2, sm: 2.5, md: 3 },
+                mb: { xs: 4, sm: 5, md: 6 },
+                [mobileQuery]: { mb: '30px', gap: '12px' },
+                [theme.breakpoints.down('sm')]: { mb: '24px', gap: '8px' },
+              }}
+            >
+              <Box sx={{ maxWidth: { xs: '100%', sm: 700 }, flexGrow: 1, minWidth: 0 }}>
+                <SectionLabel
+                  sx={{
+                    mb: { xs: 1, sm: 1.25, md: 1.5 },
+                    [mobileQuery]: { fontSize: '12px', mb: '8px' },
+                    [theme.breakpoints.down('sm')]: { fontSize: '11px', mb: '8px' },
+                  }}
+                >
+                  Sélection
+                </SectionLabel>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+                  <Typography
+                    component="h2"
+                    sx={{
+                      ...sectionTitleSx,
+                      [mobileQuery]: {
+                        mb: '8px',
+                        fontSize: 'clamp(22px, 5.8vw, 24px)',
+                        lineHeight: 1.2,
+                      },
+                      [theme.breakpoints.down('sm')]: {
+                        mb: 0,
+                        fontSize: 'clamp(1.375rem, 6vw, 1.75rem)',
+                        lineHeight: 1.2,
+                      },
+                    }}
+                  >
+                    Produits populaires
+                  </Typography>
+                  <SweepButton
+                    variant="outline"
+                    endIcon={<ArrowRight />}
+                    onClick={() => handleNavigate('shop')}
+                    sx={{
+                      display: { xs: 'inline-flex', sm: 'none' },
+                      minWidth: 44,
+                      height: 44,
+                      px: 0,
+                      border: 'none',
+                      borderRadius: 0,
+                      bgcolor: 'transparent',
+                      color: 'primary.main',
+                      boxShadow: 'none',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      flexShrink: 0,
+                      '&::before': { display: 'none' },
+                      '@media (hover: hover)': {
+                        '&:hover': {
+                          border: 'none',
+                          bgcolor: 'transparent',
+                          color: 'primary.main',
+                          boxShadow: 'none',
+                        },
+                      },
+                      '&:active': {
+                        border: 'none',
+                        bgcolor: 'transparent',
+                        color: 'primary.main',
+                        boxShadow: 'none',
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: '2px',
+                      },
+                      '& .MuiButton-endIcon': { color: 'primary.main' },
+                    }}
+                  >
+                    Tout voir
+                  </SweepButton>
+                </Box>
+                <Typography
+                  sx={{
+                    ...sectionDescSx,
+                    [mobileQuery]: { fontSize: '14px', lineHeight: 1.5 },
+                    [theme.breakpoints.down('sm')]: { mt: '8px', fontSize: '14px', lineHeight: 1.5 },
+                  }}
+                >
+                  Les articles les plus appréciés par nos clients — qualité vérifiée, prix compétitifs.
+                </Typography>
+              </Box>
+              <SweepButton
+                variant="primary"
                 endIcon={<ArrowRight />}
                 onClick={() => handleNavigate('shop')}
                 sx={{
-                  bgcolor: C.primary,
+                  display: { xs: 'none', sm: 'inline-flex' },
                   borderRadius: '12.5px',
                   px: 2.5,
-                  py: 1,
+                  height: { sm: 46, md: 48 },
                   fontSize: 16.25,
                   fontWeight: 700,
                   textTransform: 'none',
                   boxShadow: `0 6px 20px ${alpha(C.ink, 0.15)}`,
                   flexShrink: 0,
-                  '&:hover': { bgcolor: C.dark },
-                  [mobileQuery]: { fontSize: '14px', minHeight: 44, py: '8px' },
                 }}
               >
                 Voir tout
-              </Button>
-              }
-            />
+              </SweepButton>
+            </Box>
           </Reveal>
 
           {popularProducts.length === 0 ? (
@@ -687,20 +792,13 @@ export function HomePage({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-                gap: { xs: 1.5, md: 2.5 },
-                [mobileQuery]: {
-                  gap: '12px',
-                  '& .product-card .MuiCardContent-root': { p: '12px' },
-                  '& .product-card .MuiTypography-caption': { fontSize: '12px', lineHeight: 1.45 },
-                  '& .product-card .MuiCardContent-root h3': { fontSize: '16px', lineHeight: 1.3, minHeight: '2.6em', mb: '4px' },
-                  '& .product-card .MuiCardContent-root .MuiTypography-h6': { fontSize: '15px', lineHeight: 1.25 },
-                  '& .product-card .MuiCardContent-root .MuiTypography-body2': { fontSize: '12px' },
-                  '& .product-card .MuiChip-root': { fontSize: '12px', minHeight: 24 },
-                  '& .product-card .MuiCardActions-root': { p: '0 12px 12px' },
-                  '& .product-card .MuiIconButton-root': { width: 44, height: 44, minWidth: 44, minHeight: 44 },
-                  '& .product-card .MuiIconButton-root svg': { fontSize: 18 },
+                gridTemplateColumns: {
+                  xs: 'repeat(2, minmax(0, 1fr))',
+                  sm: 'repeat(3, minmax(0, 1fr))',
+                  md: 'repeat(4, minmax(0, 1fr))',
                 },
+                gap: { xs: '12px', sm: '16px', md: '24px' },
+                alignItems: 'stretch',
               }}
             >
               <Reveal stagger={0.12} style={{ display: 'contents' }}>
@@ -713,6 +811,7 @@ export function HomePage({
                   userType={userType}
                   isFavorite={favorites.includes(product.id.toString())}
                   onToggleFavorite={onToggleFavorite}
+                  homeGrid
                 />
                 ))}
               </Reveal>
@@ -722,8 +821,8 @@ export function HomePage({
       </Box>
 
       {/* CTA grossiste */}
-      <Box component="section" sx={{ pb: { xs: 6, md: 10 }, pt: { xs: 0, md: 2 }, [mobileQuery]: { pb: '50px' } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+      <Box component="section" sx={{ pb: { xs: 6, lg: 8 }, pt: { xs: 0, md: 2 }, [mobileQuery]: { pb: '50px' } }}>
+        <Container maxWidth={false} disableGutters sx={CONTENT_CONTAINER_SX}>
           <Box
             component="article"
             sx={{
@@ -756,7 +855,7 @@ export function HomePage({
                 <Typography
                   component="h2"
                   sx={{
-                    fontFamily: FONT_POPPINS,
+                    fontFamily: FONT_DISPLAY,
                     fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.15rem', lg: '2.5rem' },
                     fontWeight: 800,
                     lineHeight: 1.15,
@@ -836,28 +935,25 @@ export function HomePage({
                   </Box>
                 ))}
 
-                <Button
-                  variant="contained"
+                <SweepButton
+                  variant="primary"
                   size="large"
                   endIcon={<ArrowRight />}
                   fullWidth
                   onClick={() => handleNavigate('contact')}
                   sx={{
                     mt: 3,
-                    bgcolor: C.primary,
-                    color: C.onInverse,
                     fontWeight: 700,
                     fontSize: { xs: 15, md: 16 },
-                    py: 1.5,
+                    height: { xs: 48, sm: 52 },
                     borderRadius: 1,
                     textTransform: 'none',
                     boxShadow: `0 8px 24px ${alpha(C.ink, 0.18)}`,
-                    '&:hover': { bgcolor: C.dark },
-                    [mobileQuery]: { mt: '20px', minHeight: 44, py: '8px', fontSize: '14px' },
+                    [mobileQuery]: { mt: '20px', minHeight: 44, fontSize: '14px' },
                   }}
                 >
                   Demander un devis
-                </Button>
+                </SweepButton>
                 <Typography sx={{ mt: 1.5, textAlign: 'center', fontSize: 12.5, color: C.muted, [mobileQuery]: { fontSize: '12px', lineHeight: 1.45 } }}>
                   Réponse personnalisée · Sans engagement
                 </Typography>

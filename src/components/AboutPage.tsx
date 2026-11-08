@@ -8,7 +8,7 @@ import { Eyebrow } from '@/components/ui/PageHeader';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { EditorialList } from '@/components/ui/EditorialList';
 import { useCategories } from '@/hooks/useCategories';
-import { FONT_FRAUNCES, FONT_POPPINS } from '@/theme';
+import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 
 const HISTORY = [
@@ -103,9 +103,9 @@ export default function AboutPage() {
                 id="about-hero"
                 component="h1"
                 sx={{
-                  fontFamily: FONT_FRAUNCES,
+                  fontFamily: FONT_DISPLAY,
                   fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
-                  fontWeight: 600,
+                  fontWeight: 400,
                   lineHeight: 1.1,
                   letterSpacing: '-0.02em',
                   color: 'text.primary',
@@ -166,9 +166,9 @@ export default function AboutPage() {
                 id="about-histoire"
                 component="h2"
                 sx={{
-                  fontFamily: FONT_FRAUNCES,
+                  fontFamily: FONT_DISPLAY,
                   fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
-                  fontWeight: 600,
+                  fontWeight: 400,
                   lineHeight: 1.15,
                   letterSpacing: '-0.01em',
                   color: 'text.primary',
@@ -201,9 +201,9 @@ export default function AboutPage() {
             id="about-valeurs"
             component="h2"
             sx={{
-              fontFamily: FONT_FRAUNCES,
+              fontFamily: FONT_DISPLAY,
               fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
-              fontWeight: 600,
+              fontWeight: 400,
               lineHeight: 1.15,
               letterSpacing: '-0.01em',
               color: 'text.primary',
@@ -228,9 +228,9 @@ export default function AboutPage() {
             id="about-categories"
             component="h2"
             sx={{
-              fontFamily: FONT_FRAUNCES,
+              fontFamily: FONT_DISPLAY,
               fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
-              fontWeight: 600,
+              fontWeight: 400,
               lineHeight: 1.15,
               letterSpacing: '-0.01em',
               color: 'text.primary',
@@ -252,7 +252,7 @@ export default function AboutPage() {
                 p: 4,
               }}
             >
-              <Typography sx={{ fontFamily: FONT_FRAUNCES, fontSize: 20, fontWeight: 600, color: 'text.primary', mb: 1 }}>
+              <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 20, fontWeight: 400, color: 'text.primary', mb: 1 }}>
                 TODO : catégories indisponibles
               </Typography>
               <Typography sx={{ color: 'text.secondary', maxWidth: '65ch' }}>
@@ -292,9 +292,9 @@ export default function AboutPage() {
                     <Typography
                       component="span"
                       sx={{
-                        fontFamily: FONT_FRAUNCES,
+                        fontFamily: FONT_DISPLAY,
                         fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
-                        fontWeight: 500,
+                        fontWeight: 400,
                         lineHeight: 1.3,
                       }}
                     >
@@ -335,9 +335,9 @@ export default function AboutPage() {
                   <Typography
                     component="span"
                     sx={{
-                      fontFamily: FONT_FRAUNCES,
+                      fontFamily: FONT_DISPLAY,
                       fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
-                      fontWeight: 500,
+                      fontWeight: 400,
                       lineHeight: 1.3,
                     }}
                   >
@@ -394,9 +394,9 @@ export default function AboutPage() {
                   id="about-cta"
                   component="h2"
                   sx={{
-                    fontFamily: FONT_POPPINS,
+                    fontFamily: FONT_DISPLAY,
                     fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.15rem', lg: '2.5rem' },
-                    fontWeight: 800,
+                    fontWeight: 400,
                     lineHeight: 1.15,
                     letterSpacing: '-0.03em',
                     color: C.onInverse,

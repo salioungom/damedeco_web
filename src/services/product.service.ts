@@ -9,9 +9,11 @@ import {
     ProductStatus
 } from '../types/product';
 import { safeApiCall } from '@/lib/error-handler';
-import { API_URL } from '@/lib/api-url';
+import { API_URL, API_URL_SERVER } from '@/lib/api-url';
 
-const API_BASE_URL = API_URL;
+// Détecte si on est côté serveur (SSR/ISR) : `window` n'existe pas
+const isServer = typeof window === 'undefined';
+const API_BASE_URL = isServer ? API_URL_SERVER : API_URL;
 
 const getAuthHeader = () => {
     if (typeof window === 'undefined') {

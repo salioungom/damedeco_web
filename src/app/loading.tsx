@@ -11,12 +11,54 @@
 
 import { Box, Container, Skeleton, Stack } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { NAVBAR_HEIGHT } from '@/components/Navigation';
+import { NAVBAR_HEIGHT, CONTENT_CONTAINER_SX } from '@/components/Navigation';
 import { tokens } from '@/theme/tokens';
 
 const C = {
   surface: tokens.colors.surfaces.alt,
 } as const;
+
+function ProductGridSkeleton() {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: 'repeat(2, minmax(0, 1fr))',
+          sm: 'repeat(3, minmax(0, 1fr))',
+          md: 'repeat(4, minmax(0, 1fr))',
+        },
+        gap: { xs: '12px', sm: '16px', md: '24px' },
+        alignItems: 'stretch',
+      }}
+    >
+      {[0, 1, 2, 3].map((index) => (
+        <Box
+          key={index}
+          sx={{
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '14px',
+            bgcolor: 'background.paper',
+          }}
+        >
+          <Skeleton variant="rectangular" sx={{ width: '100%', aspectRatio: '4 / 5' }} />
+          <Box sx={{ p: '10px 12px 12px' }}>
+            <Skeleton variant="text" sx={{ fontSize: 10, width: '72%' }} />
+            <Skeleton variant="text" sx={{ fontSize: 14, width: '88%', mt: 0.5 }} />
+            <Skeleton variant="text" sx={{ fontSize: 14, width: '64%' }} />
+            <Skeleton variant="text" sx={{ fontSize: 15, width: '55%', mt: 1 }} />
+            <Stack direction="row" sx={{ mt: 1, justifyContent: 'space-between' }}>
+              <Skeleton variant="circular" width={40} height={40} />
+              <Skeleton variant="circular" width={40} height={40} />
+            </Stack>
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+}
 
 export default function Loading() {
   const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT.md}px)`;
@@ -32,14 +74,18 @@ export default function Loading() {
         }}
       >
         <Container
-          maxWidth="xl"
+          maxWidth={false}
+          disableGutters
           sx={{
+            ...CONTENT_CONTAINER_SX,
             position: 'relative',
             zIndex: 1,
-            px: { xs: 2, sm: 3, md: 4 },
-            pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 10, md: 11, lg: 13 },
-            pb: { xs: 4, sm: 5, lg: 6 },
-            maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
+            pt: 6,
+            pb: 6,
+            minHeight: { lg: heroMinHeight },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
           }}
         >
           <Grid
@@ -47,7 +93,7 @@ export default function Loading() {
             spacing={{ xs: 3, sm: 4, lg: 5 }}
             sx={{ alignItems: 'center', minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
-            <Grid size={{ xs: 12, lg: 5 }} offset={{ lg: 1 }}>
+            <Grid size={{ xs: 12, lg: 5 }}>
               <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 725 } }}>
                 {/* Pastille « lieu » */}
                 <Skeleton
@@ -129,8 +175,8 @@ export default function Loading() {
             </Grid>
 
             {/* Visuel */}
-            <Grid size={{ xs: 12, lg: 6 }} sx={{ overflow: 'hidden', width: '100%' }}>
-              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: '100%', sm: '90%', md: '85%', lg: 700 } }}>
+            <Grid size={{ xs: 12, lg: 7 }} sx={{ overflow: 'hidden', width: '100%' }}>
+              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: '100%', sm: '90%', md: '85%', lg: 800 } }}>
                 <Skeleton
                   variant="rounded"
                   sx={{
@@ -146,14 +192,34 @@ export default function Loading() {
         </Container>
       </Box>
 
+      {/* ── Nouveautés ──────────────────────────────────────────────────── */}
+      <Box component="section" sx={{ py: { xs: 5, md: 8 }, bgcolor: C.surface }}>
+        <Container
+          maxWidth={false}
+          disableGutters
+          sx={{ ...CONTENT_CONTAINER_SX, px: { xs: '20px', sm: 3.2, lg: 4.8, xl: 6.4 } }}
+        >
+          <Skeleton variant="text" sx={{ fontSize: 11, width: 110, mb: 1 }} />
+          <Skeleton
+            variant="text"
+            sx={{ fontSize: { xs: '1.375rem', sm: '1.75rem', md: '2.1rem' }, width: '75%', mb: 3 }}
+          />
+          <ProductGridSkeleton />
+        </Container>
+      </Box>
+
       {/* ── Produits populaires ──────────────────────────────────────────── */}
-      <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: 'background.paper' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <Skeleton variant="text" sx={{ fontSize: 12, width: 110, mb: { xs: 1, sm: 1.25 } }} />
+      <Box component="section" sx={{ py: { xs: 5, md: 8 }, bgcolor: 'background.paper' }}>
+        <Container
+          maxWidth={false}
+          disableGutters
+          sx={{ ...CONTENT_CONTAINER_SX, px: { xs: '20px', sm: 3.2, lg: 4.8, xl: 6.4 } }}
+        >
+          <Skeleton variant="text" sx={{ fontSize: 11, width: 110, mb: 1 }} />
           <Skeleton
             variant="text"
             sx={{
-              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.1rem' },
+              fontSize: { xs: '1.375rem', sm: '1.75rem', md: '2.1rem' },
               fontWeight: 800,
               width: 280,
               mb: { xs: 1, sm: 1.25, md: 1.5 },
@@ -164,17 +230,7 @@ export default function Loading() {
             sx={{ fontSize: { xs: 15, sm: 16.5, md: 18 }, width: { xs: '90%', sm: '55%' }, mb: 4 }}
           />
 
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-              gap: { xs: 1.5, md: 2.5 },
-            }}
-          >
-            {[0, 1, 2, 3].map((index) => (
-              <Skeleton key={index} variant="rounded" height={475} sx={{ borderRadius: '17.5px' }} />
-            ))}
-          </Box>
+          <ProductGridSkeleton />
         </Container>
       </Box>
     </>

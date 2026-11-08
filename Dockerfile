@@ -55,6 +55,10 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     NEXT_TELEMETRY_DISABLED=1
 
+# API_URL_SERVER optionnel pour le SSR/ISR en production (différent de NEXT_PUBLIC_API_URL si backend non accessible via l'URL publique)
+ARG API_URL_SERVER
+ENV API_URL_SERVER=${API_URL_SERVER}
+
 WORKDIR /app
 
 # Créer un utilisateur non-root pour la sécurité

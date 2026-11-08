@@ -88,5 +88,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             NEXT_PUBLIC_API_URL=https://api-staging.damedeco.shop/
+            API_URL_SERVER=https://api-staging.damedeco.shop/
           cache-from: type=gha
           cache-to: type=gha,mode=max

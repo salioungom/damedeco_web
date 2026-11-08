@@ -6,7 +6,6 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Chip,
   Divider,
   Tabs,
@@ -40,6 +39,8 @@ import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
 import Reveal from './motion/Reveal';
 import { PaymentIcons } from './PaymentIcons';
+import SweepButton from './ui/SweepButton';
+import { sweepHoverSx } from './ui/sweepHover';
 import { tokens } from '@/theme/tokens';
 import { formatFcfa } from '@/lib/format';
 import { API_URL } from '@/lib/api-url';
@@ -441,6 +442,20 @@ export function ProductDetailPage({
                 onClick={() => onToggleFavorite(productIdStr)}
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 sx={{
+                  position: 'relative',
+                  isolation: 'isolate',
+                  overflow: 'hidden',
+                  transition: 'color 0.5s cubic-bezier(0.65, 0, 0.35, 1), border-color 0.5s cubic-bezier(0.65, 0, 0.35, 1)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: -1,
+                    backgroundColor: C.paper,
+                    transform: 'scaleX(0)',
+                    transformOrigin: 'left center',
+                    transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1)',
+                  },
                   border: `1px solid ${C.primary}`,
                   borderRadius: '50%',
                   width: { xs: 36, sm: 45 },
@@ -448,11 +463,28 @@ export function ProductDetailPage({
                   color: isFavorite ? C.statusError : C.paper,
                   bgcolor: C.primary,
                   boxShadow: `0 2px 8px ${alpha(C.primary, 0.25)}`,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    bgcolor: C.brandHover,
-                    boxShadow: `0 4px 12px ${alpha(C.brandHover, 0.35)}`,
-                    transform: 'scale(1.1)',
+                  '@media (hover: hover)': {
+                    '&:hover': {
+                      color: C.primary,
+                      '&::before': { transform: 'scaleX(1)' },
+                      boxShadow: `0 4px 12px ${alpha(C.primary, 0.35)}`,
+                      transform: 'scale(1.1)',
+                    },
+                  },
+                  '&:active': {
+                    color: C.primary,
+                    '&::before': { transform: 'scaleX(1)' },
+                  },
+                  '&:focus-visible': {
+                    color: C.primary,
+                    outline: `2px solid ${C.primary}`,
+                    outlineOffset: '2px',
+                    '&::before': { transform: 'scaleX(1)' },
+                  },
+                  '@media (prefers-reduced-motion: reduce)': {
+                    transition: 'none',
+                    '&::before': { transition: 'none' },
+                    '&:hover': { transform: 'none' },
                   },
                 }}
               >
@@ -579,26 +611,23 @@ export function ProductDetailPage({
             ) : null}
 
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
-              <Button
-                variant="contained"
+              <SweepButton
+                variant="primary"
                 size="large"
                 fullWidth
                 startIcon={<ShoppingCart sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
                 onClick={() => onAddToCart(product, quantity)}
                 disabled={!canBuy}
                 sx={{
-                  py: { xs: 1.25, sm: 1.4, md: 1.5 },
+                  height: { xs: 52, sm: 56, md: 60 },
                   borderRadius: { xs: '12px', sm: '13px', md: '15px' },
                   fontWeight: 800,
                   fontSize: { xs: 15.5, sm: 17, md: 18.75 },
-                  textTransform: 'none',
-                  bgcolor: C.primary,
-                  boxShadow: `0 8px 24px ${alpha(C.primary, 0.35)}`,
-                  '&:hover': { bgcolor: C.dark },
+                  boxShadow: 'none',
                 }}
               >
                 {canBuy ? 'Ajouter au panier' : 'Indisponible'}
-              </Button>
+              </SweepButton>
             </Stack>
 
             <Stack spacing={{ xs: 1, sm: 1.5, md: 1.75 }}>
@@ -725,7 +754,7 @@ export function ProductDetailPage({
               ))}
             </Box>
           ) : similarProducts.length > 0 ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 }, alignItems: 'stretch' }}>
               <Reveal stagger={0.1} style={{ display: 'contents' }}>
                 {similarProducts.map((similarProduct) => (
                 <ProductCard
@@ -736,6 +765,7 @@ export function ProductDetailPage({
                   userType={userType}
                   isFavorite={favorites.includes(String(similarProduct.id))}
                   onToggleFavorite={onToggleFavorite}
+                  compactMobile
                 />
                 ))}
               </Reveal>

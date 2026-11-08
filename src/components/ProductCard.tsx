@@ -1,4 +1,8 @@
+'use client';
+
 import React, { useCallback, useState, useMemo } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { styled as muiStyled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -17,13 +21,42 @@ import {
 import {
   ShoppingCart,
   Visibility,
+  VisibilityOutlined,
   Favorite,
   FavoriteBorder,
-  Info as InfoIcon,
+  ImageOutlined,
 } from '@mui/icons-material';
 import { Product } from '../types/product';
 import { getImageUrl } from '@/lib/imageUtils';
 import { formatFcfa } from '@/lib/format';
+import { sweepHoverSx } from './ui/sweepHover';
+import {
+  homeProductActionsSx,
+  homeProductCardSx,
+  homeProductCategorySx,
+  homeProductContentSx,
+  homeProductCurrentPriceRowSx,
+  homeProductCurrentPriceSx,
+  homeProductDiscountChipSx,
+  homeProductDiscountRowSx,
+  homeProductFavoriteButtonSx,
+  homeProductImageZoneSx,
+  homeProductLinkSx,
+  homeProductMetaSx,
+  homeProductMoneySx,
+  homeProductNameSx,
+  homeProductOldPriceRowSx,
+  homeProductOriginalPriceSx,
+  homeProductPlaceholderSx,
+  homeProductPriceBlockSx,
+  homeProductPriceRowSx,
+  homeProductPreviewOnImageSx,
+  homeProductSavingsSx,
+  homeProductSlugSx,
+  homeProductWholesaleNoteSx,
+  homeProductCartButtonSx,
+  homeProductPreviewButtonSx,
+} from './ProductCard.homeStyles';
 
 // ─── Styled components ───────────────────────────────────────────────────────
 
@@ -39,9 +72,17 @@ const StyledCard = muiStyled(Card, {
     duration: theme.transitions.duration.shorter,
     easing: theme.transitions.easing.easeInOut,
   }),
-  '&:hover': {
-    transform: isMobile ? 'none' : 'translateY(-4px)',
-    boxShadow: theme.shadows[elevationHover],
+  '@media (hover: hover)': {
+    '&:hover': {
+      transform: isMobile ? 'none' : 'translateY(-4px)',
+      boxShadow: theme.shadows[elevationHover],
+    },
+  },
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none',
+    '&:hover': {
+      transform: 'none',
+    },
   },
   '&:focus-visible': {
     outline: `2px solid ${theme.palette.primary.main}`,
@@ -57,10 +98,7 @@ const StyledCard = muiStyled(Card, {
 const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
   position: 'relative',
   width: '100%',
-  paddingTop: '74%',  // mobile : image plus compacte
-  [theme.breakpoints.up('sm')]: {
-    paddingTop: '100%', // sm et + : ratio 1:1 confortable
-  },
+  paddingTop: '75%', // ratio fixe 4/3 (aspect-ratio 4/3)
   overflow: 'hidden',
   backgroundColor: theme.palette.primary.dark,
   borderBottom: 'none',
@@ -69,8 +107,19 @@ const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
   '& img': {
     transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
   },
-  '&:hover img': {
-    transform: 'scale(1.06)',
+  '@media (hover: hover)': {
+    '&:hover img': {
+      transform: 'scale(1.06)',
+    },
+  },
+  '@media (prefers-reduced-motion: reduce)': {
+    '& img': {
+      transition: 'none',
+      transform: 'none',
+    },
+    '&:hover img': {
+      transform: 'none',
+    },
   },
 }));
 
@@ -109,10 +158,6 @@ const FavoriteButton = muiStyled(IconButton)(({ theme }: { theme: any }) => ({
   backgroundColor: theme.palette.primary.main,
   border: `1px solid ${theme.palette.primary.main}`,
   boxShadow: theme.shadows[2],
-  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
-  '&:hover': {
-    backgroundColor: theme.palette.primary.main,
-  },
   [theme.breakpoints.down('sm')]: {
     width: 36,
     height: 36,
@@ -134,6 +179,12 @@ interface ProductCardProps {
   elevation?: number;
   showActions?: boolean;
   showFavorite?: boolean;
+  homeGrid?: boolean;
+  /**
+   * Active la mise en page mobile compacte (mêmes règles que `homeGrid`)
+   * sans modifier le rendu desktop/tablette.
+   */
+  compactMobile?: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -149,10 +200,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
   elevation = 2,
   showActions = true,
   showFavorite = true,
+  homeGrid = false,
+  compactMobile = false,
   ...props
 }) => {
   const theme = useMuiTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  // Mise en page compacte : sur mobile uniquement, via `homeGrid` (home/shop/
+  // catégories) ou `compactMobile` (produits similaires, sans toucher au desktop).
+  const isCompactMobile = isMobile && (homeGrid || compactMobile);
+  const addCompactMobileSx = !homeGrid && compactMobile && isMobile;
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
@@ -173,35 +230,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
     [onToggleFavorite, product.id],
   );
 
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent) => {
-      if ((e.target as HTMLElement).closest('button, a, [role="button"]')) return;
-      handleViewDetails(e);
-    },
-    [handleViewDetails],
-  );
-
   // ── Computed values ────────────────────────────────────────────────────────
 
   const originalPrice = product.original_price || product.compare_price;
-
-  const discountPercentage = useMemo(
-    () =>
-      originalPrice && Number(originalPrice) > Number(product.price)
-        ? Math.round(
-            ((Number(originalPrice) - Number(product.price)) / Number(originalPrice)) * 100,
-          )
-        : 0,
-    [originalPrice, product.price],
-  );
-
-  const savingsAmount = useMemo(
-    () =>
-      originalPrice && Number(originalPrice) > Number(product.price)
-        ? Number(originalPrice) - Number(product.price)
-        : 0,
-    [originalPrice, product.price],
-  );
 
   const displayPrice = useMemo(
     () =>
@@ -209,6 +240,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
         ? Number(product.wholesale_price || product.cost_price)
         : Number(product.price),
     [userType, product],
+  );
+
+  const discountPrice = isCompactMobile ? displayPrice : Number(product.price);
+  const hasDiscount = Boolean(originalPrice && Number(originalPrice) > discountPrice);
+
+  const discountPercentage = useMemo(
+    () =>
+      originalPrice && Number(originalPrice) > discountPrice
+        ? Math.round(
+            ((Number(originalPrice) - discountPrice) / Number(originalPrice)) * 100,
+          )
+        : 0,
+    [originalPrice, discountPrice],
+  );
+
+  const savingsAmount = useMemo(
+    () =>
+      originalPrice && Number(originalPrice) > discountPrice
+        ? Number(originalPrice) - discountPrice
+        : 0,
+    [originalPrice, discountPrice],
   );
 
   const fmt = (amount: number) => formatFcfa(amount);
@@ -234,19 +286,83 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const hasImage = !!product.cover_image_url && !imageError;
 
+  // Panier : rendu soit dans la ligne du prix (mobile home), soit dans la
+  // rangée d'actions (desktop/tablette et autres contextes).
+  const cartButton = (
+    <Tooltip title="Ajouter au panier">
+      <IconButton
+        color="primary"
+        size={isMobile ? 'small' : 'medium'}
+        onClick={handleAddToCart}
+        aria-label={`Ajouter ${product.name} au panier`}
+        sx={[
+          {
+            position: 'relative',
+            ...sweepHoverSx({
+              fill: theme.palette.background.paper,
+              hoverColor: theme.palette.primary.main,
+              hoverBorderColor: theme.palette.primary.main,
+            }),
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            border: '1px solid',
+            borderColor: 'primary.main',
+            boxShadow: theme.shadows[2],
+          },
+          ...(homeGrid || compactMobile ? [homeProductCartButtonSx] : []),
+        ]}
+      >
+        <ShoppingCart fontSize={isMobile ? 'small' : 'medium'} />
+      </IconButton>
+    </Tooltip>
+  );
+
+  // Aperçu dans la rangée d'actions (desktop/tablette, ou cartes non home).
+  const previewButton = (
+    <Tooltip title="Voir les détails">
+      <IconButton
+        size={isMobile ? 'small' : 'medium'}
+        onClick={handleViewDetails}
+        aria-label={`Voir les détails de ${product.name}`}
+        sx={[
+          {
+            position: 'relative',
+            ...sweepHoverSx({
+              fill: theme.palette.primary.main,
+              hoverColor: theme.palette.primary.contrastText,
+            }),
+            bgcolor: 'action.hover',
+          },
+          ...(homeGrid ? [homeProductPreviewButtonSx] : []),
+        ]}
+      >
+        <Visibility fontSize={isMobile ? 'small' : 'medium'} />
+      </IconButton>
+    </Tooltip>
+  );
+
   return (
     <StyledCard
+      component="article"
       className={`product-card ${className}`}
       elevation={elevation}
       elevationHover={8}
       isMobile={isMobile}
-      onClick={handleCardClick}
-      sx={{ cursor: 'pointer' }}
       aria-label={`Produit: ${product.name}`}
+      sx={homeGrid || compactMobile ? homeProductCardSx : undefined}
       {...props}
     >
-      {/* ── IMAGE ZONE (seule partie modifiée) ── */}
-      <ImageZone>
+      {(homeGrid || (compactMobile && isMobile)) && (
+        <Box
+          component={Link}
+          href={'/product/' + product.id}
+          className="home-product-card-link"
+          aria-label={'Voir le produit ' + product.name}
+          sx={homeProductLinkSx}
+        />
+      )}
+
+      <ImageZone sx={homeGrid || compactMobile ? homeProductImageZoneSx : undefined}>
 
         {/* Skeleton visible pendant le chargement */}
         {imageLoading && hasImage && (
@@ -259,48 +375,60 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         <ImageInner className="product-image-inner">
           {hasImage ? (
-            <Box
-              component="img"
-              src={getImageUrl(product.cover_image_url)}
-              alt={product.name}
-              loading="lazy"
-              decoding="async"
-              onLoad={() => setImageLoading(false)}
-              onError={() => { setImageLoading(false); setImageError(true); }}
-              sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',           // full-bleed — couvre toute la zone
-                objectPosition: 'center top', // cadrage haut-centré (UI screenshots)
-                opacity: imageLoading ? 0 : 1,
-                transition: 'opacity 0.35s ease, transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94)',
-                display: 'block',
-                filter: 'brightness(1.04) contrast(1.03)', // micro-boost netteté/contraste
-              }}
-            />
+            isCompactMobile ? (
+              <Image
+                src={getImageUrl(product.cover_image_url)}
+                alt={product.name}
+                fill
+                sizes="(max-width: 600px) 50vw, 25vw"
+                loading="lazy"
+                onLoad={() => setImageLoading(false)}
+                onError={() => { setImageLoading(false); setImageError(true); }}
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  opacity: imageLoading ? 0 : 1,
+                }}
+              />
+            ) : (
+              <Box
+                component="img"
+                src={getImageUrl(product.cover_image_url)}
+                alt={product.name}
+                loading="lazy"
+                decoding="async"
+                onLoad={() => setImageLoading(false)}
+                onError={() => { setImageLoading(false); setImageError(true); }}
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center top',
+                  opacity: imageLoading ? 0 : 1,
+                  transition: 'opacity 0.35s ease, transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94)',
+                  display: 'block',
+                  filter: 'brightness(1.04) contrast(1.03)',
+                }}
+              />
+            )
           ) : (
-            /* Fallback élégant quand pas d'image */
             <Box
-              sx={{
+              sx={isCompactMobile ? homeProductPlaceholderSx : {
                 width: '100%',
                 height: '100%',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 1,
+                backgroundColor: '#F1ECE3',
                 color: 'text.disabled',
               }}
             >
-              <InfoIcon sx={{ fontSize: 50, opacity: 0.4 }} />
-              <Typography variant="caption" sx={{ opacity: 0.5, fontSize: '0.65rem' }}>
-                Image non disponible
-              </Typography>
+              <ImageOutlined sx={{ fontSize: 36 }} aria-hidden="true" />
             </Box>
           )}
         </ImageInner>
 
-        {/* ── Bouton favori ── */}
+        {/* ── Bouton favori (inchangé) ── */}
         {onToggleFavorite && showFavorite && (
           <Tooltip
             title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
@@ -312,30 +440,69 @@ const ProductCard: React.FC<ProductCardProps> = ({
               size="small"
               aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               aria-pressed={isFavorite}
+              sx={[
+                sweepHoverSx({
+                  fill: theme.palette.background.paper,
+                  hoverColor: theme.palette.primary.main,
+                  hoverBorderColor: theme.palette.primary.main,
+                }),
+                ...(homeGrid || compactMobile ? [homeProductFavoriteButtonSx] : []),
+                {
+                  '@media (hover: hover)': {
+                    '&:hover .MuiSvgIcon-root': { color: theme.palette.primary.main },
+                  },
+                },
+              ]}
             >
               {isFavorite
                 ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'error.main' }} />
-                : <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'primary.contrastText' }} />
+                : <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 22.5 }, color: { xs: 'primary.main', sm: 'primary.contrastText' } }} />
               }
             </FavoriteButton>
+          </Tooltip>
+        )}
+
+        {/* ── Aperçu (œil) sur l'image — mobile home uniquement ── */}
+        {showActions && isCompactMobile && (
+          <Tooltip title="Aperçu rapide" arrow placement="left">
+            <IconButton
+              size="small"
+              onClick={handleViewDetails}
+              aria-label="Aperçu rapide"
+              sx={homeProductPreviewOnImageSx}
+            >
+              <VisibilityOutlined />
+            </IconButton>
           </Tooltip>
         )}
       </ImageZone>
       {/* ── FIN IMAGE ZONE ── */}
 
-      {/* ── TEXTE / PRIX / ACTIONS — INCHANGÉS ── */}
-      <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2.5 } }}>
-        <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
+      <CardContent
+        sx={[
+          { flexGrow: 1, p: { xs: 1.5, sm: 2.5 } },
+          ...(homeGrid || compactMobile ? [homeProductContentSx] : []),
+        ]}
+      >
+        <Box
+          sx={[
+            homeGrid ? homeProductMetaSx : { mb: { xs: 0.5, sm: 1 } },
+            ...(addCompactMobileSx ? [homeProductMetaSx] : []),
+          ]}
+        >
           {product.category_name && (
             <Typography
               variant="caption"
-              sx={{
-                color: 'primary.main',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                fontSize: '0.7rem',
-              }}
+              sx={[
+                homeGrid ? homeProductCategorySx : {
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  fontSize: '0.7rem',
+                },
+                ...(addCompactMobileSx ? [homeProductCategorySx] : []),
+              ]}
             >
               {product.category_name}
             </Typography>
@@ -343,12 +510,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {product.slug && (
             <Typography
               variant="caption"
-              sx={{
-                color: 'text.secondary',
-                ml: product.category_name ? 1 : 0,
-                fontSize: '0.65rem',
-                fontStyle: 'italic',
-              }}
+              sx={[
+                homeGrid ? homeProductSlugSx : {
+                  color: 'text.secondary',
+                  ml: product.category_name ? 1 : 0,
+                  fontSize: '0.65rem',
+                  fontStyle: 'italic',
+                },
+                ...(addCompactMobileSx ? [homeProductSlugSx] : []),
+              ]}
             >
               {product.slug}
             </Typography>
@@ -359,143 +529,189 @@ const ProductCard: React.FC<ProductCardProps> = ({
           gutterBottom
           variant="subtitle1"
           component="h3"
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: '0.92rem', sm: '1.05rem' },
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            minHeight: { xs: '2.4em', sm: '3em' },
-            mb: { xs: 0.375, sm: 0.75 },
-          }}
+          sx={[
+            homeGrid ? homeProductNameSx : {
+              fontWeight: 600,
+              fontSize: { xs: '0.92rem', sm: '1.05rem' },
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              minHeight: { xs: '2.4em', sm: '3em' },
+              mb: { xs: 0.375, sm: 0.75 },
+            },
+            ...(addCompactMobileSx ? [homeProductNameSx] : []),
+          ]}
         >
           {product.name}
         </Typography>
 
-        <Box sx={{ mt: { xs: 0.25, sm: 'auto' } }}>
-          <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
-            {originalPrice && Number(originalPrice) > Number(product.price) && (
+        {isCompactMobile ? (
+          /* ── Mobile compact : lignes 3 à 5 ──────────────────────────── */
+          <Box sx={homeProductPriceBlockSx}>
+            {hasDiscount && (
+              <Box sx={homeProductOldPriceRowSx}>
+                <Typography
+                  variant="body2"
+                  color="text.disabled"
+                  sx={homeProductOriginalPriceSx}
+                >
+                  {fmt(Number(originalPrice))}
+                </Typography>
+                <Chip
+                  label={`-${discountPercentage}%`}
+                  size="small"
+                  color="error"
+                  sx={homeProductDiscountChipSx}
+                />
+              </Box>
+            )}
+
+            <Box sx={homeProductCurrentPriceRowSx}>
               <Typography
-                variant="body2"
-                color="text.disabled"
-                sx={{ textDecoration: 'line-through', mb: 0, fontWeight: 500, fontSize: { xs: '0.78rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}
+                variant="h6"
+                component="div"
+                color="primary"
+                sx={homeProductCurrentPriceSx}
               >
-                {fmt(Number(originalPrice))}
+                {fmt(displayPrice)}
+                {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
+                  <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    (gros)
+                  </Typography>
+                )}
+              </Typography>
+              {showActions && cartButton}
+            </Box>
+
+            {hasDiscount && (
+              <Typography variant="body2" component="p" sx={homeProductSavingsSx}>
+                Économisez{' '}
+                <Box component="span" sx={homeProductMoneySx}>
+                  {fmt(savingsAmount)}
+                </Box>
               </Typography>
             )}
-            <Typography
-              variant="h6"
-              component="div"
-              color="primary"
-              sx={{
-                fontSize: { xs: '0.95rem', sm: '1.3rem' },
-                fontWeight: 600,
-                lineHeight: 1.2,
-                whiteSpace: 'nowrap',
-                fontVariantNumeric: 'tabular-nums',
-                overflowWrap: 'anywhere',
-                minWidth: 0,
-              }}
-            >
-              {fmt(displayPrice)}
-              {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
-                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                  (gros)
+
+            {userType === 'wholesale' && (
+              <Typography variant="caption" color="text.secondary" sx={homeProductWholesaleNoteSx}>
+                {product.wholesale_price || product.cost_price
+                  ? 'Prix spécial pour commandes en gros'
+                  : 'Contactez-nous pour les prix de gros'}
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          /* ── Desktop / tablette : structure historique inchangée ────── */
+          <Box sx={homeGrid ? homeProductPriceBlockSx : { mt: { xs: 0.25, sm: 'auto' } }}>
+            <Box sx={homeGrid ? homeProductPriceRowSx : { display: 'flex', flexWrap: 'nowrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
+              {hasDiscount && (
+                <Typography
+                  variant="body2"
+                  color="text.disabled"
+                  sx={homeGrid ? homeProductOriginalPriceSx : { textDecoration: 'line-through', mb: 0, fontWeight: 500, fontSize: { xs: '0.78rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}
+                >
+                  {fmt(Number(originalPrice))}
                 </Typography>
               )}
-            </Typography>
-          </Box>
-
-          {originalPrice && Number(originalPrice) > Number(product.price) && userType !== 'wholesale' && (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                columnGap: 1,
-                rowGap: 0.5,
-                flexWrap: 'wrap',
-                mt: { xs: 0.375, sm: 1 },
-                minWidth: 0,
-              }}
-            >
-              <Chip
-                label={`-${discountPercentage}%`}
-                size="small"
-                color="error"
-                sx={{ fontWeight: 600, fontSize: '0.7rem', height: 25, flexShrink: 0 }}
-              />
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, whiteSpace: 'nowrap', color: '#067647' }}
-              >
-                Économisez {fmt(savingsAmount)}
-              </Typography>
-            </Box>
-          )}
-
-          {userType === 'wholesale' && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              {product.wholesale_price || product.cost_price
-                ? 'Prix spécial pour commandes en gros'
-                : 'Contactez-nous pour les prix de gros'}
-            </Typography>
-          )}
-        </Box>
-      </CardContent>
-
-      {showActions && (
-        <CardActions
-          className="product-actions"
-          sx={{
-            p: { xs: 1.5, sm: 2.5 },
-            pt: { xs: 0.5, sm: 0.5 },
-            opacity: 1,
-            transition: 'opacity 0.2s ease, transform 0.2s ease',
-            '& button': { transition: 'background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease' },
-            '& button:hover': { transform: 'scale(1.05)' },
-          }}
-        >
-          <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ width: '100%' }}>
-            <Tooltip title="Ajouter au panier">
-              <IconButton
+                variant="h6"
+                component="div"
                 color="primary"
-                size={isMobile ? 'small' : 'medium'}
-                onClick={handleAddToCart}
-                aria-label={`Ajouter ${product.name} au panier`}
-                sx={{
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  boxShadow: theme.shadows[2],
-                  '&:hover': {
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    boxShadow: theme.shadows[4],
-                  },
+                sx={homeGrid ? homeProductCurrentPriceSx : {
+                  fontSize: { xs: '0.95rem', sm: '1.3rem' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                  fontVariantNumeric: 'tabular-nums',
+                  overflowWrap: 'anywhere',
+                  minWidth: 0,
                 }}
               >
-                <ShoppingCart fontSize={isMobile ? 'small' : 'medium'} />
-              </IconButton>
-            </Tooltip>
+                {fmt(displayPrice)}
+                {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
+                  <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    (gros)
+                  </Typography>
+                )}
+              </Typography>
+            </Box>
+
+            {(hasDiscount && userType !== 'wholesale') && (
+              <Box
+                sx={homeGrid ? homeProductDiscountRowSx : {
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  columnGap: 1,
+                  rowGap: 0.5,
+                  flexWrap: 'wrap',
+                  mt: { xs: 0.375, sm: 1 },
+                  minWidth: 0,
+                }}
+              >
+                {hasDiscount && (
+                  <Chip
+                    label={`-${discountPercentage}%`}
+                    size="small"
+                    color="error"
+                    sx={homeGrid ? homeProductDiscountChipSx : { fontWeight: 600, fontSize: '0.7rem', height: 25, flexShrink: 0 }}
+                  />
+                )}
+                {hasDiscount && (
+                  <Typography
+                    variant="body2"
+                    sx={homeGrid ? homeProductSavingsSx : { fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, whiteSpace: 'nowrap', color: '#067647' }}
+                  >
+                    Économisez {fmt(savingsAmount)}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {userType === 'wholesale' && (
+              <Typography variant="caption" color="text.secondary" sx={homeGrid ? homeProductWholesaleNoteSx : { display: 'block' }}>
+                {product.wholesale_price || product.cost_price
+                  ? 'Prix spécial pour commandes en gros'
+                  : 'Contactez-nous pour les prix de gros'}
+              </Typography>
+            )}
+          </Box>
+        )}
+      </CardContent>
+
+      {/* Rangée d'actions : desktop/tablette et cartes non compactes uniquement. */}
+      {showActions && !isCompactMobile && (
+        <CardActions
+          className="product-actions"
+          sx={[
+            {
+              ...(homeGrid ? { position: 'relative', zIndex: 2 } : {}),
+              p: { xs: 1.5, sm: 2.5 },
+              pt: { xs: 0.5, sm: 0.5 },
+              opacity: 1,
+              transition: 'opacity 0.2s ease, transform 0.2s ease',
+              '& button': {
+                transition: 'background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
+              },
+              '@media (hover: hover)': {
+                '& button:hover': { transform: 'scale(1.05)' },
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                transition: 'none',
+                '& button': { transition: 'none' },
+                '& button:hover': { transform: 'none' },
+              },
+            },
+            ...(homeGrid ? [homeProductActionsSx] : []),
+          ]}
+        >
+          <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ width: '100%' }}>
+            {cartButton}
 
             <Box sx={{ flexGrow: 1 }} />
 
-            <Tooltip title="Voir les détails">
-              <IconButton
-                size={isMobile ? 'small' : 'medium'}
-                onClick={handleViewDetails}
-                aria-label={`Voir les détails de ${product.name}`}
-                sx={{
-                  bgcolor: 'action.hover',
-                  '&:hover': { bgcolor: 'action.selected' },
-                }}
-              >
-                <Visibility fontSize={isMobile ? 'small' : 'medium'} />
-              </IconButton>
-            </Tooltip>
+            {previewButton}
           </Stack>
         </CardActions>
       )}

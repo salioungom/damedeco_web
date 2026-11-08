@@ -354,6 +354,7 @@ export function CategoryPage({
                                     userType={userType}
                                     isFavorite={favorites.includes(product.id.toString())}
                                     onToggleFavorite={onToggleFavorite}
+                                    homeGrid
                                 />
                             </Grid>
                         ))
