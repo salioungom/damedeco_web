@@ -754,7 +754,7 @@ export function ProductDetailPage({
               ))}
             </Box>
           ) : similarProducts.length > 0 ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 }, alignItems: 'stretch' }}>
               <Reveal stagger={0.1} style={{ display: 'contents' }}>
                 {similarProducts.map((similarProduct) => (
                 <ProductCard
@@ -765,6 +765,7 @@ export function ProductDetailPage({
                   userType={userType}
                   isFavorite={favorites.includes(String(similarProduct.id))}
                   onToggleFavorite={onToggleFavorite}
+                  compactMobile
                 />
                 ))}
               </Reveal>

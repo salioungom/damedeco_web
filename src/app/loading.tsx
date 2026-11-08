@@ -49,7 +49,7 @@ function ProductGridSkeleton() {
             <Skeleton variant="text" sx={{ fontSize: 14, width: '88%', mt: 0.5 }} />
             <Skeleton variant="text" sx={{ fontSize: 14, width: '64%' }} />
             <Skeleton variant="text" sx={{ fontSize: 15, width: '55%', mt: 1 }} />
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+            <Stack direction="row" sx={{ mt: 1, justifyContent: 'space-between' }}>
               <Skeleton variant="circular" width={40} height={40} />
               <Skeleton variant="circular" width={40} height={40} />
             </Stack>
