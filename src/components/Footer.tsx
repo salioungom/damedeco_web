@@ -106,8 +106,8 @@ export function Footer() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
   return (
-    <footer sx={{ bgcolor: INK, color: WHITE, width: '100%' }}>
-      <Container maxWidth={false} disableGutters sx={{ position: 'relative', zIndex: 1 }}>
+    <footer>
+      <Container maxWidth={false} disableGutters sx={{ position: 'relative', zIndex: 1, bgcolor: INK, color: WHITE, width: '100%' }}>
         {/* Grid de base: xs=1col, sm=2col, lg=4col (desktop préservé) */}
         <Box
           sx={{
@@ -265,9 +265,9 @@ export function Footer() {
           )}
 
           {/* ── Moyens de paiement ───────────────────────────────────────────── */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, height: 36, minWidth: 36 }}>
             <Typography sx={{ ...mobileHeadingSx, order: 1 }}>Paiement accepté</Typography>
-            <PaymentIcons size="sm" sx={{ order: 2, flexWrap: 'wrap', height: 36, minWidth: 36 }} />
+            <PaymentIcons size="sm" />
           </Box>
         </Box>
 
@@ -289,7 +289,7 @@ export function Footer() {
                   href={href}
                   sx={{ ...linkSx, margin: '0 16px' }}
                 >
-                  {labels[path]}
+                  {labels[path as keyof typeof labels]}
                 </MuiLink>
               );
             })}
