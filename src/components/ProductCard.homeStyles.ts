@@ -121,23 +121,23 @@ export const homeProductPriceRowSx: SxProps<Theme> = (theme) => ({
   },
 });
 
-/** Ancien prix : barré bien visible, 12px, gris. */
+/** Ancien prix : barré bien visible sur tous les écrans, 12px gris en mobile. */
 export const homeProductOriginalPriceSx: SxProps<Theme> = (theme) => ({
+  textDecoration: 'line-through',
   [theme.breakpoints.down('sm')]: {
     mb: 0,
     fontSize: '12px',
     fontWeight: 500,
     color: '#7A8190',
-    textDecoration: 'line-through',
     whiteSpace: 'nowrap',
   },
 });
 
-/** Prix actuel : 15px, 700, bleu de la charte (via color="primary"). */
+/** Prix actuel : 15px, 700, bleu de la charte (via color="primary") — Inter sur tous les écrans (h6 est serif dans le thème). */
 export const homeProductCurrentPriceSx: SxProps<Theme> = (theme) => ({
+  fontFamily: FONT_INTER,
   [theme.breakpoints.down('sm')]: {
     minWidth: 0,
-    fontFamily: FONT_INTER,
     fontSize: '15px',
     fontWeight: 700,
     lineHeight: 1.25,

@@ -520,6 +520,7 @@ export function ShopPage({
                     userType={userType}
                     isFavorite={favorites.includes(product.id.toString())}
                     onToggleFavorite={onToggleFavorite}
+                    homeGrid
                   />
                 ))}
               </Box>
