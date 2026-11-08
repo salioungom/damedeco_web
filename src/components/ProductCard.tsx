@@ -30,6 +30,7 @@ import { Product } from '../types/product';
 import { getImageUrl } from '@/lib/imageUtils';
 import { formatFcfa } from '@/lib/format';
 import { sweepHoverSx } from './ui/sweepHover';
+import { mergeSx } from '@/lib/mergeSx';
 import {
   homeProductActionsSx,
   homeProductCardSx,
@@ -295,7 +296,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         size={isMobile ? 'small' : 'medium'}
         onClick={handleAddToCart}
         aria-label={`Ajouter ${product.name} au panier`}
-        sx={[
+        sx={mergeSx(
           {
             position: 'relative',
             ...sweepHoverSx({
@@ -310,7 +311,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             boxShadow: theme.shadows[2],
           },
           ...(homeGrid || compactMobile ? [homeProductCartButtonSx] : []),
-        ]}
+        )}
       >
         <ShoppingCart fontSize={isMobile ? 'small' : 'medium'} />
       </IconButton>
@@ -324,7 +325,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         size={isMobile ? 'small' : 'medium'}
         onClick={handleViewDetails}
         aria-label={`Voir les détails de ${product.name}`}
-        sx={[
+        sx={mergeSx(
           {
             position: 'relative',
             ...sweepHoverSx({
@@ -334,7 +335,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             bgcolor: 'action.hover',
           },
           ...(homeGrid ? [homeProductPreviewButtonSx] : []),
-        ]}
+        )}
       >
         <Visibility fontSize={isMobile ? 'small' : 'medium'} />
       </IconButton>
@@ -440,7 +441,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               size="small"
               aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               aria-pressed={isFavorite}
-              sx={[
+              sx={mergeSx(
                 sweepHoverSx({
                   fill: theme.palette.background.paper,
                   hoverColor: theme.palette.primary.main,
@@ -452,7 +453,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     '&:hover .MuiSvgIcon-root': { color: theme.palette.primary.main },
                   },
                 },
-              ]}
+              )}
             >
               {isFavorite
                 ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: 'error.main' }} />
@@ -479,21 +480,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
       {/* ── FIN IMAGE ZONE ── */}
 
       <CardContent
-        sx={[
+        sx={mergeSx(
           { flexGrow: 1, p: { xs: 1.5, sm: 2.5 } },
           ...(homeGrid || compactMobile ? [homeProductContentSx] : []),
-        ]}
+        )}
       >
         <Box
-          sx={[
+          sx={mergeSx(
             homeGrid ? homeProductMetaSx : { mb: { xs: 0.5, sm: 1 } },
             ...(addCompactMobileSx ? [homeProductMetaSx] : []),
-          ]}
+          )}
         >
           {product.category_name && (
             <Typography
               variant="caption"
-              sx={[
+              sx={mergeSx(
                 homeGrid ? homeProductCategorySx : {
                   color: 'primary.main',
                   fontWeight: 600,
@@ -502,7 +503,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   fontSize: '0.7rem',
                 },
                 ...(addCompactMobileSx ? [homeProductCategorySx] : []),
-              ]}
+              )}
             >
               {product.category_name}
             </Typography>
@@ -510,7 +511,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {product.slug && (
             <Typography
               variant="caption"
-              sx={[
+              sx={mergeSx(
                 homeGrid ? homeProductSlugSx : {
                   color: 'text.secondary',
                   ml: product.category_name ? 1 : 0,
@@ -518,7 +519,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   fontStyle: 'italic',
                 },
                 ...(addCompactMobileSx ? [homeProductSlugSx] : []),
-              ]}
+              )}
             >
               {product.slug}
             </Typography>
@@ -529,7 +530,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           gutterBottom
           variant="subtitle1"
           component="h3"
-          sx={[
+          sx={mergeSx(
             homeGrid ? homeProductNameSx : {
               fontWeight: 600,
               fontSize: { xs: '0.92rem', sm: '1.05rem' },
@@ -541,7 +542,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               mb: { xs: 0.375, sm: 0.75 },
             },
             ...(addCompactMobileSx ? [homeProductNameSx] : []),
-          ]}
+          )}
         >
           {product.name}
         </Typography>
@@ -684,7 +685,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       {showActions && !isCompactMobile && (
         <CardActions
           className="product-actions"
-          sx={[
+          sx={mergeSx(
             {
               ...(homeGrid ? { position: 'relative', zIndex: 2 } : {}),
               p: { xs: 1.5, sm: 2.5 },
@@ -704,7 +705,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               },
             },
             ...(homeGrid ? [homeProductActionsSx] : []),
-          ]}
+          )}
         >
           <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ width: '100%' }}>
             {cartButton}

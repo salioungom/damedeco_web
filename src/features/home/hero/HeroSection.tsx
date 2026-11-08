@@ -222,7 +222,7 @@ export default function HeroSection({
           </Grid>
 
           <Grid size={{ xs: 12, lg: 7 }} sx={heroImageGridSx}>
-            <Grid container direction="column" sx={heroImageColumnSx}>
+            <Grid container sx={{ ...heroImageColumnSx, flexDirection: 'column' }}>
               <Grid size={12}>
                 <HeroImage
                   featuredProduct={featuredProduct}
