@@ -23,7 +23,27 @@
  * Effet mesuré : 4 704 ms → 2 906 ms sur le test le plus lent, soit une marge
  * de 42 % au lieu de 6 % sous le budget de 5 s. Le reste de la suite est
  * également accéléré (1 380 ms → 1 152 ms, 1 469 ms → 1 245 ms, …).
+ *
+ * Mock next/font/google pour Vitest : les polices Next.js ne fonctionnent pas
+ * dans jsdom, elles renverraient `Inter is not a function`. Ce mock fournit le
+ * même format d'objet que le compilateur Next.js, de façon que les composants
+ * important `Inter`/`Fraunces`/etc. depuis `theme.ts` continuent de fonctionner.
  */
+
+import { vi } from 'vitest';
+
+vi.mock('next/font/google', () => {
+  const makeFont = (family: string) => () => ({
+    className: `font-${family.toLowerCase()}`,
+    variable: `--font-${family.toLowerCase()}`,
+    style: { fontFamily: `'${family}', sans-serif` },
+  });
+  return {
+    Inter: makeFont('Inter'),
+    Fraunces: makeFont('Fraunces'),
+    DM_Serif_Display: makeFont('DM_Serif_Display'),
+  };
+});
 
 import { render, cleanup } from '@testing-library/react';
 import Paper from '@mui/material/Paper';
