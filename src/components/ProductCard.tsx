@@ -62,8 +62,8 @@ import {
 // ─── Styled components ───────────────────────────────────────────────────────
 
 const StyledCard = muiStyled(Card, {
-  shouldForwardProp: (prop: string) => !['elevationHover', 'isMobile'].includes(prop),
-})<{ elevationHover?: number; isMobile?: boolean }>(({ theme, elevationHover = 8, isMobile = false }: any) => ({
+  shouldForwardProp: (prop: string) => !['elevationHover', 'isMobile', 'component'].includes(prop),
+})<{ elevationHover?: number; isMobile?: boolean; component?: string }>(({ theme, elevationHover = 8, isMobile = false, component }: any) => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
