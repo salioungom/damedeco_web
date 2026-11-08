@@ -9,15 +9,15 @@ import {
   IconButton,
   Stack,
   useTheme,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   LocationOn as MapPin,
   Phone,
   Email as Mail,
-  Facebook,
-  Instagram,
-  Twitter,
-  WhatsApp,
+  WhatsApp as WhatsAppIcon,
 } from '@mui/icons-material';
 import { PaymentIcons } from './PaymentIcons';
 import { BrandMark } from './ui/BrandMark';
@@ -41,84 +41,100 @@ const focusRingSx = {
   outlineOffset: '3px',
 };
 
-const NAV_LINKS = [
-  { label: 'Accueil', href: '/' },
-  { label: 'Boutique', href: '/shop' },
-  { label: 'À propos', href: '/about' },
-  { label: 'Contact', href: '/contact' },
-];
+/** Largeur de section mobile + marges latérales */
+const SIDEMARGIN = 20;
 
-const ACCOUNT_LINKS = [
-  { label: 'Connexion', href: '/login' },
-  { label: 'Mes commandes', href: '/account/orders' },
-  { label: 'Mes favoris', href: '/favorites' },
-];
+/** Titre de rubrique mobile : 11px, majuscule, doré — s'applique en < 600px */
+const mobileHeadingSx = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: GOLD,
+  letterSpacing: '0.15em',
+  textTransform: 'uppercase' as const,
+  mb: 16,
+};
 
-const SOCIALS = [
-  { Icon: Facebook, label: 'Facebook', href: '#' },
-  { Icon: Instagram, label: 'Instagram', href: '#' },
-  { Icon: Twitter, label: 'Twitter', href: '#' },
-  { Icon: WhatsApp, label: 'WhatsApp', href: '#' },
-];
-
+/** Sous-texte de lien : 15px, lineHeight 1.3, padding vertical 10px pour hit >= 44px */
 const linkSx = {
-  fontSize: { xs: 14.5, sm: 16, md: 17.5 },
+  fontSize: 15,
   color: LINK,
   textDecorationLine: 'none',
-  transition: 'color 0.15s ease, text-decoration-color 0.15s ease, transform 0.15s ease',
+  transition: 'color 0.15s ease, text-decoration-color 0.15s ease',
   display: 'block',
-  width: 'fit-content',
-  textUnderlineOffset: '3px',
+  padding: '10px 0',
+  lineHeight: 1.3,
+  minHeight: 44,
   '&:hover': {
     color: WHITE,
     textDecorationLine: 'underline',
     textDecorationColor: GOLD,
-    transform: 'translateX(2px)',
   },
   '&:focus-visible': {
     ...focusRingSx,
-    color: WHITE,
     borderRadius: 2,
   },
 };
 
-const headingSx = {
-  fontSize: { xs: 11.5, sm: 12.5, md: 13.75 },
-  fontWeight: 700,
-  color: GOLD,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  mb: { xs: 1.5, sm: 2, md: 2.5 },
+/** Lien du copyright : 12px, atténué, centre */
+const copyrightSx = {
+  fontSize: 12,
+  color: MUTED,
+  textAlign: 'center',
 };
+
+/** Pastille de paiement : hauteur 36px, gap 8px */
+const paymentBadgeSx = {
+  height: 36,
+  minWidth: 36,
+  flexShrink: 0,
+};
+
+/*───────────────────────────────────────────────────────────────────────────
+  Footér — mobile first.
+  - Desktop (lg+): layout d'origine préservé (grid 4 colonnes).
+  - Mobile < 600px (xs): nouveau layout compact avec grille adaptée.
+  - Sm (600-900px): conserve le layout 2 colonnes d'origine.
+ ──────────────────────────────────────────────────────────────────────────*/
 
 export function Footer() {
   const theme = useTheme();
-  const mobileQuery = theme.breakpoints.down(768);
+  const mobileQuery = theme.breakpoints.down('sm'); // < 600 px (xs)
+  const smQuery = theme.breakpoints.down('md'); // < 900 px (sm)
   const { categories } = useCategories();
+
+  // Extraire le numéro WhatsApp depuis les env vars s'il existe
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+
   return (
-    <Box
-      component="footer"
-      sx={{
-        mt: 'auto',
-        bgcolor: INK,
-        color: WHITE,
-        position: 'relative',
-        overflow: 'hidden',
-        [mobileQuery]: { '& a': { minHeight: 44, display: 'flex', alignItems: 'center' } },
-      }}
-    >
-      <Container maxWidth={false} disableGutters sx={{ ...CONTENT_CONTAINER_SX, position: 'relative', zIndex: 1 }}>
+    <footer sx={{ bgcolor: INK, color: WHITE, width: '100%' }}>
+      <Container maxWidth={false} disableGutters sx={{ position: 'relative', zIndex: 1 }}>
+        {/* Grid de base: xs=1col, sm=2col, lg=4col (desktop préservé) */}
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: '1.4fr 1fr 1fr 1.2fr' },
             gap: { xs: 3, sm: 4, md: 5 },
             py: { xs: 3.5, sm: 4.5, md: 6, lg: 7 },
-            [mobileQuery]: { gap: '24px', py: '28px' },
+            // Sur mobile < 600px, on remplace par le layout compact
+            [mobileQuery]: {
+              gap: 24,
+              py: '28px',
+              // On empêche le header desktop de se superposer
+              mb: 0,
+            },
           }}
         >
-          {/* Marque */}
-          <Box>
+          {/* ── Marque + Coordonnées ── */}
+          <Box
+            sx={{
+              // Desktop: comportement d'origine; Mobile: colonne unique empilée
+              [mobileQuery]: {
+                flexDirection: 'column',
+                gap: 12,
+                mb: 24,
+              },
+            }}
+          >
             <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
               <BrandMark variant="inverse" />
               <Box>
@@ -134,26 +150,83 @@ export function Footer() {
             <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 }, [mobileQuery]: { fontSize: '14px', lineHeight: 1.5, mb: '16px' } }}>
               Importation de produits premium depuis la Chine. Votre partenaire de confiance à Dakar depuis 2010.
             </Typography>
+          </Box>
 
-            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
+          {/* Coordonnées : texte + liens tel/mailto (uniquement en mobile) */}
+          {/** N'afficher les coordonnées lien que sur mobile < 600px */}
+          {mobileQuery && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 12, mb: 24 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Typography sx={{ fontSize: 12, color: MUTED }}>Dakar, Sénégal</Typography>
+                <Box component="div" sx={{ my: 4 }}>
+                  <MuiLink component={Link} href={`tel:+221771333658}`} sx={linkSx}>
+                    +221 77 133 36 58
+                  </MuiLink>
+                  <MuiLink component={Link} href={`mailto:damedeco1@gmail.com`} sx={linkSx}>
+                    damedeco1@gmail.com
+                  </MuiLink>
+                </Box>
+                {/* WhatsApp : uniquement si la variable d'existence est définie */}
+                {whatsappNumber && (
+                  <MuiLink component={Link} href={`wa.me/${whatsappNumber}`} sx={linkSx}>
+                    {whatsappNumber}
+                  </MuiLink>
+                )}
+              </Box>
+            </Box>
+          )}
+
+          {/* ── Navigation ───────────────────────────────────────────────────── */}
+          {/* Desktop: dans la grille 4 colonnes d'origine.
+             Mobile < 600px: 2 colonnes côte à côte. */}
+          <Box
+            component="nav"
+            aria-label="Navigation du pied de page"
+            sx={{
+              // En mobile < 600px: 2 colonnes avec gap 24px
+              [mobileQuery]: {
+                gridColumn: 'span 2',
+                marginBottom: 24,
+              },
+            }}
+          >
+            <Typography sx={{ ...mobileHeadingSx }}>Navigation</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24, mb: 24 }}>
+              <Stack direction="column" spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
+                {[
+                  { label: 'Accueil', href: '/' },
+                  { label: 'Boutique', href: '/shop' },
+                  { label: 'À propos', href: '/about' },
+                  { label: 'Contact', href: '/contact' },
+                ].map((link) => (
+                  <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
+                    {link.label}
+                  </MuiLink>
+                ))}
+              </Stack>
+            </Box>
+          </Box>
+
+          {/* ── Mon compte ───────────────────────────────────────────────────── */}
+          {/* Mobile < 600px: côte à côte avec Navigation (déjà dans la même grille 2 colonnes).
+             Desktop: dans la grille 4 colonnes d'origine. */}
+          <Box
+            component="nav"
+            aria-label="Mon compte du pied de page"
+            sx={{
+              [mobileQuery]: {
+                gridColumn: 'span 2',
+                marginBottom: 24,
+              },
+            }}
+          >
+            <Typography sx={{ ...mobileHeadingSx }}>Mon compte</Typography>
+            <Stack direction="column" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: 2.5 }}>
               {[
-                { icon: <MapPin sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: '+221 77 133 36 58' },
-                { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'damedeco1@gmail.com' },
-              ].map((item) => (
-                <Stack key={item.value} direction="row" spacing={{ xs: 1, sm: 1.15, md: 1.25 }} sx={{ alignItems: 'center' }}>
-                  <Box sx={{ color: LINK, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: MUTED }}>{item.value}</Typography>
-                </Stack>
-              ))}
-            </Stack>
-          </Box>
-
-          {/* Navigation */}
-          <Box>
-            <Typography sx={{ ...headingSx, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Navigation</Typography>
-            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
-              {NAV_LINKS.map((link) => (
+                { label: 'Connexion', href: '/login' },
+                { label: 'Mes commandes', href: '/account/orders' },
+                { label: 'Mes favoris', href: '/favorites' },
+              ].map((link) => (
                 <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
                   {link.label}
                 </MuiLink>
@@ -161,84 +234,68 @@ export function Footer() {
             </Stack>
           </Box>
 
-          {/* Catégories */}
-          <Box>
-            <Typography sx={{ ...headingSx, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Catégories</Typography>
-            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
-              {(Array.isArray(categories) ? categories : []).map((cat) => (
-                <MuiLink
-                  key={cat.id}
-                  component={Link}
-                  href={`/shop?category=${cat.id}`}
-                  sx={linkSx}
-                >
-                  {cat.name}
-                </MuiLink>
-              ))}
-            </Stack>
-          </Box>
+          {/* ── Catégories ───────────────────────────────────────────────────── */}
+          {/* Si la liste est vide ou en erreur, NE REND PAS la rubrique (ni titre ni espace) */}
+          {categories && categories.length > 0 && (
+            <Box
+              component="nav"
+              aria-label="Catégories du pied de page"
+              sx={{
+                // Mobile < 600px: pleine largeur, liens en 2 colonnes
+                [mobileQuery]: {
+                  gridColumn: 'span 1',
+                  mb: 24,
+                },
+              }}
+            >
+              <Typography sx={{ ...mobileHeadingSx }}>Catégories</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginTop: 8 }}>
+                {(Array.isArray(categories) ? categories : []).map((cat) => (
+                  <MuiLink
+                    key={cat.id}
+                    component={Link}
+                    href={`/shop?category=${cat.id}`}
+                    sx={linkSx}
+                  >
+                    {cat.name}
+                  </MuiLink>
+                ))}
+              </Box>
+            </Box>
+          )}
 
-          {/* Compte + paiement */}
-          <Box>
-            <Typography sx={{ ...headingSx, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Mon compte</Typography>
-            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2.5, sm: 3, md: 4 } }}>
-              {ACCOUNT_LINKS.map((link) => (
-                <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
-                  {link.label}
-                </MuiLink>
-              ))}
-            </Stack>
-
-            <Typography sx={{ ...headingSx, mb: { xs: 1.5, sm: 1.75, md: 2 }, [mobileQuery]: { fontSize: '12px', mb: '10px' } }}>Paiement accepté</Typography>
-            <PaymentIcons size="sm" />
+          {/* ── Moyens de paiement ───────────────────────────────────────────── */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+            <Typography sx={{ ...mobileHeadingSx, order: 1 }}>Paiement accepté</Typography>
+            <PaymentIcons size="sm" sx={{ order: 2, flexWrap: 'wrap', height: 36, minWidth: 36 }} />
           </Box>
         </Box>
 
-      {/* Barre basse — même fond, séparateur aligné sur le conteneur */}
-      <Box
-          sx={{
-            borderTop: `1px solid ${RULE}`,
-            py: { xs: 2, sm: 2.5, md: 3, lg: 4 },
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr auto' },
-            alignItems: 'center',
-            gap: { xs: 2, sm: 2.25, md: 2 },
-          }}
-        >
-          <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: MUTED, textAlign: { xs: 'center', md: 'left' } }}>
-              © {new Date().getFullYear()} DameDéco · Tous droits réservés · Dakar, Sénégal
+        {/* Barre du bas — filet + copyright -->
+        Uniquement en dessous de la grid (tousécrans). */}
+        <Box sx={{ borderTop: `1px solid ${RULE}`, py: 16, marginTop: 32 }}>
+          <Typography sx={copyrightSx}>
+            © {new Date().getFullYear()} DameDéco. Tous droits réservés.
           </Typography>
-
-          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ justifyContent: { xs: 'center', md: 'flex-end' } }}>
-            {SOCIALS.map(({ Icon, label, href }) => (
-              <IconButton
-                key={label}
-                component="a"
-                href={href}
-                aria-label={label}
-                size="small"
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  border: `1px solid ${SOCIAL_RULE}`,
-                  color: LINK,
-                  position: 'relative',
-                  ...sweepHoverSx({
-                    fill: LINK,
-                    hoverColor: INK,
-                    hoverBorderColor: LINK,
-                  }),
-                  '&:focus-visible': focusRingSx,
-                  [mobileQuery]: { width: 44, height: 44, minWidth: 44, minHeight: 44 },
-                }}
-              >
-                <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 } }} />
-              </IconButton>
-            ))}
+          {/* Liens légaux s'ils existent déjà dans le projet (mentions légales, CGV) */}
+          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ justifyContent: 'center' }}>
+            {['mentions-legales', 'cgv'].map((path) => {
+              const labels = { mentionsLegales: 'Mentions légales', cgv: 'CGV' };
+              const href = `/${path}`;
+              return (
+                <MuiLink
+                  key={path}
+                  component={Link}
+                  href={href}
+                  sx={{ ...linkSx, margin: '0 16px' }}
+                >
+                  {labels[path]}
+                </MuiLink>
+              );
+            })}
           </Stack>
-      </Box>
+        </Box>
       </Container>
-    </Box>
+    </footer>
   );
 }
