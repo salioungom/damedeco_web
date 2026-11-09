@@ -86,7 +86,7 @@ export function CategoryPage({
         };
 
         loadCategoryAndProducts();
-    }, [categorySlug]);
+    }, [categorySlug, categories]);
 
     if (categoriesLoading || loading) return <LoadingSpinner />;
 
