@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import { ChevronLeft, GridView as GridViewIcon } from '@mui/icons-material';
 import ProductCard from './ProductCard';
-import { useCategories } from '../hooks/useCategories';
+import { useCategories } from '../hooks/useCategories.client';
 import { LoadingSpinner } from './common/LoadingSpinner';
 import type { Product } from '../lib/types';
 import { productService } from '../services/product.service';
@@ -45,7 +45,7 @@ export function CategoryPage({
     const searchParams = useSearchParams();
     const categorySlug = searchParams.get('slug');
     const [sortBy, setSortBy] = useState<string>('popular');
-    const { categories, loading: categoriesLoading, error: categoriesError, getCategoryBySlug } = useCategories();
+    const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
     const [currentCategory, setCurrentCategory] = useState<any>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ export function CategoryPage({
         const loadCategoryAndProducts = async () => {
             try {
                 setLoading(true);
-                const category = await getCategoryBySlug(categorySlug);
+                const category = categories.find((cat) => cat.slug === categorySlug);
                 setCurrentCategory(category);
 
                 if (category) {
@@ -86,14 +86,14 @@ export function CategoryPage({
         };
 
         loadCategoryAndProducts();
-    }, [categorySlug, getCategoryBySlug]);
+    }, [categorySlug]);
 
     if (categoriesLoading || loading) return <LoadingSpinner />;
 
     if (categoriesError || error) {
         return (
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
-                <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{categoriesError ? categoriesError.message : error}</Alert>
+                <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{categoriesError ? categoriesError : error}</Alert>
                 <Button variant="outlined" startIcon={<ChevronLeft />} onClick={() => router.back()}>
                     Retour
                 </Button>

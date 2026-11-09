@@ -24,6 +24,11 @@ import {
   socialCellSx,
 } from './footerStyles';
 
+type CategoryLink = {
+  name: string;
+  id: number | string;
+};
+
 const whatsappNumber =
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, '') || SITE.phoneTel;
 
@@ -37,9 +42,11 @@ export async function Footer() {
     );
   }
 
-  const categoryLinks = categories.slice(0, MAX_CATEGORIES).map((category) => ({
-    label: category.name,
-    href: `/shop?category=${category.id}`,
+  const categoryLinks = categories
+    .slice(0, MAX_CATEGORIES)
+    .map((category: CategoryLink) => ({
+      label: category.name,
+      href: `/shop?category=${category.id}`,
   }));
   const hasMoreCategories = categories.length > MAX_CATEGORIES;
   const allCategoryLinks = hasMoreCategories
