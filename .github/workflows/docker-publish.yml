@@ -60,7 +60,7 @@ jobs:
               ;;
           esac
           case "$API_URL" in
-            https://api-damedeco.shop|https://api-damedeco.shop/) ;;
+            https://api.damedeco.shop|https://api.damedeco.shop/) ;;
             *)
               echo "::error::NEXT_PUBLIC_API_URL doit pointer vers l'API de production."
               exit 1

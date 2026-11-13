@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
       },
       { protocol: 'https', hostname: 'damedeco.shop' },
-      { protocol: 'https', hostname: 'api-damedeco.shop' },
+      { protocol: 'https', hostname: 'api.damedeco.shop' },
       // API locale pour le développement.
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: apiHostname },

@@ -7,7 +7,7 @@ import { Providers } from '@/components/Providers';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Footer } from '@/components/Footer';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://damedeco.shop';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://damedeco.shop';
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
