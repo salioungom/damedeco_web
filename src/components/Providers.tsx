@@ -3,7 +3,6 @@
 import { SnackbarProvider } from 'notistack';
 import { Box } from '@mui/material';
 import { Navigation } from './Navigation';
-import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from 'sonner';
@@ -148,7 +147,6 @@ export function Providers({ children }: ProvidersProps) {
             {children}
           </ErrorBoundary>
         </Box>
-        <Footer />
         <CartDrawer />
         <Toaster />
       </Box>

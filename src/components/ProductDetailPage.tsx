@@ -38,7 +38,7 @@ import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
 import Reveal from './motion/Reveal';
-import { PaymentIcons } from './PaymentIcons';
+import { FooterPayments } from './FooterPayments';
 import SweepButton from './ui/SweepButton';
 import { sweepHoverSx } from './ui/sweepHover';
 import { tokens } from '@/theme/tokens';
@@ -728,7 +728,7 @@ export function ProductDetailPage({
               <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text, mb: { xs: 1.5, sm: 1.75, md: 2 } }}>
                 Paiement sécurisé — Wave, Orange Money ou paiement à la livraison.
               </Typography>
-              <PaymentIcons size="md" showLabels />
+              <FooterPayments />
             </CustomTabPanel>
           </Box>
         </Paper>

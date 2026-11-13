@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Eyebrow } from '@/components/ui/PageHeader';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { EditorialList } from '@/components/ui/EditorialList';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories } from '@/hooks/useCategories.client';
 import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 

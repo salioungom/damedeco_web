@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import { Providers } from '@/components/Providers';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
     title: 'DameDéco - Import & Commerce',
@@ -24,6 +25,7 @@ export default function RootLayout({
                         <ThemeProvider theme={theme}>
                             <CssBaseline />
                             <Providers>{children}</Providers>
+                            <Footer />
                         </ThemeProvider>
                     </AppRouterCacheProvider>
                 </AuthProvider>
