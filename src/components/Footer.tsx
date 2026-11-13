@@ -1,5 +1,5 @@
 import { Box, Container } from '@mui/material';
-import { getCategories } from '@/hooks/useCategories';
+import { getCategories } from '@/hooks/useCategories.server';
 import { CONTENT_CONTAINER_SX } from './Navigation';
 import { FooterBrand } from './FooterBrand';
 import { FooterBottomBar } from './FooterBottomBar';
