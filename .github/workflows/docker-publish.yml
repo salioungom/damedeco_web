@@ -18,42 +18,70 @@ env:
 
 jobs:
   build-and-push:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Vérifier NEXT_PUBLIC_API_URL
+      - name: Vérifier les URLs de production
         env:
-          NEXT_PUBLIC_API_URL: https://api-staging.damedeco.shop/
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
         run: |
           API_URL="$NEXT_PUBLIC_API_URL"
+          SITE_URL="$NEXT_PUBLIC_SITE_URL"
           if [ -z "$API_URL" ]; then
             echo "::error::La variable NEXT_PUBLIC_API_URL est vide ou non définie."
+            exit 1
+          fi
+          if [ -z "$SITE_URL" ]; then
+            echo "::error::La variable NEXT_PUBLIC_SITE_URL est vide ou non définie."
             exit 1
           fi
           case "$API_URL" in
             https://*) ;;
             *)
-              echo "::error::NEXT_PUBLIC_API_URL doit commencer par https:// (valeur reçue : $API_URL)."
+              echo "::error::NEXT_PUBLIC_API_URL doit commencer par https://."
+              exit 1
+              ;;
+          esac
+          case "$SITE_URL" in
+            https://*) ;;
+            *)
+              echo "::error::NEXT_PUBLIC_SITE_URL doit commencer par https://."
+              exit 1
+              ;;
+          esac
+          case "$API_URL $SITE_URL" in
+            *staging*|*localhost*)
+              echo "::error::Les URLs de production ne doivent pas contenir staging ou localhost."
               exit 1
               ;;
           esac
           case "$API_URL" in
-            *localhost*)
-              echo "::error::NEXT_PUBLIC_API_URL ne doit pas contenir localhost pour une image de production."
+            https://api-damedeco.shop|https://api-damedeco.shop/) ;;
+            *)
+              echo "::error::NEXT_PUBLIC_API_URL doit pointer vers l'API de production."
               exit 1
               ;;
           esac
-          echo "NEXT_PUBLIC_API_URL valide pour la production ($API_URL)."
+          case "$SITE_URL" in
+            https://damedeco.shop|https://damedeco.shop/) ;;
+            *)
+              echo "::error::NEXT_PUBLIC_SITE_URL doit pointer vers le site de production."
+              exit 1
+              ;;
+          esac
 
       - name: Normaliser le nom de l'image en minuscules
         run: echo "IMAGE=${IMAGE,,}" >> "$GITHUB_ENV"
 
       - name: Vérifier la disponibilité de l'API
         env:
-          API_URL: https://api-staging.damedeco.shop/
+          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
         run: |
+          API_URL="${API_URL%/}"
           curl -fsS --retry 3 --retry-delay 2 --max-time 10 "$API_URL/health/ready"
 
       - name: Log in to GitHub Container Registry
@@ -87,7 +115,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            NEXT_PUBLIC_API_URL=https://api-staging.damedeco.shop/
-            API_URL_SERVER=https://api-staging.damedeco.shop/
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
+            API_URL_SERVER=${{ vars.API_URL_SERVER || vars.NEXT_PUBLIC_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

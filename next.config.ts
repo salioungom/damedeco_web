@@ -21,7 +21,9 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
-      // API locale (dev) + API staging/prod (Coolify)
+      { protocol: 'https', hostname: 'damedeco.shop' },
+      { protocol: 'https', hostname: 'api-damedeco.shop' },
+      // API locale pour le développement.
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: apiHostname },
     ],
