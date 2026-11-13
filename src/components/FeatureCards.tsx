@@ -6,7 +6,7 @@ import { Box, Stack, Typography, useTheme, alpha } from '@mui/material';
 import { FONT_DISPLAY } from '@/theme';
 import { tokens } from '@/theme/tokens';
 import styles from './HomePage.module.css';
-import { PaymentIcons } from './PaymentIcons';
+import { FooterPayments } from './FooterPayments';
 
 const C = {
   primary: tokens.colors.brand.main,
@@ -178,7 +178,7 @@ export function FeatureCards({ mobileQuery }: FeatureCardsProps) {
                     border: '1px solid var(--feature-payment-border)',
                   }}
                 >
-                  <PaymentIcons size="sm" />
+                  <FooterPayments />
                 </Box>
               </Box>
             )}
