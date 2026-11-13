@@ -3,7 +3,7 @@ import { useStore } from '@/store/useStore';
 import { cartService } from '@/services/cart.service';
 import { cartLog, cartError } from '@/lib/cart-logger';
 
-export function useCartSync() {
+export function useCartSync(mustChangePassword: boolean) {
     const user = useStore((s) => s.user);
     const loadCart = useStore((s) => s.loadCart);
     const prevUserRef = useRef(user);
@@ -14,6 +14,7 @@ export function useCartSync() {
 
         const syncCart = async () => {
             if (typeof window === 'undefined') return;
+            if (mustChangePassword) return;
 
             const justLoggedIn = !prevUser && user;
             if (!justLoggedIn) return;
@@ -38,7 +39,7 @@ export function useCartSync() {
         };
 
         syncCart();
-    }, [user, loadCart]);
+    }, [user, loadCart, mustChangePassword]);
 
     const forceSync = async () => {
         await loadCart();
