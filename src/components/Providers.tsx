@@ -20,10 +20,10 @@ function CartInitializer() {
   const loadCart = useStore((s) => s.loadCart);
   const initGuestSession = useStore((s) => s.initGuestSession);
   const flushOfflineQueue = useStore((s) => s.flushOfflineQueue);
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, mustChangePassword } = useAuth();
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || mustChangePassword) return;
 
     const init = async () => {
       await initGuestSession();
@@ -50,7 +50,7 @@ function CartInitializer() {
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('online', onOnline);
     };
-  }, [authLoading, loadCart, initGuestSession, flushOfflineQueue]);
+  }, [authLoading, mustChangePassword, loadCart, initGuestSession, flushOfflineQueue]);
 
   return null;
 }
@@ -71,12 +71,16 @@ function FavoritesInitializer() {
   const setUser = useStore((s) => s.setUser);
   const loadFavorites = useStore((s) => s.loadFavorites);
   const storeUser = useStore((s) => s.user);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, mustChangePassword } = useAuth();
   const syncedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
       if (storeUser) setUser(null);
+      syncedUserIdRef.current = null;
+      return;
+    }
+    if (mustChangePassword) {
       syncedUserIdRef.current = null;
       return;
     }
@@ -97,13 +101,14 @@ function FavoritesInitializer() {
     }
 
     loadFavorites();
-  }, [isAuthenticated, user, setUser, loadFavorites, storeUser]);
+  }, [isAuthenticated, user, mustChangePassword, setUser, loadFavorites, storeUser]);
 
   return null;
 }
 
 export function Providers({ children }: ProvidersProps) {
   const pathname = usePathname();
+  const { mustChangePassword } = useAuth();
   const isAuthRoute = [
     '/login',
     '/register',
@@ -132,7 +137,7 @@ export function Providers({ children }: ProvidersProps) {
           overflowX: 'hidden',
         }}
       >
-        <Navigation />
+        {!mustChangePassword && <Navigation />}
 
         <Box
           component="main"
@@ -147,7 +152,7 @@ export function Providers({ children }: ProvidersProps) {
             {children}
           </ErrorBoundary>
         </Box>
-        <CartDrawer />
+        {!mustChangePassword && <CartDrawer />}
         <Toaster />
       </Box>
     </SnackbarProvider>

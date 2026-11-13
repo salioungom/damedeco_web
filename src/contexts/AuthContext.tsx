@@ -8,7 +8,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { api, apiUtils } from '@/lib/api';
 import { useCartSync } from '@/hooks/useCartSync';
 import { StatsService } from '@/services/stats.service';
@@ -40,7 +40,7 @@ interface AuthContextType extends AuthState {
     logout: () => Promise<void>;
     refreshAccessToken: () => Promise<boolean>;
     verifyOTP: (otp: string, method: 'totp' | 'email') => Promise<boolean>;
-    refetchUser: () => Promise<void>;
+    refetchUser: () => Promise<User | null>;
 }
 
 interface RegisterData {
@@ -106,9 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const pathname = usePathname();
     
     // Hook pour la synchronisation du panier
-    useCartSync();
+    useCartSync(state.mustChangePassword);
 
     // Gestion sécurisée du localStorage
     const getStoredToken = useCallback((): string | null => {
@@ -166,12 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // `fetchUser` est par ailleurs stable pour toute la durée du provider (ses
     // dépendances sont des `useCallback(…, [])`), donc l'effet ne se rejoue pas et
     // la ref ne peut pas devenir obsolète.
-    const fetchUserRef = useRef<((retryCount?: number) => Promise<void>) | undefined>(undefined);
+    const fetchUserRef = useRef<((retryCount?: number) => Promise<User | null>) | undefined>(undefined);
 
     // Récupération des informations utilisateur avec retry
-    const fetchUser = useCallback(async (retryCount = 0): Promise<void> => {
+    const fetchUser = useCallback(async (retryCount = 0): Promise<User | null> => {
         if (typeof window === 'undefined') {
-            return;
+            return null;
         }
 
         const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -187,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: 'unauthenticated',
             });
             setLoading(false);
-            return;
+            return null;
         }
 
         if (isTokenExpired(token)) {
@@ -202,15 +203,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
             setLoading(false);
             redirectToLogin(window.location.pathname + window.location.search);
-            return;
+            return null;
         }
         
         try {
-            const response = await api.get('/api/v1/auth/me', {
+            const response = await api.get('/api/v1/users/me', {
                 timeout: 8000,
             });
             
-            const user = response.data.user || response.data;
+            const user = response.data;
             if (!user) {
                 throw new Error('No user data in API response');
             }
@@ -219,32 +220,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 user,
                 accessToken: token,
                 isAuthenticated: true,
-                requires2FA: response.data.requires2FA || false,
-                mustChangePassword: response.data.must_change_password === true,
+                requires2FA: false,
+                mustChangePassword: user.must_change_password === true,
                 roles: user.role ? [user.role] : [],
                 status: 'authenticated',
             });
+            return user;
 
         } catch (error: any) {
-            const errorMessage = handleAuthError(error, 'fetchUser');
+            handleAuthError(error, 'fetchUser');
             
             if ((error.code === 'ECONNABORTED' || error.code === 'NETWORK_ERROR') && retryCount < 2) {
                 setTimeout(() => fetchUserRef.current?.(retryCount + 1), 1000 * (retryCount + 1));
-                return;
+                return null;
             }
             
             // 401/403 are handled by the API interceptor (refresh → retry → logout)
             if (error?.status === 401 || error?.status === 403) {
                 setLoading(false);
-                return;
+                return null;
             }
 
             if (!error?.status || error.status >= 500) {
                 setLoading(false);
-                return;
+                return null;
             }
 
             setLoading(false);
+            return null;
         } finally {
             setLoading(false);
         }
@@ -407,8 +410,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [setStoredToken, updateAuthState, handleAuthError]);
 
     // Recharger les données utilisateur
-    const refetchUser = useCallback(async (): Promise<void> => {
-        await fetchUser();
+    const refetchUser = useCallback(async (): Promise<User | null> => {
+        return fetchUser();
     }, [fetchUser]);
 
     // Maintient `fetchUserRef` pointant sur la dernière `fetchUser`. Déclaré AVANT
@@ -423,6 +426,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         fetchUser();
     }, [fetchUser]);
+
+    useEffect(() => {
+        if (state.mustChangePassword && pathname !== '/change-password') {
+            router.replace('/change-password');
+        }
+    }, [state.mustChangePassword, pathname, router]);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {

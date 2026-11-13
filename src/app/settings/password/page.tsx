@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Box,
     Container,
@@ -23,25 +23,12 @@ import { getDashboardPath } from '@/utils/roleRoutes';
 function PasswordPageContent() {
     const router = useRouter();
     const { user } = useAuth();
-    const [userId, setUserId] = useState<number | null>(null);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await apiClient.get('/api/v1/users/me');
-                setUserId(response.data.id);
-            } catch (err) {
-                console.error('Failed to fetch user profile', err);
-            }
-        };
-        fetchUser();
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,19 +38,15 @@ function PasswordPageContent() {
             return;
         }
 
-        if (!userId) {
-            setError('Impossible de récupérer l\'identifiant de l\'utilisateur connecté.');
-            return;
-        }
-
         setLoading(true);
         setError('');
         setSuccess('');
 
         try {
-            const response = await apiClient.post(`/api/v1/users/${userId}/change-password`, {
+            await apiClient.post('/api/v1/auth/password/change', {
                 current_password: currentPassword,
                 new_password: newPassword,
+                confirm_password: confirmPassword,
             });
 
             setSuccess('Mot de passe modifié avec succès !');
@@ -192,7 +175,7 @@ function PasswordPageContent() {
                                 type="submit"
                                 variant="contained"
                                 color="primary"
-                                disabled={loading || !currentPassword || !newPassword || !confirmPassword || !userId}
+                                disabled={loading || !currentPassword || !newPassword || !confirmPassword}
                                 sx={{ height: 48, flex: { sm: 2 } }}
                             >
                                 {loading ? 'Modification…' : 'Changer le mot de passe'}

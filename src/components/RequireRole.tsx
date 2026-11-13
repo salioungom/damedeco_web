@@ -17,12 +17,14 @@ interface RequireRoleProps {
 }
 
 export function RequireRole({ children, allowedRoles, redirectTo = '/', variant = 'simple' }: RequireRoleProps) {
-    const { user, loading } = useAuth();
+    const { user, loading, mustChangePassword } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!loading && !user) {
+        if (!loading && mustChangePassword && pathname !== '/change-password') {
+            router.replace('/change-password');
+        } else if (!loading && !user) {
             // Retour à la page d'origine après connexion : le paramètre `redirect`
             // est déjà lu par /login (src/app/login/page.tsx) et filtré par
             // `sanitizeRedirect` (src/lib/sanitize-redirect.ts).
@@ -30,10 +32,14 @@ export function RequireRole({ children, allowedRoles, redirectTo = '/', variant 
         } else if (!loading && user && !allowedRoles.includes(user.role)) {
             router.push(redirectTo);
         }
-    }, [user, loading, router, allowedRoles, redirectTo, pathname]);
+    }, [user, loading, mustChangePassword, router, allowedRoles, redirectTo, pathname]);
 
     if (loading) {
         return <DashboardSkeleton variant={variant} />;
+    }
+
+    if (mustChangePassword) {
+        return pathname === '/change-password' ? <>{children}</> : null;
     }
 
     if (!user || !allowedRoles.includes(user.role)) {

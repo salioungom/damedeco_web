@@ -24,6 +24,7 @@ export interface CurrentUserProfile {
   role?: string;
   avatar?: string;
   is_active?: boolean;
+  must_change_password?: boolean;
   last_login?: string;
   created_at?: string;
   updated_at?: string;

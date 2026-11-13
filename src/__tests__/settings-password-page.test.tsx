@@ -8,11 +8,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
-const { push, currentUser, post, get } = vi.hoisted(() => ({
+const { push, currentUser, post, refetchUser } = vi.hoisted(() => ({
   push: vi.fn(),
   currentUser: { role: 'client' as string },
   post: vi.fn(),
-  get: vi.fn(),
+  refetchUser: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -25,24 +25,24 @@ vi.mock('@/contexts/AuthContext', () => ({
     isAuthenticated: true,
     loading: false,
     user: { id: '1', role: currentUser.role, name: 'Client' },
+    refetchUser,
   }),
 }));
 
 vi.mock('@/lib/api-client', () => ({
-  default: { get, post },
+  default: { post },
 }));
 
 import PasswordPage from '@/app/settings/password/page';
 
 function fillForm() {
   fireEvent.change(screen.getByLabelText(/^mot de passe actuel/i), { target: { value: 'Ancien123!' } });
-  fireEvent.change(screen.getByLabelText(/^nouveau mot de passe/i), { target: { value: 'Nouveau456!' } });
-  fireEvent.change(screen.getByLabelText(/^confirmer le nouveau mot de passe/i), { target: { value: 'Nouveau456!' } });
+  fireEvent.change(screen.getByLabelText(/^nouveau mot de passe/i), { target: { value: 'Nouveau456!A' } });
+  fireEvent.change(screen.getByLabelText(/^confirmer le nouveau mot de passe/i), { target: { value: 'Nouveau456!A' } });
 }
 
 async function submitAndWait() {
   render(<PasswordPage />);
-  await waitFor(() => expect(get).toHaveBeenCalled());
   fillForm();
   fireEvent.click(screen.getByRole('button', { name: /changer le mot de passe/i }));
   await waitFor(() => expect(push).toHaveBeenCalled());
@@ -52,7 +52,7 @@ describe('/settings/password — redirection après succès', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentUser.role = 'client';
-    get.mockResolvedValue({ data: { id: 1, full_name: 'Salioungom ibn' } });
+    refetchUser.mockResolvedValue({ id: 1, role: 'client' });
     post.mockResolvedValue({ data: { success: true } });
   });
 
@@ -60,13 +60,16 @@ describe('/settings/password — redirection après succès', () => {
 
   it('envoie current_password / new_password (contrat admin pré-vol)', async () => {
     render(<PasswordPage />);
-    await waitFor(() => expect(get).toHaveBeenCalled());
     fillForm();
     fireEvent.click(screen.getByRole('button', { name: /changer le mot de passe/i }));
 
-    await waitFor(() => expect(post).toHaveBeenCalled());
-    expect(post.mock.calls[0][0]).toBe('/api/v1/users/1/change-password');
-    expect(post.mock.calls[0][1]).toEqual({ current_password: 'Ancien123!', new_password: 'Nouveau456!' });
+    await waitFor(() => {
+      expect(post).toHaveBeenCalledWith('/api/v1/auth/password/change', {
+        current_password: 'Ancien123!',
+        new_password: 'Nouveau456!A',
+        confirm_password: 'Nouveau456!A',
+      });
+    });
   });
 
   it('redirige un client vers /account', async () => {
@@ -91,7 +94,6 @@ describe('/settings/password — redirection après succès', () => {
     post.mockRejectedValue({ response: { status: 401, data: { detail: 'Mot de passe incorrect' } } });
 
     render(<PasswordPage />);
-    await waitFor(() => expect(get).toHaveBeenCalled());
     fillForm();
     fireEvent.click(screen.getByRole('button', { name: /changer le mot de passe/i }));
 
@@ -102,10 +104,9 @@ describe('/settings/password — redirection après succès', () => {
 
   it('NE redirige PAS si les deux mots de passe ne correspondent pas', async () => {
     render(<PasswordPage />);
-    await waitFor(() => expect(get).toHaveBeenCalled());
 
     fireEvent.change(screen.getByLabelText(/^mot de passe actuel/i), { target: { value: 'Ancien123!' } });
-    fireEvent.change(screen.getByLabelText(/^nouveau mot de passe/i), { target: { value: 'Nouveau456!' } });
+    fireEvent.change(screen.getByLabelText(/^nouveau mot de passe/i), { target: { value: 'Nouveau456!A' } });
     fireEvent.change(screen.getByLabelText(/^confirmer le nouveau mot de passe/i), { target: { value: 'Different789!' } });
     fireEvent.click(screen.getByRole('button', { name: /changer le mot de passe/i }));
 

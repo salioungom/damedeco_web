@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Box, Button, Alert } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
@@ -8,9 +8,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { RequireRole } from '@/components/RequireRole';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { PasswordField } from '@/components/ui/PasswordField';
+import { getDashboardPath } from '@/utils/roleRoutes';
 
 function ChangePasswordContent() {
-    const [userId, setUserId] = useState<number | null>(null);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,18 +24,6 @@ function ChangePasswordContent() {
     }>({});
     const router = useRouter();
     const { user, refetchUser } = useAuth();
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await apiClient.get('/api/v1/users/me');
-                setUserId(response.data.id);
-            } catch (err) {
-                console.error('Failed to fetch user profile', err);
-            }
-        };
-        fetchUser();
-    }, []);
 
     const validateForm = (): boolean => {
         const errors: {
@@ -75,17 +63,13 @@ function ChangePasswordContent() {
 
         if (!validateForm()) return;
 
-        if (!userId) {
-            setError("Impossible de récupérer l'identifiant de l'utilisateur connecté.");
-            return;
-        }
-
         setLoading(true);
 
         try {
-            await apiClient.post(`/api/v1/users/${userId}/change-password`, {
+            await apiClient.post('/api/v1/auth/password/change', {
                 current_password: currentPassword,
                 new_password: newPassword,
+                confirm_password: confirmPassword,
             });
 
             setSuccess('Mot de passe modifié avec succès ! Redirection…');
@@ -94,16 +78,10 @@ function ChangePasswordContent() {
             setConfirmPassword('');
             setFieldErrors({});
 
-            await refetchUser();
+            const updatedUser = await refetchUser();
 
             setTimeout(() => {
-                if (user?.role === 'superadmin') {
-                    router.push('/dashboards');
-                } else if (user?.role === 'admin') {
-                    router.push('/dashboard');
-                } else {
-                    router.push('/account');
-                }
+                router.push(getDashboardPath(updatedUser?.role || user?.role));
             }, 2000);
         } catch (err: any) {
             setError(
