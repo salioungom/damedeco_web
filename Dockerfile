@@ -30,12 +30,15 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copier le code source
 COPY . .
 
-# NEXT_PUBLIC_API_URL est figée au build (variable d'environnement Next.js)
+# Les NEXT_PUBLIC_* sont intégrées au bundle pendant le build Next.js.
 ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
-# Garde-fou : NEXT_PUBLIC_API_URL ne doit pas être vide
+# Garde-fous : les URLs nécessaires au build ne doivent pas être vides.
 RUN test -n "$NEXT_PUBLIC_API_URL" || (echo "ERREUR : NEXT_PUBLIC_API_URL est vide" >&2 && exit 1)
+RUN test -n "$NEXT_PUBLIC_SITE_URL" || (echo "ERREUR : NEXT_PUBLIC_SITE_URL est vide" >&2 && exit 1)
 
 # Désactiver la télémétrie Next.js
 ENV NEXT_TELEMETRY_DISABLED=1

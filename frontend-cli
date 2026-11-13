@@ -32,7 +32,7 @@ show_help() {
     echo ""
     echo "Exemples:"
     echo "  ./frontend-cli start"
-    echo "  ./frontend-cli build-prod http://localhost:8000"
+    echo "  ./frontend-cli build-prod <URL_API> <URL_SITE>"
 }
 
 # Commande start
@@ -75,29 +75,28 @@ cmd_rebuild() {
 
 # Commande build-prod
 cmd_build_prod() {
-    if [ -z "$1" ]; then
-        echo -e "${RED}Erreur: l'URL de l'API est requise${NC}"
-        echo "Usage: ./frontend-cli build-prod <URL_API>"
-        echo "Exemple: ./frontend-cli build-prod http://localhost:8000"
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo -e "${RED}Erreur: les URLs de l'API et du site sont requises${NC}"
+        echo "Usage: ./frontend-cli build-prod <URL_API> <URL_SITE>"
         exit 1
     fi
 
     local API_URL="$1"
+    local SITE_URL="$2"
 
-    # Validation : l'URL doit commencer par http:// ou https://
-    if [[ ! "$API_URL" =~ ^https?:// ]]; then
-        echo -e "${RED}Erreur: l'URL doit commencer par http:// ou https://${NC}"
+    if [[ ! "$API_URL" =~ ^https?:// ]] || [[ ! "$SITE_URL" =~ ^https?:// ]]; then
+        echo -e "${RED}Erreur: les URLs doivent commencer par http:// ou https://${NC}"
         exit 1
     fi
 
-    # Avertissement pour localhost (tests locaux acceptés)
-    if [[ "$API_URL" =~ localhost ]]; then
-        echo -e "${CYAN}Attention: l'URL contient 'localhost'. Ceci est acceptable pour les tests locaux.${NC}"
+    if [[ "$API_URL" =~ localhost ]] || [[ "$SITE_URL" =~ localhost ]]; then
+        echo -e "${CYAN}Attention: une URL contient 'localhost' ; utilisez ces valeurs uniquement pour un build local.${NC}"
     fi
 
-    echo -e "${CYAN}Construction de l'image de production avec NEXT_PUBLIC_API_URL=$API_URL...${NC}"
+    echo -e "${CYAN}Construction de l'image avec les URLs fournies...${NC}"
     docker buildx build --load \
         --build-arg NEXT_PUBLIC_API_URL="$API_URL" \
+        --build-arg NEXT_PUBLIC_SITE_URL="$SITE_URL" \
         -t damedeco_web:latest \
         -t ghcr.io/salioungom/damedeco_web:latest \
         -f Dockerfile \
@@ -123,7 +122,7 @@ case "$1" in
         cmd_rebuild
         ;;
     build-prod)
-        cmd_build_prod "$2"
+        cmd_build_prod "$2" "$3"
         ;;
     help|--help|-h|"")
         show_help

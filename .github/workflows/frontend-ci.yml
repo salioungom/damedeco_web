@@ -46,4 +46,7 @@ jobs:
         run: pnpm test
 
       - name: Build (Next.js)
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
         run: pnpm build
