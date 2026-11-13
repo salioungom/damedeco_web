@@ -59,13 +59,9 @@ declare module '@mui/material/styles' {
   }
 }
 
-// Inter est une police VARIABLE : on ne doit pas demander plusieurs `weight`
-// (300, 400, …), sinon Google renvoie le même fichier pour chaque poids et
-// chaque URL apparaît plusieurs fois dans le CSS généré. Turbopack refuse alors
-// de résoudre le module de police (« next/font/google queries have exactly one
-// entry ») et le build échoue. Sans `weight`, on obtient la police variable
-// (100–900) : un seul fichier par subset, un rendu identique aux graisses
-// utilisées par le thème (400, 500, 600, 700).
+// Inter et Fraunces sont des polices variables : ne pas leur fournir plusieurs
+// poids, ce qui génère des URL dupliquées et fait échouer leur résolution par
+// Turbopack. DM Serif Display est statique et conserve son poids unique.
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -78,7 +74,6 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 const fraunces = Fraunces({
-  weight: ['400', '500'],
   subsets: ['latin'],
   display: 'swap',
 });
