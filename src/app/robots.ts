@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import type { MetadataRoute } from 'next';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://damedeco.shop';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://damedeco.shop';
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
     const requestHeaders = await headers();

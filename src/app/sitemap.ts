@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import type { MetadataRoute } from 'next';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://damedeco.shop';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://damedeco.shop';
 const publicPaths = ['/', '/shop', '/about', '/contact', '/mentions-legales', '/cgv', '/confidentialite'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
